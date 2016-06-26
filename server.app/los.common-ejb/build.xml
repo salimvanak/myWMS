@@ -1,0 +1,159 @@
+<project name="los.common-ejb" default="common.compile" basedir="./..">
+
+	<!-- read defaults -->
+	<property file="build.properties" />
+
+	<property name="common.src.dir" location="los.common-ejb/src" />
+	<property name="common.test.dir" location="los.common-ejb/test" />
+	<property name="common.lib.dir" location="los.common-ejb/lib" />
+	<property name="common.meta-inf.dir" location="los.common-ejb/META-INF" />
+
+	<property name="common.build.dir" location="los.common-ejb/build" />
+	<property name="common.classes.dir" location="${common.build.dir}/classes" />
+	<property name="common.properties.dir" location="${common.classes.dir}/de/linogistix/los/res" />
+
+	<property name="common.component.dir" location="${common.build.dir}/component" />
+	<property name="common.build.lib.dir" location="${common.build.dir}/lib" />
+
+	<property name="common.test.classes.dir" location="${common.build.dir}/testclasses" />
+
+	<path id="classpath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		
+		<fileset dir="${common.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${mywms.home}/build/component">
+			<include name="myWMS-comp.jar" />
+		</fileset>
+	</path>
+
+	<path id="testclasspath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${common.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/lib">
+			<include name="myWMS-test.jar" />
+		</fileset>
+
+		<pathelement location="${common.classes.dir}" />
+
+	</path>
+
+	<target name="common.compile" description="Compiling sources">
+		<mkdir dir="${common.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${common.src.dir}" destdir="${common.classes.dir}">
+			<classpath refid="classpath" />
+			<!--compilerarg value="-Xlint:deprecation"/-->
+		</javac>
+		
+		<mkdir dir="${common.properties.dir}" />
+		<tstamp/>
+	    <propertyfile
+	        file="${common.properties.dir}/VersionBundle.properties" 
+	        comment="Updated by build script">
+	        <entry key="build.date" value="${DSTAMP} " />
+	        <entry key="build.time" value="${TSTAMP} " />
+	    </propertyfile>
+
+	</target>
+
+	<target name="common.compile-tests" depends="common.compile" description="Compile all test classes">
+		<mkdir dir="${common.test.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${common.test.dir}" destdir="${common.test.classes.dir}">
+			<classpath refid="testclasspath" />
+		</javac>
+	</target>
+
+	<target name="common.package.lib" depends="common.compile, common.compile-tests">
+
+		<mkdir dir="${common.build.lib.dir}" />
+
+		<jar jarfile="${common.build.lib.dir}/los.common-client.jar">
+			<fileset dir="${common.classes.dir}">
+				<include name="**/*.class" />
+				<!--include name="**/jndi.properties" /-->
+			</fileset>
+
+			<fileset dir="${common.src.dir}">
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+		</jar>
+
+		<jar jarfile="${common.build.lib.dir}/los.common-test.jar">
+			<fileset dir="${common.test.classes.dir}">
+			</fileset>
+			<fileset dir="${common.test.dir}">
+				<include name="de/linogistix/**/*.java" />
+			</fileset>
+		</jar>
+
+	</target>
+
+	<!-- This task will create a myWMS-comp.jar .
+		 It is intended for usage in a custom enterprise application.
+	-->
+	<target name="common.package.component" depends="common.compile, common.package.lib" description="Package a los-comp.jar for usage in a custom .ear">
+
+		<mkdir dir="${common.component.dir}" />
+
+		<jar jarfile="${common.component.dir}/los.common-comp.jar">
+			<fileset dir="${common.classes.dir}">
+				<include name="de/linogistix/**/*.class" />
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+			<fileset dir="${common.src.dir}">
+				<include name="de/linogistix/**/*.java" />
+				<include name="de/linogistix/**/*.jrxml" />
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+			<metainf dir="${common.meta-inf.dir}">
+				<include name="**/beans.xml" />
+				<include name="**/jboss-ejb3.xml" />
+			</metainf>
+		</jar>
+	</target>
+
+
+	<target name="common.clean" description="Clean all .class and .jar files">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${common.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${common.test.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${common.component.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${common.build.lib.dir}" />
+		</delete>
+
+	</target>
+
+</project>

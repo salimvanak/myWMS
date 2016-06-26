@@ -1,0 +1,60 @@
+<project name="myWMS.database" default="createDBSchema">
+
+	<property name="classes.dir" location="../classes"/>
+	
+	<taskdef name="hibernatetool" 
+	         	 classname="org.hibernate.tool.ant.HibernateToolTask" />
+	
+	<target name="createDBSchema">
+		<hibernatetool destdir=".">
+	 		<annotationconfiguration configurationfile="hibernate.cfg.xml"/>
+			<classpath>
+				<pathelement location="${classes.dir}"/>
+			</classpath>
+	 		<hbm2ddl export="true" 
+	 				 create="true">
+	 		</hbm2ddl>
+	 	</hibernatetool>
+ 	</target>
+	
+	<target name="updateDBSchema">
+		<hibernatetool destdir=".">
+			<annotationconfiguration configurationfile="hibernate.cfg.xml"/>
+			<classpath>
+				<pathelement location="${classes.dir}"/>
+			</classpath>
+			<hbm2ddl export="true" 
+					 create="false"
+					 update="true">
+		 	</hbm2ddl>
+		 </hibernatetool>
+	 </target>
+	
+	<target name="dropDBSchema">
+		<hibernatetool destdir=".">
+			<annotationconfiguration configurationfile="hibernate.cfg.xml"/>
+			<classpath>
+				<pathelement location="${classes.dir}"/>
+			</classpath>
+			<hbm2ddl export="true" 
+					 create="false"
+					 update="false"
+					 drop="true">
+		 	</hbm2ddl>
+		 </hibernatetool>
+	</target>
+	
+	<target name="generateSQLCreateScript">
+			<hibernatetool destdir=".">
+				<annotationconfiguration configurationfile="hibernate.cfg.xml"/>
+				<classpath>
+					<pathelement location="${classes.dir}"/>
+				</classpath>
+				<hbm2ddl export="false" 
+						 create="true"
+						 outputfilename="postgres_createTables.sql">
+			 	</hbm2ddl>
+			 </hibernatetool>
+		</target>
+	
+</project>

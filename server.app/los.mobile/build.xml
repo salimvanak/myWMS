@@ -1,0 +1,153 @@
+<project name="los-mobile" default="los-mobile.compile" basedir="./..">
+
+	<property file="build.properties" />
+
+	<property name="web.src.dir" location="los.mobile/src" />
+    <property name="web.src.server.dir" location="los.mobile/srcServer" />
+	<property name="web.build.dir" location="los.mobile/build" />
+	<property name="web.webcontent.dir" location="los.mobile/WebContent" />
+	<property name="web.meta-inf.dir" location="los.mobile/META-INF" />
+	<property name="web.webclasses.dir" location="${web.build.dir}/war/WEB-INF/classes" />
+
+	<path id="web.classpath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.location-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.location-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.inventory-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.inventory-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.stocktaking-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/component">
+			<include name="myWMS-comp.jar" />
+		</fileset>
+        
+        <fileset dir="${web.build.dir}/component">
+          <include name="*-comp.jar" />
+        </fileset>
+
+	</path>
+
+
+	<target name="los-mobile.compile">
+
+        <mkdir dir="${web.build.dir}/classes" />
+        <mkdir dir="${web.build.dir}/component" />
+        <mkdir dir="${web.build.dir}/war" />
+		
+        <javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${web.src.server.dir}" destdir="${web.build.dir}/classes">
+            <classpath refid="web.classpath" />
+        </javac>
+        
+        <copy todir="${web.build.dir}/classes">
+          <fileset dir="${web.src.server.dir}">
+            <include name="**/res/*" />
+            <include name="**/*.properties" />
+          </fileset>
+        </copy>
+		
+        <mkdir dir="${web.build.dir}/classes/de/linogistix/mobile/res" />
+        <tstamp/>
+        <propertyfile
+                     file="${web.build.dir}/classes/de/linogistix/mobile/res/VersionBundle.properties" 
+                     comment="Updated by build script">
+          <entry key="build.date" value="${DSTAMP} " />
+          <entry key="build.time" value="${TSTAMP} " />
+        </propertyfile>
+
+        <mkdir dir="${web.meta-inf.dir}" />
+        <jar jarfile="${web.build.dir}/component/los.mobile-comp.jar">
+            <fileset dir="${web.build.dir}/classes">
+                <include name="de/linogistix/**/*.class" />
+                <include name="de/linogistix/**/*.properties" />
+            </fileset>
+            <fileset dir="${web.src.server.dir}">
+                <include name="de/linogistix/**/*.java" />
+            </fileset>
+            <metainf dir="${web.meta-inf.dir}">
+                <include name="**/jboss.xml" />
+            </metainf>
+        </jar>
+        
+		<mkdir dir="${web.webclasses.dir}" />
+
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${web.src.dir}" destdir="${web.webclasses.dir}">
+			<classpath refid="web.classpath" />
+		</javac>
+        <jar jarfile="${web.build.dir}/component/los.mobile-web.jar">
+            <fileset dir="${web.webclasses.dir}">
+                <include name="de/linogistix/**/*.class" />
+                <include name="de/linogistix/**/*.properties" />
+            </fileset>
+            <fileset dir="${web.src.dir}">
+                <include name="de/linogistix/**/*.java" />
+            </fileset>
+        </jar>
+		<copy todir="${web.build.dir}/war">
+			<fileset dir="${web.webcontent.dir}">
+				<include name="**/*" />
+			</fileset>
+
+		</copy>
+		
+        <copy todir="${web.webclasses.dir}">
+			<fileset dir="${web.src.dir}">
+				<include name="**/res/*" />
+				<include name="**/*.properties" />
+				<include name="**/*.java" />
+			</fileset>
+
+		</copy>
+
+	</target>
+
+	<target name="los-mobile.package.war" depends="los-mobile.compile" description="Compile all classes and package web archive">
+		<mkdir dir="${web.build.dir}" />
+
+		<!-- Build .war -->
+		<jar jarfile="${web.build.dir}/los-mobile.war">
+
+			<fileset dir="${web.war.dir}">
+				<include name="**/*" />
+			</fileset>
+
+		</jar>
+	</target>
+	
+	<target name="los-mobile.clean" description="Clean all classes and web archive">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${web.build.dir}/classes" />
+			<fileset dir="${web.build.dir}/component" />
+			<fileset dir="${web.build.dir}/war" />
+			<fileset dir="${web.classes.dir}" />
+			<fileset dir="${web.webcontent.dir}/WEB-INF/classes" />
+		</delete>
+	</target>
+
+</project>

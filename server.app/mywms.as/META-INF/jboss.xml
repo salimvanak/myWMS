@@ -1,0 +1,6 @@
+<jboss>
+	<security-domain>
+		los-login
+	</security-domain>
+</jboss>
+ 

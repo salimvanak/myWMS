@@ -1,0 +1,164 @@
+<project name="los.location-ejb" default="location.compile" basedir="./..">
+
+	<!-- read defaults -->
+	<property file="build.properties" />
+
+	<property name="location.src.dir" location="los.location-ejb/src" />
+	<property name="location.test.dir" location="los.location-ejb/test" />
+	<property name="location.lib.dir" location="los.location-ejb/lib" />
+	<property name="location.meta-inf.dir" location="los.location-ejb/META-INF" />
+
+	<property name="location.build.dir" location="los.location-ejb/build" />
+	<property name="location.classes.dir" location="${location.build.dir}/classes" />
+	<property name="location.properties.dir" location="${location.classes.dir}/de/linogistix/los/location/res" />
+
+	<property name="location.component.dir" location="${location.build.dir}/component" />
+	<property name="location.build.lib.dir" location="${location.build.dir}/lib" />
+
+	<property name="location.test.classes.dir" location="${location.build.dir}/testclasses" />
+
+	<path id="classpath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${location.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${mywms.home}/build/component">
+			<include name="myWMS-comp.jar" />
+		</fileset>
+	</path>
+
+	<path id="testclasspath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${location.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<pathelement location="${location.classes.dir}" />
+
+	</path>
+
+	<target name="location.compile" description="Compiling sources">
+		<mkdir dir="${location.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${location.src.dir}" destdir="${location.classes.dir}">
+			<classpath refid="classpath" />
+		</javac>
+		
+		<mkdir dir="${location.properties.dir}" />
+		<tstamp/>
+	    <propertyfile
+	        file="${location.properties.dir}/VersionBundle.properties" 
+	        comment="Updated by build script">
+	        <entry key="build.date" value="${DSTAMP} " />
+	        <entry key="build.time" value="${TSTAMP} " />
+	    </propertyfile>
+
+	</target>
+
+	<target name="location.compile-tests" depends="location.compile" description="Compile all test classes">
+		<mkdir dir="${location.test.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${location.test.dir}" destdir="${location.test.classes.dir}">
+			<classpath refid="testclasspath" />
+		</javac>
+	</target>
+
+	<target name="location.package.lib" depends="location.compile, location.compile-tests">
+
+		<mkdir dir="${location.build.lib.dir}" />
+
+		<jar jarfile="${location.build.lib.dir}/los.location-client.jar">
+			<fileset dir="${location.classes.dir}">
+				<include name="**/*.class" />
+				<!--include name="**/jndi.properties" /-->
+			</fileset>
+
+			<fileset dir="${location.src.dir}">
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+		</jar>
+
+		<jar jarfile="${location.build.lib.dir}/los.location-test.jar">
+			<fileset dir="${location.test.classes.dir}">
+			</fileset>
+		</jar>
+
+	</target>
+
+	<!-- This task will create a myWMS-comp.jar .
+		 It is intended for usage in a custom enterprise application.
+	-->
+	<target name="location.package.component" depends="location.compile, location.package.lib" description="Package a los-comp.jar for usage in a custom .ear">
+
+		<mkdir dir="${location.component.dir}" />
+
+		<jar jarfile="${location.component.dir}/los.location-comp.jar">
+			<fileset dir="${location.classes.dir}">
+				<include name="de/linogistix/**/*.class" />
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+			<fileset dir="${location.src.dir}">
+				<include name="de/linogistix/**/*.java" />
+				<include name="de/linogistix/**/*.jrxml" />
+				<include name="de/linogistix/**/*.properties"/>
+			</fileset>
+
+			<metainf dir="${location.meta-inf.dir}">
+				<include name="**/jboss-ejb3.xml" />
+				<include name="**/beans.xml" />
+			</metainf>
+		</jar>
+	</target>
+	
+
+	<target name="location.clean" description="Clean all .class and .jar files">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${location.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${location.test.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${location.component.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${location.build.lib.dir}" />
+		</delete>
+
+	</target>
+
+</project>

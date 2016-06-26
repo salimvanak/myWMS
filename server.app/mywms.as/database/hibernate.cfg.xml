@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+		"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+		"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+               
+        <property name="hibernate.connection.url">jdbc:postgresql://'server':'port'/'database'</property>
+        <property name="hibernate.default_schema">public</property>
+        <property name="hibernate.connection.username">'username'</property>
+        <property name="hibernate.connection.password">'password'</property>
+                
+        <mapping class="org.mywms.model.Area"/>
+        <mapping class="org.mywms.model.BasicClientAssignedEntity"/>
+        <mapping class="org.mywms.model.BasicEntity"/>
+        <mapping class="org.mywms.model.Client"/>
+        <mapping class="org.mywms.model.Config"/>
+        <mapping class="org.mywms.model.Document"/>
+        <mapping class="org.mywms.model.GoodsOutRequest"/>
+        <mapping class="org.mywms.model.ItemData"/>
+        <mapping class="org.mywms.model.LogItem"/>
+        <mapping class="org.mywms.model.MoveRequest"/>        
+  		<mapping class="org.mywms.model.PickingRequest"/>
+  		<mapping class="org.mywms.model.PickingRequestPosition"/>  
+  		<mapping class="org.mywms.model.PluginConfiguration"/>  
+  		<mapping class="org.mywms.model.Request"/>  
+  		<mapping class="org.mywms.model.Role"/>
+        <mapping class="org.mywms.model.StockUnit"/>
+        <mapping class="org.mywms.model.StorageLocation"/>
+        <mapping class="org.mywms.model.TransportRequest"/>
+        <mapping class="org.mywms.model.UnitLoad"/>
+        <mapping class="org.mywms.model.UnitLoadType"/>
+        <mapping class="org.mywms.model.User"/>
+        <mapping class="org.mywms.model.Zone"/>
+        
+    </session-factory>
+</hibernate-configuration>

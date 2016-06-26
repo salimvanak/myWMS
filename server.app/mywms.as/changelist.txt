@@ -1,0 +1,111 @@
+Please add your changes at the top of this file, under this sentence:
+
+----- Main Trunc -----
+
+Entities:
+=========
+* added ClearingItem - this is Work in progress
+
+Services:
+=========
+* added @Local annotation for the services to prevent deployment problems with JBoss 4.2.2
+* added ClearingItemService - this is Work in progress
+
+----- Main Trunc -----
+
+Entities:
+=========
+* added Lot; Lot is referencing ItemData and is referenced by StockUnit
+  ATTENTION: this change affects the database layout
+* added property lot in ItemData
+  ATTENTION: this change affects the database layout
+
+Services:
+=========
+* added LotService and LotServiceBean
+
+----- Main Trunc -----
+
+Entities:
+==========
+* fixed some missing annotations (mostly @ManyToOne in references to other entities)
+  ATTENTION: this change affects the database layout
+* fixed some unique constraints (area and zone names are unique per client only)
+  ATTENTION: this change affects the database constraints
+* added the missing 'reserved' property to StorageLocation
+  ATTENTION: this change affects the database layout
+* added reservedAmount to the StockUnit
+  ATTENTION: this change affects the database layout
+* added entity Config
+  ATTENTION: this change affects the database layout
+* added index to PickingRequestPosition
+  ATTENTION: this change affects the database layout
+* added index to UnitLoad
+  ATTENTION: this change affects the database layout
+* fixed the name of the StorageLocationStrategy (was StorrageLocationStrategy)
+  ATTENTION: this change affects the database layout
+* implemented the FIFO and LIFO strategy in StorageLocation
+  
+Services:
+==========
+* the BasicService method get(String uniqueName) has been removed;
+  derived services now implement their own get-methods
+* added getListByItemData in StockUnitService
+* added getListByUnitLoad in TransportRequestService
+* added methods regarding the reservedAmount to the StockUnitService
+* added ConfigService
+* added methods to the TransportRequestService, including create
+  
+Utils:
+=======
+* BeanLocator: fixed
+* added component Equipment and its bean
+
+----- TAG: release-2007-04-18 -----
+
+Entities: ( database tables need to be rebuild now! )
+==========
+
+* introduced the @Enumerated pattern 
+* merged Location into StorageLocation
+* introduced sanity check on PrePersist and PreUpdate to UnitLoad, StockUnit and StorageLocation
+
+StorageLocation:
+* changed assoziation StorageLocation_UnitLoadType into ManyToMany
+* addded assoziation StorageLocation_Zone
+
+
+Services:
+==========
+* added flush to the create methods
+  (some application servers will delay database constraint checking until the commit is called otherwise;
+   this would prevent catching generic and throwing specialized business logic exceptions) 
+
+ClientService:
+* improved getSystemClient(), 
+  if the system client is missing, a new one will be created on the fly
+
+StockUnitService:
+* introduced create method with required parameters
+
+UnitLoadService:
+* introduced create method with required parameters
+* changed getUnitLoads(UnitLoadType) into getUnitLoads(Client, UnitLoadType)
+
+UnitLoadTypeService:
+* introduced create method with required parameters
+
+UserService:
+* added UniqueConstraintViolatedException on createUser()
+* changed getUsers(Role) into getUsers(Client, Role)
+
+StorageLocationService:
+* changed create(String) into createStorageLocation(Client, String)
+* introduced getStorageLocationByName(Client, String)
+
+BasicService: 
+* introduced method E merge(E entity)
+* introduced method flush()
+* introduced method deleteAll()
+
+----- TAG: release-2007-03-27 -----

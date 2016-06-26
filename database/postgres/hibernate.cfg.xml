@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+                
+		<mapping class="org.mywms.model.Area"/>
+        <mapping class="org.mywms.model.BasicClientAssignedEntity"/>
+        <mapping class="org.mywms.model.BasicEntity"/>
+        <mapping class="org.mywms.model.ClearingItem"/>
+        <mapping class="org.mywms.model.Client"/>
+        
+        <mapping class="org.mywms.model.Document"/>
+        <mapping class="org.mywms.model.ItemData"/>
+        <mapping class="org.mywms.model.ItemDataNumber"/>
+        <mapping class="org.mywms.model.ItemUnit"/>
+        <mapping class="org.mywms.model.LogItem"/>
+        <mapping class="org.mywms.model.Lot"/>
+        <mapping class="org.mywms.model.PluginConfiguration"/>  
+        <mapping class="org.mywms.model.Request"/>  
+        <mapping class="org.mywms.model.Role"/>  
+        <mapping class="org.mywms.model.StockUnit"/> 
+        <mapping class="org.mywms.model.UnitLoad"/>
+        <mapping class="org.mywms.model.UnitLoadType"/>
+        <mapping class="org.mywms.model.User"/>
+        <mapping class="org.mywms.model.Zone"/>
+        
+        <!-- jar-file>los-par.jar</jar-file--> 
+        
+        <mapping class="de.linogistix.los.inventory.model.LOSAdvice"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSGoodsOutRequest"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSGoodsOutRequestPosition"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSGoodsReceipt"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSGoodsReceiptPosition"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSStockUnitRecord"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSStorageRequest"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSUnitLoadAdvice"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSUnitLoadAdvicePosition"/>
+        <mapping class="de.linogistix.los.inventory.model.LOSBom"/>
+        <mapping class="de.linogistix.los.inventory.model.OrderReceipt" />
+        <mapping class="de.linogistix.los.inventory.model.OrderReceiptPosition" />
+        <mapping class="de.linogistix.los.inventory.model.StockUnitLabel" />
+
+        <mapping class="de.linogistix.los.inventory.model.LOSCustomerOrder" />
+        <mapping class="de.linogistix.los.inventory.model.LOSCustomerOrderPosition" />
+        <mapping class="de.linogistix.los.inventory.model.LOSOrderStrategy" />
+        <mapping class="de.linogistix.los.inventory.model.LOSStorageStrategy" />
+        <mapping class="de.linogistix.los.inventory.model.LOSPickingOrder" />
+        <mapping class="de.linogistix.los.inventory.model.LOSPickingPosition" />
+        <mapping class="de.linogistix.los.inventory.model.LOSPickingUnitLoad" />
+        <mapping class="de.linogistix.los.inventory.model.LOSReplenishOrder" />
+                
+        <mapping class="de.linogistix.los.inventory.pick.model.PickReceipt"/>
+        <mapping class="de.linogistix.los.inventory.pick.model.PickReceiptPosition"/>
+        
+        <mapping class="de.linogistix.los.stocktaking.model.LOSStockTaking"/>
+        <mapping class="de.linogistix.los.stocktaking.model.LOSStocktakingRecord"/>
+        <mapping class="de.linogistix.los.stocktaking.model.LOSStocktakingOrder"/>
+        
+        <mapping class="de.linogistix.los.location.model.LOSArea"/>
+        <mapping class="de.linogistix.los.location.model.LOSFixedLocationAssignment" />
+        <mapping class="de.linogistix.los.location.model.LOSRack"/>
+        <mapping class="de.linogistix.los.location.model.LOSStorageLocation"/>
+        <mapping class="de.linogistix.los.location.model.LOSStorageLocationType"/>
+        <mapping class="de.linogistix.los.location.model.LOSTypeCapacityConstraint"/>
+        <mapping class="de.linogistix.los.location.model.LOSUnitLoad"/>
+        <mapping class="de.linogistix.los.location.model.LOSUnitLoadRecord"/>
+        <mapping class="de.linogistix.los.location.model.LOSLocationCluster"/>
+        <mapping class="de.linogistix.los.location.model.LOSWorkingArea"/>
+        <mapping class="de.linogistix.los.location.model.LOSWorkingAreaPosition"/>
+        <mapping class="de.linogistix.los.location.model.StorageLocationLabel" />
+        
+        <mapping class="de.linogistix.los.model.LOSSequenceNumber"/>
+        <mapping class="de.linogistix.los.model.LOSServiceProperty"/>
+        <mapping class="de.linogistix.los.model.LOSSystemProperty"/>
+        <mapping class="de.linogistix.los.model.LOSJasperReport"/>
+        
+        
+        
+        <!-- mapping resource="META-INF/orm.xml"/-->
+        
+    </session-factory>
+</hibernate-configuration>

@@ -1,0 +1,54 @@
+<application xmlns="http://java.sun.com/xml/ns/j2ee" version="5"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://java.sun.com /xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_5.xsd">
+             
+    <display-name>LOS Reference</display-name>
+
+    <description>LOS Reference</description>
+    
+    <module>
+        <ejb>project-persistence.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>project-ejb3.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>myWMS-comp.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>los.common-comp.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>los.location-comp.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>los.inventory-comp.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>los.stocktaking-comp.jar</ejb>
+    </module>  
+
+	<module>
+        <ejb>los.inventory-ws.jar</ejb>
+    </module>
+    
+    <module>
+        <ejb>los.mobile-comp.jar</ejb>
+    </module>
+
+ 	<module>
+        <web>
+            <web-uri>los-mobile.war</web-uri>
+            <context-root>los-mobile</context-root>
+        </web>
+    </module>
+    
+ 	<library-directory>lib</library-directory>
+    
+</application>

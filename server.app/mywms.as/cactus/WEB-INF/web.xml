@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_4.xsd"
+     version="2.4">
+     
+	<display-name>mywmsAS-tests</display-name>
+	
+	<!-- This is for testing local or remote session beans inside the application server -->
+	<!-- Used together with cactus test 1.7.2 for J2EE 1.3 -->
+	<servlet>
+		<servlet-name>ServletTestRedirector</servlet-name>
+		<display-name>ServletTestRedirector</display-name>
+		<servlet-class>org.apache.cactus.server.ServletTestRedirector</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ServletTestRedirector</servlet-name>
+		<url-pattern>/ServletRedirector</url-pattern>
+	</servlet-mapping>
+</web-app>

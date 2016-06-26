@@ -1,0 +1,185 @@
+<project name="los.stocktaking-ejb" default="stocktaking.compile" basedir="./..">
+
+	<!-- read defaults -->
+	<property file="build.properties" />
+
+	<property name="stocktaking.src.dir" location="los.stocktaking-ejb/src" />
+	<property name="stocktaking.test.dir" location="los.stocktaking-ejb/test" />
+	<property name="stocktaking.lib.dir" location="los.stocktaking-ejb/lib" />
+	<property name="stocktaking.meta-inf.dir" location="los.stocktaking-ejb/META-INF" />
+
+	<property name="stocktaking.build.dir" location="los.stocktaking-ejb/build" />
+	<property name="stocktaking.classes.dir" location="${stocktaking.build.dir}/classes" />
+	<property name="stocktaking.properties.dir" location="${stocktaking.classes.dir}/de/linogistix/los/stocktaking/exception" />
+
+	<property name="stocktaking.component.dir" location="${stocktaking.build.dir}/component" />
+	<property name="stocktaking.build.lib.dir" location="${stocktaking.build.dir}/lib" />
+
+	<property name="stocktaking.test.classes.dir" location="${stocktaking.build.dir}/testclasses" />
+
+	<path id="classpath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.location-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.location-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.inventory-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.inventory-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/component">
+			<include name="myWMS-comp.jar" />
+		</fileset>
+	</path>
+
+	<path id="testclasspath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.location-ejb.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.location-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.inventory-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.inventory-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<pathelement location="${stocktaking.classes.dir}" />
+
+	</path>
+
+	<target name="stocktaking.compile" description="Compiling sources">
+		<mkdir dir="${stocktaking.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${stocktaking.src.dir}" destdir="${stocktaking.classes.dir}">
+			<classpath refid="classpath" />
+		</javac>
+		
+		<mkdir dir="${stocktaking.properties.dir}" />
+		<tstamp/>
+	    <propertyfile
+	        file="${stocktaking.properties.dir}/VersionBundle.properties" 
+	        comment="Updated by build script">
+	        <entry key="build.date" value="${DSTAMP} " />
+	        <entry key="build.time" value="${TSTAMP} " />
+	    </propertyfile>
+
+	</target>
+
+	<target name="stocktaking.compile-tests" depends="stocktaking.compile" description="Compile all test classes">
+		<mkdir dir="${stocktaking.test.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${stocktaking.test.dir}" destdir="${stocktaking.test.classes.dir}">
+			<classpath refid="testclasspath" />
+		</javac>
+	</target>
+
+	<target name="stocktaking.package.lib" depends="stocktaking.compile, stocktaking.compile-tests">
+
+		<mkdir dir="${stocktaking.build.lib.dir}" />
+
+		<jar jarfile="${stocktaking.build.lib.dir}/los.stocktaking-client.jar">
+			<fileset dir="${stocktaking.classes.dir}">
+				<include name="**/*.class" />
+				<!--include name="**/jndi.properties" /-->
+			</fileset>
+
+			<fileset dir="${stocktaking.src.dir}">
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+		</jar>
+
+		<jar jarfile="${stocktaking.build.lib.dir}/los.stocktaking-test.jar">
+			<fileset dir="${stocktaking.test.classes.dir}">
+			</fileset>
+		</jar>
+
+	</target>
+
+	<!-- This task will create a myWMS-comp.jar .
+		 It is intended for usage in a custom enterprise application.
+	-->
+	<target name="stocktaking.package.component" depends="stocktaking.compile, stocktaking.package.lib" description="Package a los-comp.jar for usage in a custom .ear">
+
+		<mkdir dir="${stocktaking.component.dir}" />
+
+		<jar jarfile="${stocktaking.component.dir}/los.stocktaking-comp.jar">
+			<fileset dir="${stocktaking.classes.dir}">
+				<include name="de/linogistix/**/*.class" />
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+			<fileset dir="${stocktaking.src.dir}">
+                <include name="de/linogistix/**/*.java" />
+				<include name="de/linogistix/**/*.jrxml" />
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+			<metainf dir="${stocktaking.meta-inf.dir}">
+				<include name="**/jboss-ejb3.xml" />
+				<include name="**/beans.xml" />
+			</metainf>
+		</jar>
+	</target>
+
+
+	<target name="stocktaking.clean" description="Clean all .class and .jar files">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${stocktaking.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${stocktaking.test.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${stocktaking.component.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${stocktaking.build.lib.dir}" />
+		</delete>
+
+	</target>
+
+</project>

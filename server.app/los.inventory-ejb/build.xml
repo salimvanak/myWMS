@@ -1,0 +1,177 @@
+<project name="los.inventory-ejb" default="inventory.compile" basedir="./..">
+
+	<!-- read defaults -->
+	<property file="build.properties" />
+
+	<property name="inventory.src.dir" location="los.inventory-ejb/src" />
+	<property name="inventory.test.dir" location="los.inventory-ejb/test" />
+	<property name="inventory.lib.dir" location="los.inventory-ejb/lib" />
+	<property name="inventory.meta-inf.dir" location="los.inventory-ejb/META-INF" />
+
+	<property name="inventory.build.dir" location="los.inventory-ejb/build" />
+	<property name="inventory.classes.dir" location="${inventory.build.dir}/classes" />
+	<property name="inventory.properties.dir" location="${inventory.classes.dir}/de/linogistix/los/inventory/res" />
+
+	<property name="inventory.component.dir" location="${inventory.build.dir}/component" />
+	<property name="inventory.build.lib.dir" location="${inventory.build.dir}/lib" />
+
+	<property name="inventory.test.classes.dir" location="${inventory.build.dir}/testclasses" />
+
+	<path id="classpath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.location-ejb.home}/build/component">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.location-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${inventory.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${mywms.home}/build/component">
+			<include name="myWMS-comp.jar" />
+		</fileset>
+	</path>
+
+	<path id="testclasspath">
+
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+
+		<fileset dir="${los.common-ejb.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.common-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${los.location-ejb.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${los.location-ejb.home}/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${inventory.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+
+		<fileset dir="${mywms.home}/build/lib">
+			<include name="*.jar" />
+		</fileset>
+
+		<pathelement location="${inventory.classes.dir}" />
+
+	</path>
+
+	<target name="inventory.compile" description="Compiling sources">
+		<mkdir dir="${inventory.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${inventory.src.dir}" destdir="${inventory.classes.dir}">
+			<classpath refid="classpath" />
+		</javac>
+		
+		<mkdir dir="${inventory.properties.dir}" />
+		<tstamp/>
+	    <propertyfile
+	        file="${inventory.properties.dir}/VersionBundle.properties" 
+	        comment="Updated by build script">
+	        <entry key="build.date" value="${DSTAMP} " />
+	        <entry key="build.time" value="${TSTAMP} " />
+	    </propertyfile>
+
+	</target>
+
+	<target name="inventory.compile-tests" depends="inventory.compile" description="Compile all test classes">
+		<mkdir dir="${inventory.test.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${inventory.test.dir}" destdir="${inventory.test.classes.dir}">
+			<classpath refid="testclasspath" />
+		</javac>
+	</target>
+
+	<target name="inventory.package.lib" depends="inventory.compile, inventory.compile-tests">
+
+		<mkdir dir="${inventory.build.lib.dir}" />
+
+		<jar jarfile="${inventory.build.lib.dir}/los.inventory-client.jar">
+			<fileset dir="${inventory.classes.dir}">
+				<include name="**/*.class" />
+				<!--include name="**/jndi.properties" /-->
+			</fileset>
+
+			<fileset dir="${inventory.src.dir}">
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+		</jar>
+
+		<jar jarfile="${inventory.build.lib.dir}/los.inventory-test.jar">
+			<fileset dir="${inventory.test.classes.dir}">
+			</fileset>
+		</jar>
+
+	</target>
+
+	<!-- This task will create a myWMS-comp.jar .
+		 It is intended for usage in a custom enterprise application.
+	-->
+	<target name="inventory.package.component" depends="inventory.compile, inventory.package.lib" description="Package a los-comp.jar for usage in a custom .ear">
+
+		<mkdir dir="${inventory.component.dir}" />
+
+		<jar jarfile="${inventory.component.dir}/los.inventory-comp.jar">
+			<fileset dir="${inventory.classes.dir}">
+				<include name="de/linogistix/**/*.class" />
+				<include name="de/linogistix/**/*.properties" />
+			</fileset>
+
+			<fileset dir="${inventory.src.dir}">
+				<include name="de/linogistix/**/*.java" />
+				<include name="de/linogistix/**/*.jrxml" />
+				<include name="de/linogistix/**/*.properties"/>
+			</fileset>
+
+			<metainf dir="${inventory.meta-inf.dir}">
+				<include name="**/jboss-ejb3.xml" />
+				<include name="**/beans.xml" />
+			</metainf>
+		</jar>
+	</target>
+
+	<target name="inventory.clean" description="Clean all .class and .jar files">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${inventory.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${inventory.test.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${inventory.component.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${inventory.build.lib.dir}" />
+		</delete>
+
+	</target>
+
+</project>

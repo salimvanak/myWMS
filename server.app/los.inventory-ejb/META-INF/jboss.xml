@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss>
+  <security-domain>los-login</security-domain>
+</jboss>

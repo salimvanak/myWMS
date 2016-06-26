@@ -1,0 +1,91 @@
+<project name="LOS Reference DB" default="postgres.SQLCreateScript" basedir=".">
+
+	<property file="conection.properties" />
+
+	<property name="hibernate.lib.dir" location="./../lib" />
+
+	<property name="server.app.dir" location="../../server.app" />
+	<property name="los.common-ejb.dir" location="${server.app.dir}/los.common-ejb/build/component" />
+	<property name="los.location-ejb.dir" location="${server.app.dir}/los.location-ejb/build/component" />
+	<property name="los.inventory-ejb.dir" location="${server.app.dir}/los.inventory-ejb/build/component" />
+	<property name="los.stocktaking-ejb.dir" location="${server.app.dir}/los.stocktaking-ejb/build/component" />
+	<property name="mywms.comp.dir" location="${server.app.dir}/mywms.as/build/component" />
+	<property name="project.comp.dir" location="${server.app.dir}/project-ejb/build/deploy" />
+
+	<path id="toolslib">
+		<path location="${hibernate.lib.dir}/javassist.jar" />
+		<path location="${hibernate.lib.dir}/hibernate-core.jar" />
+		<path location="${hibernate.lib.dir}/hibernate-tools.jar" />
+		<path location="${hibernate.lib.dir}/hibernate-commons-annotations.jar" />
+		<path location="${hibernate.lib.dir}/ejb3-persistence.jar" />
+		<path location="${hibernate.lib.dir}/freemarker.jar" />
+		<path location="${hibernate.lib.dir}/dom4j-1.6.1.jar" />
+		<path location="${hibernate.lib.dir}/commons-logging-1.0.4.jar" />
+		<path location="${hibernate.lib.dir}/jboss-transaction-api.jar" />
+		<path location="${hibernate.lib.dir}/commons-collections-2.1.1.jar" />
+		<path location="${hibernate.lib.dir}/commons-codec-1.10.jar" />
+		<path location="${hibernate.lib.dir}/jboss-logging.jar" />
+		<path location="${hibernate.lib.dir}/postgresql-9.4-1201.jdbc41.jar" />
+		<path location="${hibernate.lib.dir}/h2.jar" />
+		<path location="${hibernate.lib.dir}/slf4j-api.jar" />
+		<path location="${hibernate.lib.dir}/slf4j-ext.jar" />
+	</path>
+
+	<path id="entityclasses">
+
+		<path location="${los.common-ejb.dir}/los.common-comp.jar" />
+		<path location="${los.location-ejb.dir}/los.location-comp.jar" />
+		<path location="${los.inventory-ejb.dir}/los.inventory-comp.jar" />
+		<path location="${los.stocktaking-ejb.dir}/los.stocktaking-comp.jar" />
+		<path location="${mywms.comp.dir}/myWMS-comp.jar" />
+		<path location="${project.comp.dir}/project-par.jar" />
+
+	</path>
+
+	<taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask" classpathref="toolslib" />
+
+	<target name="postgres.local.dropSchema" description="Deletes all tables in database. Please ensure that the right database is referenced by hibernate.cfg.xml">
+		<hibernatetool destdir=".">
+			<annotationconfiguration configurationfile="hibernate.cfg.xml" propertyfile="conection.properties"/>
+			<classpath refid="entityclasses" />
+			<hbm2ddl export="true" create="false" update="false" drop="true" />
+		</hibernatetool>
+	</target>
+
+	<target name="postgres.local.createSchema" description="Creates tables in database. Please ensure that the right database is referenced by hibernate.cfg.xml">
+		<hibernatetool destdir=".">
+			<annotationconfiguration configurationfile="hibernate.cfg.xml" propertyfile="conection.properties"/>
+			<classpath refid="entityclasses" />
+			<hbm2ddl export="true" create="true" />
+		</hibernatetool>
+	</target>
+
+	<target name="postgres.local.init" description="Creates tables in database. Please ensure that the right database is referenced by hibernate.cfg.xml">
+
+		<sql driver="${hibernate.connection.driver_class}" url="${hibernate.connection.url}" userid="${hibernate.connection.username}" password="${hibernate.connection.password}">
+
+			<classpath refid="toolslib" />
+			<transaction src="./initdata-postgres.sql" />
+
+		</sql>
+	</target>
+	
+	<target name="postgres.local.updateSchema" description="Creates tables in database. Please ensure that the right database is referenced by hibernate.cfg.xml">
+			<hibernatetool destdir=".">
+				<annotationconfiguration configurationfile="hibernate.cfg.xml" propertyfile="conection.properties"/>
+				<classpath refid="entityclasses" />
+				<hbm2ddl export="true" create="false" update="true" drop="false"/>
+			</hibernatetool>
+	</target>
+	
+	<target name="postgres.SQLCreateScript">
+		<mkdir dir="./output" />
+		<hibernatetool destdir="./output">
+			<annotationconfiguration configurationfile="hibernate.cfg.xml" propertyfile="conection.properties" />
+			<classpath refid="entityclasses" />
+			<hbm2ddl export="false" create="true" outputfilename="postgres_createTables.sql">
+			</hbm2ddl>
+		</hibernatetool>
+	</target>
+
+</project>

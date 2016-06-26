@@ -1,0 +1,240 @@
+<project name="mywms.as" default="build" basedir="./..">
+
+	<!-- read defaults -->
+	<property file="build.properties" />
+
+	<property name="src.dir" location="mywms.as/src" />
+	<property name="src.client.dir" location="mywms.as/src.client" />
+	<property name="test.dir" location="mywms.as/test" />
+	<property name="lib.dir" location="mywms.as/lib" />
+	<property name="meta-inf.dir" location="mywms.as/META-INF" />
+
+	<property name="build.dir" location="mywms.as/build" />
+	<property name="classes.dir" location="${build.dir}/classes.server" />
+	<property name="classes.client.dir" location="${build.dir}/classes.client" />
+	<property name="deploy.dir" location="${build.dir}/deploy" />
+	<property name="component.dir" location="${build.dir}/component" />
+	<property name="build.lib.dir" location="${build.dir}/lib" />
+
+	<property name="test.classes.dir" location="${build.dir}/testclasses" />
+
+	<property name="cactus.dir" value="mywms.as/cactus" />
+	<property name="cactus.src.dir" value="${cactus.dir}/src" />
+	<property name="cactus.lib.dir" value="${cactus.dir}/WEB-INF/lib" />
+	<property name="cactus.classes.dir" value="${cactus.dir}/WEB-INF/classes" />
+	<property name="cactus.meta-inf.dir" value="${cactus.dir}/META-INF" />
+
+	<path id="classpath">
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="testclasspath">
+		<fileset dir="${jboss.home}/modules">
+			<include name="*/**/*.jar" />
+		</fileset>
+		<fileset dir="${cactus.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+		<pathelement location="${classes.dir}" />
+	</path>
+
+	<target name="mywms.compile" description="Compiling sources">
+		<mkdir dir="${classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${src.dir}" destdir="${classes.dir}">
+			<classpath refid="classpath" />
+		</javac>
+		<!--<mkdir dir="${classes.client.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${src.client.dir}" destdir="${classes.client.dir}">
+			<classpath refid="classpath" />
+		</javac>-->
+	</target>
+
+	<target name="mywms.compile-tests" depends="mywms.compile, Cactus.compile" description="Compile all test classes">
+		<mkdir dir="${test.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${test.dir}" destdir="${test.classes.dir}">
+			<classpath refid="testclasspath" />
+		</javac>
+	</target>
+
+
+	<!-- Compiles all sources in ./cactus/src to ./cactus/WEB-INF/classes -->
+	<target name="Cactus.compile" depends="mywms.compile">
+		<mkdir dir="${cactus.classes.dir}" />
+		<javac source="1.7" target="1.7" includeantruntime="false" debug="true" srcdir="${cactus.src.dir}" destdir="${cactus.classes.dir}">
+			<classpath refid="testclasspath" />
+		</javac>
+	</target>
+
+	<target name="mywms.package" depends="mywms.compile, mywms.package.lib" description="Package a deployable myWMS.ear">
+		<copy file="${lib.dir}/itext-1.4.jar" todir="${deploy.dir}" />
+		<jar jarfile="${deploy.dir}/myWMS-par.jar">
+			<fileset dir="${classes.dir}">
+				<include name="**/model/*.class" />
+			</fileset>
+			<metainf dir="${meta-inf.dir}">
+				<include name="**/persistence.xml" />
+			</metainf>
+		</jar>
+		<jar jarfile="${deploy.dir}/myWMS-ejb3.jar">
+			<fileset dir="${classes.dir}">
+				<include name="**/*.class" />
+				<exclude name="**/model/*.class" />
+				<exclude name="**/exposed/*.class" />
+			</fileset>
+			<metainf dir="${meta-inf.dir}">
+				<include name="**/jboss-ejb3.xml" />
+			</metainf>
+		</jar>
+		<jar jarfile="${deploy.dir}/myWMS.ear">
+			<fileset dir="${deploy.dir}">
+				<include name="myWMS-par.jar" />
+				<include name="myWMS-ejb3.jar" />
+				<include name="itext-1.4.jar" />
+			</fileset>
+			<metainf dir="${meta-inf.dir}">
+				<include name="**/application.xml" />
+			</metainf>
+		</jar>
+	</target>
+
+	<target name="mywms.package.lib" depends="mywms.compile, mywms.compile-tests">
+
+		<mkdir dir="${build.lib.dir}" />
+
+		<jar jarfile="${build.lib.dir}/myWMS-client.jar">
+			<fileset dir="${classes.dir}">
+				<include name="**/*.class" />
+				<exclude name="*/**/*Bean.class" />
+			</fileset>
+			<!--<fileset dir="${classes.client.dir}">
+				<include name="**/*.class" />
+			</fileset>-->
+		</jar>
+
+		<jar jarfile="${build.lib.dir}/myWMS-test.jar">
+			<fileset dir="${test.classes.dir}">
+				<include name="**/*.class" />
+			</fileset>
+		</jar>
+
+	</target>
+
+	<!-- This task will create a myWMS-comp.jar .
+		 It is intended for usage in a custom enterprise application.
+	-->
+	<target name="mywms.package.component" depends="mywms.compile, mywms.package.lib" description="Package a myWMS-comp.jar for usage in a custom .ear">
+
+		<mkdir dir="${component.dir}" />
+
+		<jar jarfile="${component.dir}/myWMS-comp.jar">
+			<fileset dir="${classes.dir}">
+				<include name="org/mywms/**/*.class" />
+				<exclude name="**/cmdtools/*.class" />
+				<exclude name="**/mfc/*.class" />
+				<exclude name="**/facade/MFC*.class" />
+				<exclude name="**/exposed/**.class" />
+
+			</fileset>
+			<fileset dir="${src.dir}">
+                <include name="**/*.java" />
+				<exclude name="**/cmdtools/*.java" />
+				<exclude name="**/mfc/*.java" />
+				<exclude name="**/facade/MFC*.java" />
+				<exclude name="**/exposed/**.java" />
+			</fileset>
+			<!--<fileset dir="${classes.client.dir}">
+				<include name="**/*.class" />
+			</fileset>-->
+			<!--<fileset dir="${src.client.dir}">
+				<include name="**/*.java" />
+			</fileset>-->
+				
+			<metainf dir="${meta-inf.dir}">
+				<include name="**/jboss-ejb3.xml" />
+				<include name="**/beans.xml" />
+				<exclude name="**/application.xml" />
+				<exclude name="**/persistence.xml" />
+			</metainf>
+		</jar>
+	</target>
+	
+	
+	<!-- Packages the test classes in a cactustest.war file and
+		 builds an cactustest.ear containing mywms.ejb3, mywms.par
+		 and the created cactustest.war -->
+	<target name="Cactus.package" depends="Cactus.compile, mywms.package">
+		<jar jarfile="${deploy.dir}/cactustest.war">
+			<fileset dir="${cactus.dir}">
+				<include name="WEB-INF/**/*" />
+				<exclude name="WEB-INF/**/CactusTestSuite.class" />
+			</fileset>
+		</jar>
+		<jar jarfile="${deploy.dir}/cactustest.ear">
+			<fileset dir="${deploy.dir}">
+				<include name="${par.name}" />
+				<include name="${ejb3.name}" />
+				<include name="cactustest.war" />
+				<include name="itext-1.4.jar" />
+			</fileset>
+			<metainf dir="${cactus.meta-inf.dir}">
+				<include name="**/application.xml" />
+			</metainf>
+		</jar>
+	</target>
+
+	<target name="mywms.deploy" depends="mywms.package" description="Deploy myWMS.ear to JBOSS_HOME/server/default/deploy">
+		<copy file="${deploy.dir}/myWMS.ear" todir="${jboss.home}/server/default/deploy" />
+	</target>
+
+	<target name="Cactus.deploy" depends="Cactus.package">
+		<copy file="${deploy.dir}/cactustest.ear" todir="${jboss.home}/server/default/deploy" />
+	</target>
+
+	<target name="undeploy">
+		<delete file="${jboss.home}/server/default/deploy/${ear.name}" />
+	</target>
+
+	<target name="Cactus.undeploy">
+		<delete file="${jboss.home}/server/default/deploy/cactustest.ear" />
+	</target>
+
+	<target name="build" depends="mywms.clean, mywms.package">
+	</target>
+
+	<target name="mywms.clean" description="Clean all .class and .jar files">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${classes.dir}" />
+		</delete>
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${classes.client.dir}" />
+		</delete>
+
+		<delete file="${test.classes.dir}/AllTests.class" />
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${test.classes.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${component.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${build.lib.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${deploy.dir}" />
+		</delete>
+
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${cactus.classes.dir}" />
+		</delete>
+	</target>
+
+</project>

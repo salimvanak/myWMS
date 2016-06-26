@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence>
+
+  <persistence-unit name="myWMS">
+  
+  <jta-data-source>java:/myWMSDS</jta-data-source>
+  <properties>
+    
+    <!-- 
+    
+    <property name="hibernate.hbm2ddl.auto" 
+             value="c r e a t e - d r o p" />
+
+    <property name="hibernate.hbm2ddl.auto" 
+             value="c r e a t e" />
+
+    <property name="hibernate.hbm2ddl.auto" 
+             value="update" />
+
+    <property name="hibernate.show_sql" 
+             value="true" />
+     -->
+
+    <property name="hibernate.dialect"
+             value="org.hibernate.dialect.PostgreSQLDialect" />
+	
+    <property name="hibernate.id.new_generator_mappings" value="true" />
+  </properties>
+  
+  </persistence-unit>
+</persistence>
