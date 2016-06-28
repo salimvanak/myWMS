@@ -1,4 +1,4 @@
-apply plugin: 'ear'   
+apply plugin: 'ear'
 
 version = '1.8.0'
 
@@ -23,7 +23,6 @@ ear {
   }
 
   deploymentDescriptor {  // custom entries for application.xml:
-    applicationName = "myWMS"
     displayName = "myWMS"
     description = 'myWMS Warehouse Management System'
   }
@@ -59,7 +58,7 @@ allprojects {
       name "JBoss Public Maven Repository Group"
       url "https://repository.jboss.org/nexus/content/groups/public-jboss/"
     }
-    
+
     maven {
       name "PrimeFaces Repository"
       url "http://repository.primefaces.org"
