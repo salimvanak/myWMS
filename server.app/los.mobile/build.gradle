@@ -1,0 +1,34 @@
+apply plugin: 'war'
+
+sourceSets {
+  server {
+    java.srcDir 'srcServer'
+    resources.srcDir 'srcServer'
+  }
+  main {
+    java.srcDir 'src'
+    resources.srcDir 'src'
+  }
+}
+
+webAppDirName = 'WebContent'
+
+dependencies {
+  serverCompile project(':server.app:los.stocktaking-ejb')
+
+  providedCompile sourceSets.server.output
+  providedCompile project(':server.app:los.stocktaking-ejb')
+}
+
+jar {
+  from sourceSets.server.output
+  archiveName = 'los.mobile-comp.jar'
+}
+
+war {
+  archiveName 'los-mobile.war'
+}
+
+artifacts {
+    archives war
+}

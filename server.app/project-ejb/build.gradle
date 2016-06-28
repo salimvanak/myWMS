@@ -1,0 +1,24 @@
+dependencies {
+  compile project(':server.app:los.inventory-ejb')  
+  compile project(':server.app:los.stocktaking-ejb')  
+  compile project(':server.app:los.mobile')  
+}
+
+jar {
+  archiveName = "project-ejb3.jar"
+  from('./') {
+    include "META-INF/*"
+    exclude "META-INF/persistence.xml"
+  }
+}
+
+task persistanceJar(type: Jar) {
+  from('./') {
+    include "META-INF/persistence.xml"
+  }
+  archiveName = "project-persistence.jar"
+}
+
+artifacts {
+    archives persistanceJar
+}

@@ -1,0 +1,19 @@
+sourceSets {
+  main {
+    java.srcDir 'src'
+    resources.srcDir 'src'
+  }
+}
+
+dependencies {
+  compile project(':server.app:los.common-ejb')
+  compile 'net.sf.jasperreports:jasperreports:4.6.0'
+  compile 'org.apache.commons:commons-lang3:3.4'
+}
+
+jar {
+  archiveName = 'los.location-comp.jar'
+  from ('./') {
+    include 'META-INF/*'
+  }
+}

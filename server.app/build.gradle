@@ -1,0 +1,68 @@
+apply plugin: 'ear'   
+
+version = '1.8.0'
+
+dependencies {
+  deploy project('mywms.as')
+  deploy project('los.common-ejb')
+  deploy project('los.location-ejb')
+  deploy project('los.inventory-ejb')
+  deploy project('los.stocktaking-ejb')
+  deploy project('los.mobile')
+  deploy project(path: 'los.mobile', configuration: 'archives')
+  deploy project(path: 'project-ejb', configuration: 'archives')
+
+  earlib 'net.sf.jasperreports:jasperreports:4.6.0'
+  earlib 'org.apache.commons:commons-lang3:3.4'
+}
+
+ear {
+  archiveName 'los.reference.ear'
+  from ('./') {
+    include 'META-INF/jboss-deployment-structure.xml'
+  }
+
+  deploymentDescriptor {  // custom entries for application.xml:
+    applicationName = "myWMS"
+    displayName = "myWMS"
+    description = 'myWMS Warehouse Management System'
+  }
+}
+
+subprojects {
+  apply plugin: 'java'
+ 	sourceCompatibility = 1.8
+
+  dependencies {
+    compile group: 'org.wildfly', name: 'wildfly-server', version: '8.2.1.Final'
+    compile group: 'javax', name: 'javaee-api', version: '7.0'
+
+    compile 'org.jboss.ws:jbossws-api:1.0.2.Final'
+    compile 'org.jboss.ejb3:jboss-ejb3-ext-api:2.2.0.Final'
+    compile 'org.hibernate:hibernate-core:4.3.7.Final'
+    compile 'log4j:log4j:1.2.17'
+    compile group: 'org.jboss', name: 'jboss-ejb-client', version: '2.1.6.Final'
+  }
+}
+
+allprojects {
+	repositories {
+		jcenter()
+    mavenCentral()
+
+    maven {
+      name "Gradle Repository"
+      url "https://plugins.gradle.org/m2/"
+    }
+
+    maven {
+      name "JBoss Public Maven Repository Group"
+      url "https://repository.jboss.org/nexus/content/groups/public-jboss/"
+    }
+    
+    maven {
+      name "PrimeFaces Repository"
+      url "http://repository.primefaces.org"
+    }
+	}
+}

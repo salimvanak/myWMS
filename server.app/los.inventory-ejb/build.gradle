@@ -1,0 +1,17 @@
+sourceSets {
+  main {
+    java.srcDir 'src'
+    resources.srcDir 'src'
+  }
+}
+
+dependencies {
+  compile project(':server.app:los.location-ejb')
+}
+
+jar {
+  archiveName 'los.inventory-comp.jar'
+  from ('./') {
+    include 'META-INF/*'
+  }
+}

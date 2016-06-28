@@ -1,0 +1,20 @@
+sourceSets {
+  main {
+    java {
+      srcDir 'src'
+    }
+    resources {
+      srcDir 'src'
+    }
+  }
+}
+
+jar {
+  archiveName = "myWMS-comp.jar"
+  from ('./') {
+    include 'META-INF/*'
+    exclude 'META-INF/application.xml'
+    exclude 'META-INF/persistence.xml'  
+  }
+}
+
