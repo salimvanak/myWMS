@@ -3,6 +3,7 @@
 <%@page session="false"%>
 <html>
     <head>
+    	<%@include file="/common-header.jspf" %>
  <!--<meta http-equiv="Refresh" content="1; URL=/los-mobile/faces/pages/processes/controller/gui/component/CenterPanel.jsp"> -->
         <meta http-equiv="Pragma" content="no-cache">
         <meta http-equiv="expires" content="Mon, 01 Jan 1990 00:00:01 GMT">            

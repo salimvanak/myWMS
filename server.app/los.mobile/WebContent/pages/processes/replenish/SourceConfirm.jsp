@@ -16,6 +16,7 @@
 
 <html>
     <head>
+    	<%@include file="/common-header.jspf" %>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>LOS</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/pages/stylesheet.css" type="text/css" />

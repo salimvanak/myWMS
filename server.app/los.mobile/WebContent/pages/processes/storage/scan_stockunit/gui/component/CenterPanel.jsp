@@ -1,8 +1,8 @@
-<%-- 
+<%--
   Copyright (c) 2006 - 2010 LinogistiX GmbH
 
   www.linogistix.com
-  
+
   Project: myWMS-LOS
 --%>
 
@@ -21,6 +21,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
 
 <html>
 <head>
+<%@include file="/common-header.jspf" %>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>LOS</title>
 <%--    <link rel="stylesheet" type="text/css" href="pages/picking/stylesheet.css" />--%>
@@ -69,7 +70,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
 				value="#{bundle.Forward}"
 				action="#{de_linogistix_mobile_processes_storage_scan_unitload_gui_bean_CenterBean.forwardActionPerformedListener}"
 				disabled="#{!de_linogistix_mobile_processes_storage_scan_unitload_gui_bean_CenterBean.forwardButtonEnabled}"
-				styleClass="commandButton" /> 
+				styleClass="commandButton" />
 			<h:commandButton id="cancelButton"
 				value="#{bundle.Cancel}"
 				action="#{de_linogistix_mobile_processes_storage_scan_unitload_gui_bean_CenterBean.cancelActionPerformedListener}"
@@ -79,15 +80,15 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
 </f:view>
 
 <script type="text/javascript">
-            
-            function load() {            
-                setFocus();    
-            }    
-            
+
+            function load() {
+                setFocus();
+            }
+
             function setFocus() {
                 document.getElementById('Form:ulTextField').focus();
-            }    
-            
+            }
+
         </script>
 </body>
 </html>

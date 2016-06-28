@@ -23,6 +23,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
 
 
     <head>
+    	<%@include file="/common-header.jspf" %>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>LOS</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/pages/stylesheet.css" type="text/css" />

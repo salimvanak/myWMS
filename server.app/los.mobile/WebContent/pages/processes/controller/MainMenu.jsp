@@ -22,6 +22,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
 
 <html>
     <head>
+    	<%@include file="/common-header.jspf" %>
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="expires" content="Mon, 01 Jan 1990 00:00:01 GMT">
 

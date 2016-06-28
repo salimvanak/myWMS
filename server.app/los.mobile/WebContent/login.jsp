@@ -25,6 +25,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
 "http://www.w3.org/TR/html4/loose.dtd">
 <html>    
     <head>
+    	<%@include file="/common-header.jspf" %> 
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta http-equiv="Pragma" content="no-cache">
         <meta http-equiv="expires" content="Mon, 01 Jan 1990 00:00:01 GMT">            

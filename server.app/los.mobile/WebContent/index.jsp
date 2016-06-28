@@ -10,6 +10,7 @@
 <%@page session="false"%>
 <html>
     <head>
+    	<%@include file="/common-header.jspf" %>
 		<meta http-equiv="Pragma" content="no-cache">
 		<meta http-equiv="expires" content="Mon, 01 Jan 1990 00:00:01 GMT">            
 	</head>
