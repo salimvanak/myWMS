@@ -65,11 +65,13 @@ body{
 
 .error{
   color: red;
+  font-weight: bold;
   background-color: #C0C0C0;
+  text-align: center;
   margin-left:0px;
-  margin-top:0px;
-  margin-bottom:0px;
-  border: none;  
+  margin-top:1ex;
+  margin-bottom:1ex;
+  border: solid 2px;  
 }
 
 .input{
