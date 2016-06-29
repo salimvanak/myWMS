@@ -66,5 +66,12 @@ public interface PickingMobileFacade {
 	public PickingMobilePos changePickFromStockUnit( PickingMobilePos to, String label ) throws FacadeException;
 	public Comparator<PickingMobilePos> getPickingComparator();
 
+	/**
+	 * Check that a location scan is allowed for picking.
+	 * A location scan is generally only allowd for picking when there is
+	 * exactly one unit load in the location.
+	 * @param code
+	 * @throws FacadeException
+	 */
 	void checkLocationScan( String code ) throws FacadeException;
 }

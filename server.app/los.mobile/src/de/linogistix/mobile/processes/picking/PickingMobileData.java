@@ -32,11 +32,11 @@ import de.linogistix.mobileserver.processes.picking.PickingMobileUnitLoad;
  * With this class all accesses to the backend are done.
  * <p>
  * HowTo handle:
- * <li><b>Initialization:</b> reset(). Remove all stored information. No callback to the backend is done. 
+ * <li><b>Initialization:</b> reset(). Remove all stored information. No callback to the backend is done.
  * Only internal structures are reseted.
  * </li>
  * <li><b>Add picking orders:</b> loadOrder(). When adding a picking order, the necessary information is
- * loaded from the backend. 
+ * loaded from the backend.
  * </li>
  * <li><b>Start pick handling loop:</b> startPicking().
  * Initializes structures to loop over all open picks. To navigate within the picks use setFirstPick(), setNextPick(), setPrevPick().<br>
@@ -45,68 +45,68 @@ import de.linogistix.mobileserver.processes.picking.PickingMobileUnitLoad;
  * </li>
  * <li><b>Start unitLoad loop:</b> startPutAway(). </li>
  * Initializes structures to loop over all open picks. To navigate within the picks use setFirstPickTo(), setNextPickTo(), setPrevPickTo(), setPickTo(index).<br>
- * The pick navigation will return null values. 
- * The unit load information methods (getPickToLabel()...) will give information about the current pick-to unit load. Not of a unit load regarding to a pick. 
- * </p> 
- * 
+ * The pick navigation will return null values.
+ * The unit load information methods (getPickToLabel()...) will give information about the current pick-to unit load. Not of a unit load regarding to a pick.
+ * </p>
+ *
  * @author krane
  */
 public class PickingMobileData extends BasicBackingBean implements Serializable {
 	Logger log = Logger.getLogger(PickingMobileData.class);
 	private static final long serialVersionUID = 1L;
-	
+
 	protected PickingMobileOrder currentOrder = null;
 	protected List<PickingMobilePos> pickList = new ArrayList<PickingMobilePos>();
 	protected PickingMobileUnitLoad currentPickTo = null;
 	protected int currentPickIdx = -1;
 	protected PickingMobileFacade facade;
-	
+
 	public PickingMobileData() {
 		facade = getStateless(PickingMobileFacade.class);
 	}
 
-	
-	
+
+
 	// ************************************************************************
 	// Operation PICKUP
 	// These methods are only defined in this operation mode
 	// ************************************************************************
-	
-	
-	
-	
+
+
+
+
 	public void loadOrder( long orderId ) throws FacadeException {
 		String logStr = "loadOrder ";
 		log.debug(logStr+"id="+orderId);
-		
+
 		currentOrder = null;
 		pickList = new ArrayList<PickingMobilePos>();
 		currentPickTo = null;
 
 		currentOrder = facade.readOrder(orderId);
-		
+
 		if( currentOrder == null ) {
 			throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, resolve("MsgDataNoOrder"));
 		}
-		
+
 		if( currentOrder.state < State.RESERVED ) {
 			facade.reserveOrder(orderId);
 		}
-		
+
 		pickList = facade.readPickList(orderId);
-		
+
 		currentPickTo = facade.readUnitLoad(orderId);
 	}
-	
+
 	public void reloadOrder( long orderId ) throws FacadeException {
 		String logStr = "reloadOrder ";
 		PickingMobileOrder order = facade.readOrder(orderId);
 		if( order == null ) {
 			throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, resolve("MsgDataNoOrder"));
 		}
-		
+
 		currentOrder = order;
-		
+
 		List<PickingMobilePos> pickListNew = facade.readPickList(orderId);
 
 		// Add new picks to the structure
@@ -138,10 +138,10 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		if( currentPickTo != null ) {
 			facade.removeUnitLoadIfEmpty( currentPickTo.label );
 		}
-		
+
 		reset();
 	}
-	
+
 	/**
 	 * Registers a new label for the pick-to unit-load of the current order
 	 * Valid in Mode.PICK and Mode.PICKUP
@@ -156,7 +156,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			log.error(logStr+"Cannot register PickTo without order");
 			return;
 		}
-		
+
 		if( currentPickTo != null && currentPickTo.label != null ) {
 			facade.changeUnitLoadLabel(currentPickTo.label, label, currentOrder.id);
 			currentPickTo.label = label;
@@ -164,9 +164,9 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		else {
 			currentPickTo = facade.createUnitLoad( label, currentOrder.id, -1 );
 		}
-		
+
 	}
-	
+
 	// ************************************************************************
 	// Operation PICK
 	// These methods are only defined in this operation mode
@@ -176,14 +176,14 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 	 */
 	public void startPicking() throws FacadeException {
 		currentPickIdx = -1;
-		
+
 		if( currentOrder != null && currentOrder.state < State.STARTED ) {
 			facade.startOrder(currentOrder.id);
 		}
-		
+
 		sortPicks();
 	}
-	
+
 	/**
 	 * Navigate to the first pick in the list.<br>
 	 * The picks will be are sorted.
@@ -192,11 +192,11 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		currentPickIdx=-1;
 		return setNextPick();
 	}
-	
+
 	/**
 	 * Sets the internal structures to the current pick.<br>
 	 * If the current pick is not valid, the next available pick will be activated.<br>
-	 * 
+	 *
 	 * @return true, if a current pick is set.
 	 */
 	public boolean setCurrentPick() throws FacadeException {
@@ -213,12 +213,12 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 	 * The pick is reloaded from the backend to check its current state.<br>
 	 * If no more pick are available, the complete structures are reloaded from the backend.
 	 * This is done to check for possible external changes.
-	 * 
+	 *
 	 * @return true, if a new current pick is set.
 	 */
 	public boolean setNextPick() throws FacadeException {
 		String logStr = "setNextPick ";
-		
+
 		currentPickIdx++;
 		if( currentPickIdx < 0 ) {
 			currentPickIdx = 0;
@@ -242,9 +242,9 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			log.debug(logStr+"new pick. idx="+currentPickIdx+", id="+pick.id);
 			return true;
 		}
-		
+
 		reload();
-		
+
 		currentPickIdx = 0;
 		while( currentPickIdx < pickList.size() ) {
 			pick = getCurrentPick();
@@ -258,21 +258,21 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			log.debug(logStr+"new pick. idx="+currentPickIdx+", id="+pick.id);
 			return true;
 		}
-		
+
 		log.debug(logStr+"no new pick available");
 		return false;
 	}
-	
+
 	/**
 	 * Sets the internal structures to the previous available pick in the list.<br>
 	 * The pick is reloaded from the backend to check its current state.<br>
 	 * If no more pick s available, the first pick is selected.
-	 * 
+	 *
 	 * @return true, if a new current pick is set.
 	 */
 	public boolean setPrevPick() throws FacadeException {
 		String logStr = "setPrevPick ";
-		
+
 		currentPickIdx--;
 		if( currentPickIdx >= pickList.size() ) {
 			currentPickIdx = pickList.size()-1;
@@ -297,36 +297,39 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			log.debug(logStr+"new pick. idx="+currentPickIdx+", id="+pick.id);
 			return true;
 		}
-		
+
 		currentPickIdx = Integer.MIN_VALUE;
 		return setNextPick();
 	}
 
 
 	/**
-	 * Check, whether an input is correct to identify the source of the current pick.<br>
-	 * If the source does not match, it is tried to change to the given source.
+	 * Check, whether an input is correct so as to identify the source of the current pick.<br>
+	 * If the source is a unit load that does not match, we try to change to the given source.
+	 * If the source is a location we check to see if the location is allowed,
 	 */
 	public void checkPickSource( String code ) throws FacadeException {
 		String logStr = "checkPickSource ";
 		log.debug(logStr+"code="+code);
-		
+
 		PickingMobilePos pick = getCurrentPick();
 		if( code.equals(pick.locationName) ) {
+			facade.checkLocationScan(code);
 			return;
 		}
 		if( !StringTools.isEmpty(pick.locationCode) ) {
 			if( code.equals(pick.locationCode) ) {
+				facade.checkLocationScan(code);
 				return;
 			}
 		}
 		if( code.equals(pick.unitLoadLabel) ) {
 			return;
 		}
-		
+
 		facade.changePickFromStockUnit(pick, code);
 	}
-	
+
 	/**
 	 * Confirmation of the current pick.
 	 */
@@ -339,7 +342,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			log.warn(logStr+"No current pick");
 			throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, resolve("MsgDataNoCurrentPick") );
 		}
-		
+
 		if( currentPickTo == null ) {
 			// create new pick-to unit load
 			String label = facade.generatePickToLabel();
@@ -352,7 +355,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 				log.warn(logStr+"No order found for pick");
 				throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, resolve("MsgDataNoOrderForPick"));
 			}
-			
+
 			currentPickTo = new PickingMobileUnitLoad( mOrder, label );
 		}
 		else if ( currentPickTo.label == null ) {
@@ -363,12 +366,12 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			}
 			currentPickTo.label = label;
 		}
-		
+
 		facade.confirmPick( pick, currentPickTo, amount, amountRemain, serialNoList, counted );
 		pick.state = State.PICKED;
 		currentPickTo.state = State.STARTED;
 	}
-	
+
 	public boolean isLocationEmpty() {
 		PickingMobilePos pick = getCurrentPick();
 		if( pick.checkLocationEmpty && pick.amount.compareTo(pick.amountStock)>=0 ) {
@@ -376,7 +379,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		}
 		return false;
 	}
-	
+
 	protected void sortPicks() {
 		if( pickList != null ) {
 			Collections.sort(pickList, facade.getPickingComparator());
@@ -396,12 +399,12 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		if( currentPickIdx >= pickList.size() ) {
 			return null;
 		}
-		
+
 		PickingMobilePos pick = pickList.get(currentPickIdx);
 		return pick;
 	}
-	
-	
+
+
 	// ************************************************************************
 	// Operation PUTAWAY
 	// ************************************************************************
@@ -426,7 +429,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		}
 		facade.transferUnitLoad(currentPickTo.label, target, state);
 	}
-	
+
 	/**
 	 * The current pick-to unit load will get a new label
 	 * @param labelNew If null, a new label will be generated automatically (from sequence)
@@ -444,19 +447,19 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 			// entered existing label
 			return;
 		}
-	
+
 		facade.changeUnitLoadLabel( currentPickTo.label, labelNew, currentOrder == null ? -1 : currentOrder.id );
 		currentPickTo.label = labelNew;
 		return;
 	}
-	
+
 	/**
 	 * Get the current pick-to unit load. Valid in Mode.PUTAWAY
 	 */
 	public PickingMobileUnitLoad getCurrentPickTo() {
 		return currentPickTo;
 	}
-	
+
 	public void reload() throws FacadeException {
 		String logStr = "reload ";
 		log.debug(logStr);
@@ -464,32 +467,32 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		if( currentOrder != null ) {
 			reloadOrder(currentOrder.id);
 		}
-		
+
 		currentPickIdx = -1;
-		
+
 		sortPicks();
 	}
-	
-	
-	
+
+
+
 	// ************************************************************************
 	// General operation methods
 	// ************************************************************************
 	/**
 	 * Is called, when picking dialog has finished a picking process.<br>
-	 * Finish orders, cleanup. Reset operation mode. 
+	 * Finish orders, cleanup. Reset operation mode.
 	 */
 	public void finishProcess() throws FacadeException {
 		String logStr = "finishProcess ";
 		log.debug(logStr);
-		
+
 		if( currentOrder != null ) {
 			log.debug(logStr+"finish order. id="+currentOrder.id+", number="+currentOrder.customerOrderNumber);
 			facade.finishOrder(currentOrder.id);
 			currentOrder.state=State.FINISHED;
 		}
 	}
-	
+
 	/**
 	 * Initialize the internal structures
 	 */
@@ -501,7 +504,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		pickList = new ArrayList<PickingMobilePos>();
 		currentPickTo = null;
 	}
-	
+
 	/**
 	 * Reads the current information from database.
 	 */
@@ -516,7 +519,7 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		}
 
 		log.warn(logStr+"Found orders to resume");
-		
+
 		for( LOSPickingOrder order : orders ) {
 			loadOrder(order.getId());
 			break;
@@ -534,11 +537,11 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 				}
 			}
 		}
-		
+
 		if( getCurrentPick() == null ) {
 			throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, resolve("MsgDataNoCurrentPick") );
 		}
-		
+
 		facade.checkSerial( getCurrentPick().clientNumber, getCurrentPick().itemNo, code );
 	}
 
@@ -550,38 +553,38 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		facade.printLabel(currentPickTo.label, printer);
 	}
 
-	
+
 	// ************************************************************************
 	// Access Attributes
 	// ************************************************************************
 	public Client getDefaultClient() {
 		return facade.getDefaultClient();
 	}
-	
+
 	public List<SelectItem> getCalculatedPickingOrders(String code, boolean usePick, boolean useTransport) {
 		return facade.getCalculatedPickingOrders(code, null, null, usePick, useTransport, -1);
 	}
-	
+
 	public PickingMobileOrder readOrder(long id) {
 		return facade.readOrder(id);
 	}
-	
+
 	public int getNumOrders() {
 		return currentOrder == null ? 0 : 1;
 	}
-	
+
 	public BigDecimal getAmount() {
 		PickingMobilePos pick = getCurrentPick();
 		return pick == null ? BigDecimal.ZERO : pick.amount;
 	}
-	
+
 	public PickingMobileOrder getCurrentOrder() {
 		if( currentOrder == null ) {
 			return new PickingMobileOrder();
 		}
 		return currentOrder;
 	}
-	
+
 	@Override
 	protected ResourceBundle getResourceBundle() {
 		ResourceBundle bundle;
