@@ -48,7 +48,6 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
                                 <h:outputText value="#{bundle.LabelChooseOrder}" styleClass="param"/>
                             </td>
                         </tr>
-                        
                         <tr>
                             <td>
                                 <h:selectOneMenu id="orderComboBox" 
@@ -61,7 +60,22 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
                             </td>
                             
                         </tr>
-                        
+                        <tr>
+                            <td>
+                            &nbsp;
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                            	<h:outputLabel id="input1Label" value="#{bundle.LabelSearchOrder}" styleClass="label" />
+                            </td>
+                        </tr><tr>
+                            <td>
+                               	<h:inputText id="input1" 
+                             			 value="#{ShippingBean.searchOrderList}" 
+                             			 styleClass="input"/> 
+                            </td>
+                        </tr>
                     </table>
                 </div>
                     
@@ -86,7 +100,7 @@ on Libraries node in Projects view can be used to add the JSTL 1.1 library.
             }    
             
             function setFocus() {
-                document.getElementById('Form:orderComboBox').focus();
+                document.getElementById('Form:input1').focus();
             }    
             
         </script>
