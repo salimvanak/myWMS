@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -16,6 +17,7 @@ import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.model.Client;
 import org.mywms.model.ItemData;
+import org.mywms.model.Lot;
 import org.mywms.model.StockUnit;
 import org.mywms.model.User;
 import org.mywms.service.ClientService;
@@ -46,7 +48,7 @@ import de.linogistix.los.util.businessservice.ContextService;
 @Stateless
 public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 	Logger log = Logger.getLogger(ReplenishMobileFacadeBean.class);
-	
+
 	@EJB
 	private ClientService clientService;
 	@EJB
@@ -70,15 +72,15 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 
 	@EJB
 	private QueryStockService stockService2;
-	
+
 	@EJB
 	private LOSReplenishBusiness replenishBusiness;
-	
+
     @PersistenceContext(unitName = "myWMS")
     protected EntityManager manager;
-    
+
 	public Client getDefaultClient() {
-		
+
 		// Only one client
 		Client systemClient;
 		systemClient = clientService.getSystemClient();
@@ -87,16 +89,16 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 			log.info("Only one client in system");
 			return systemClient;
 		}
-		
-		
+
+
 		// Callers client not system-client
 		Client callersClient = contextService.getCallersClient();
 		if( !systemClient.equals(callersClient) ) {
 			log.info("Caller is not system-client => only one client to use");
-			return callersClient; 
+			return callersClient;
 		}
-		
-		
+
+
 		log.info("Plenty clients");
 		return null;
 	}
@@ -111,7 +113,7 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		if( fix == null ) {
 			throw new InventoryException(InventoryExceptionKey.NOT_A_FIXED_ASSIGNED_LOCATION, new Object[]{});
 		}
-		
+
 		ReplenishMobileOrder order = new ReplenishMobileOrder();
 		List<LOSReplenishOrder> active = orderService.getActive(fix.getItemData(), null, loc, null);
 		if (active != null && active.size() > 0) {
@@ -123,14 +125,14 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 				break;
 			}
 		}
-		
+
 		order.setItem(fix.getItemData());
 		order.setDestination(loc);
 		readAddOn(order);
-		
+
 		return order;
 	}
-	
+
 	public ReplenishMobileOrder loadOrderById(long id) {
 		LOSReplenishOrder order = null;
 		try {
@@ -143,27 +145,27 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		ReplenishMobileOrder mOrder = new ReplenishMobileOrder();
 		mOrder.setOrder(order);
 		readAddOn(mOrder);
-		
+
 		return mOrder;
 	}
-	
+
 	public void startOrder( ReplenishMobileOrder mOrder ) throws FacadeException {
 		LOSReplenishOrder order = readReplenishOrder(mOrder);
 		User user = contextService.getCallersUser();
 		replenishBusiness.startOrder(order, user);
 	}
-	
+
 	public void resetOrder( ReplenishMobileOrder mOrder ) throws FacadeException {
 		LOSReplenishOrder order = readReplenishOrder(mOrder);
 		replenishBusiness.resetOrder(order);
 	}
-	
+
 	public ReplenishMobileOrder checkSource( ReplenishMobileOrder mOrder, String code ) throws FacadeException {
 		String logStr = "checkSource ";
 		if( code.equals(mOrder.getSourceUnitLoadLabel()) ) {
 			return mOrder;
 		}
-		
+
 		log.debug(logStr+"Check location");
 		if( code.equals(mOrder.getSourceLocationName()) || code.equals(mOrder.getSourceLocationCode()) || code.toLowerCase().equals(mOrder.getSourceLocationName().toLowerCase())  ) {
 			LOSStorageLocation location = locService.getByName(code);
@@ -176,10 +178,10 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 				log.info(logStr+"More than one unit load on location, code="+code);
 				throw new LOSExceptionRB("MsgMoreThanOnUnitLoad", this.getClass());
 			}
-			
+
 			return mOrder;
 		}
-		
+
 		log.debug(logStr+"Check unit load");
 		LOSUnitLoad unitLoad = null;
 		try {
@@ -187,13 +189,13 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		} catch (UnAuthorizedException e) {}
 		if( unitLoad != null ) {
 			// A different unit load has been scanned
-		
+
 			// The location must be the requested
 			if( !unitLoad.getStorageLocation().getName().equals(mOrder.getSourceLocationName()) ) {
 				log.info("The unit load is located on a different location than requested");
 				throw new LOSExceptionRB("MsgUnitLoadOnDifferentLocation", this.getClass());
 			}
-			
+
 			// The material must be unique
 			if( unitLoad.getStockUnitList().size() != 1 ) {
 				log.info("The switch of mixed unit loads is not possible");
@@ -205,31 +207,31 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 				log.info("The material is different");
 				throw new LOSExceptionRB("MsgWrongMaterial", this.getClass());
 			}
-			
+
 			if( stock.getReservedAmount().compareTo(BigDecimal.ZERO)>0 ) {
 				// TODO: check switch of reservation
 				log.info("The stock is reserved");
 				throw new LOSExceptionRB("MsgStockReserved", this.getClass());
 			}
-			
+
 			log.info(logStr+"Switch unit load. old="+mOrder.getSourceUnitLoadLabel()+", new="+unitLoad.getLabelId());
 			// Only allow switch for this request. The original reservation remains
 			// Hopefully nobody tries to remove the scanned unit load in between
 			mOrder.setStock(stock);
-			
+
 			return mOrder;
 		}
-		
-		
+
+
 		throw new LOSExceptionRB("MsgEnterRequestedUnitLoad", this.getClass());
 	}
-	
+
 	public ReplenishMobileOrder checkDestination( ReplenishMobileOrder mOrder, String code ) throws FacadeException {
 		String logStr = "checkDestination ";
 		if( code.equals(mOrder.getSourceUnitLoadLabel()) ) {
 			return mOrder;
 		}
-		
+
 		log.debug(logStr+"Check location");
 		if( code.equals(mOrder.getDestinationLocationName()) || code.equals(mOrder.getDestinationLocationCode()) ) {
 			return mOrder;
@@ -237,11 +239,11 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		if( code.toLowerCase().equals(mOrder.getDestinationLocationName().toLowerCase()) ) {
 			return mOrder;
 		}
-		
+
 		// TODO: check different or null location
 		throw new LOSExceptionRB("MsgEnterTargetLocation", this.getClass());
 	}
-	
+
 	public void confirmOrder( ReplenishMobileOrder mOrder ) throws FacadeException {
 		String logStr = "confirmOrder ";
 		log.debug(logStr);
@@ -255,23 +257,23 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 				log.warn(logStr+"Cannot find stock. id="+mOrder.getSourceStockId());
 			}
 		}
-		
+
 		LOSStorageLocation destinationLocation = null;
 		if( mOrder.getDestinationLocationName() != null ) {
 			destinationLocation = locService.getByName(mOrder.getDestinationLocationName());
 		}
-		
+
 		replenishBusiness.confirmOrder(order, sourceStock, destinationLocation, mOrder.getAmountPicked());
 	}
-	
+
 	public void checkAmountPicked(ReplenishMobileOrder mOrder, BigDecimal amount ) throws FacadeException {
 		String logStr = "checkAmountPicked ";
-		
+
 		if( BigDecimal.ZERO.compareTo(amount)>=0 ) {
 			log.debug(logStr+"Amount must be > 0");
 			throw new LOSExceptionRB("MsgEnterNotZeroAmount", this.getClass());
 		}
-		
+
 		StockUnit stock = null;
 		try {
 			stock = stockService.get(mOrder.getSourceStockId());
@@ -285,19 +287,19 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 			throw new LOSExceptionRB("MsgTooMuchRequested", this.getClass());
 		}
 	}
-	
-	
+
+
 	@SuppressWarnings("unchecked")
 	public List<SelectItem> getCalculatedOrders( String code ) {
 		String logStr = "getCalculatedOrders ";
 		Date dateStart = new Date();
-		
+
 		if( !StringTools.isEmpty(code) ) {
 			code = "%"+code.toLowerCase()+"%";
-		}	
+		}
 
 		log.debug(logStr+"Search replenish orders. code="+code);
-		
+
 		User user = contextService.getCallersUser();
 		Client client = user.getClient();
 
@@ -318,9 +320,9 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		}
 		if( !StringTools.isEmpty(code) ) {
 			query.setParameter("code", code);
-		}		
+		}
 		List<LOSReplenishOrder> res = query.getResultList();
-		
+
 		ArrayList<SelectItem> orderSelectList = new ArrayList<SelectItem>();
 		for( LOSReplenishOrder order : res ) {
 			LOSStorageLocation destination = order.getDestination();
@@ -328,37 +330,66 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 			orderSelectList.add(new SelectItem(order.getId(), label));
 		}
 
-		
-		
+
+
 		Date dateEnd = new Date();
 		log.debug(logStr+"Found "+res.size()+" orders in "+(dateEnd.getTime()-dateStart.getTime())+" ms");
 		return orderSelectList;
 	}
-	
-	
+
+	/**
+	 * In addition this method will check to prevent failure during the last stage
+	 * of the replenishment, when the requested lot cannot be merged into a stock
+	 * unit on the destination.
+	 *  we allow only when
+	 *	  - the picked stock unit has the same lot number (null == null is the same lot)
+	 *	  - when the destination is empty.
+	 *	We do not deliberately look for replenish units of the same lot here as it might
+	 *  it might cause lots of shorter date to expire.
+	 */
+
 	public ReplenishMobileOrder requestReplenish(ReplenishMobileOrder mOrder) throws FacadeException {
-		
+		String logStr = "requestReplenish ";
+
 		Client client = clientService.getByNumber(mOrder.getClientNumber());
 		ItemData item = itemDataService.getByItemNumber(client, mOrder.getItemNumber());
 		LOSStorageLocation loc = locService.getByName(mOrder.getDestinationLocationName());
-		
+
 		LOSReplenishOrder order = orderGenerator.calculateOrder(item, null, mOrder.getAmountRequested(), loc, null);
 		if( order == null ) {
 			return null;
 		}
-		
+
+		Lot pickingLot = order.getStockUnit().getLot();
+		log.debug(logStr + "Looking for lot number " + pickingLot + " on destination.");
+		boolean matchingLotNumbers = false;
+		boolean containsStock = false;
+		greenCut: for (LOSUnitLoad ul : loc.getUnitLoads()) {
+			for(StockUnit su : ul.getStockUnitList()) {
+				containsStock = true;
+				if (Objects.equals(su.getLot(), pickingLot)) {
+					matchingLotNumbers = true;
+					break greenCut;
+				}
+			}
+		}
+		if (containsStock && !matchingLotNumbers) {
+			log.debug(logStr + "Lot number " + pickingLot + " not found on destination on destination.  Stock units from different lots cannot be merged.");
+			throw new LOSExceptionRB("MsgNoMatchingLotForDst", this.getClass());
+		}
+
 		ReplenishMobileOrder mOrderNew = new ReplenishMobileOrder();
 		mOrderNew.setOrder(order);
 		readAddOn(mOrderNew);
 		return mOrderNew;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public ReplenishMobileOrder getReservedOrder() throws FacadeException {
 		String logStr = "getReservedOrder ";
-		
+
 		log.debug(logStr+"Search reserved order.");
-		
+
 		User user = contextService.getCallersUser();
 		Client client = user.getClient();
 
@@ -386,16 +417,16 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		return null;
 	}
 
-	
-	
+
+
 	private void readAddOn(ReplenishMobileOrder order) {
 		if( order == null ) {
 			return;
 		}
-		
+
 		if( order.getDestinationLocationName() != null ) {
 			BigDecimal amountDestination = BigDecimal.ZERO;
-			
+
 			LOSStorageLocation destination = locService.getByName(order.getDestinationLocationName());
 			LOSFixedLocationAssignment fix = fixService.getByLocation(destination);
 			if( fix != null ) {
