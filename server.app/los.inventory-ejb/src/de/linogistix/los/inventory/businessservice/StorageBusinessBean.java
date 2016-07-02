@@ -273,7 +273,10 @@ public class StorageBusinessBean extends BasicFacadeBean implements
 			} else {
 				UnitLoadType virtual = ultService.getPickLocationUnitLoadType();
 				unitload.setType(virtual);
-				unitload.setLabelId(targetLocation.getName());
+				//FIXME NOT SURE WHY THIS IS NECESSARY, but it is breaking our labeling.
+				//and does not create a trace of what is happening to the unit load.
+				//suddenly one unit load vanishes and is replaced by a location name.
+				//unitload.setLabelId(targetLocation.getName());
 				storageLocService.transferUnitLoad(getCallersUsername(), targetLocation, unitload, -1, false, false, "", "");
 
 			}
