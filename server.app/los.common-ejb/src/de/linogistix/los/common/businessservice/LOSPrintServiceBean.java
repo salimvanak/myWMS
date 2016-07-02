@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Locale;
 
 import javax.ejb.Stateless;
 import javax.print.Doc;
@@ -21,6 +22,8 @@ import javax.print.PrintServiceLookup;
 import javax.print.SimpleDoc;
 import javax.print.attribute.DocAttributeSet;
 import javax.print.attribute.HashDocAttributeSet;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.standard.JobName;
 import javax.print.event.PrintJobAdapter;
 import javax.print.event.PrintJobEvent;
 
@@ -38,9 +41,25 @@ import de.linogistix.los.report.ReportExceptionKey;
 @Stateless
 public class LOSPrintServiceBean implements LOSPrintService {
 	private static final Logger log = Logger.getLogger(LOSPrintServiceBean.class);
-
+	@Override
 	public void print(String printer, byte[] bytes, String type) throws FacadeException {
-		String logStr = "print ";
+		print(printer, "mywms", bytes, type);
+	}
+	
+	public void print(String printer, String jobName, byte[] bytes, String type) throws FacadeException {
+		String fixedJobName;
+		if (jobName == null || jobName.isEmpty()) {
+			fixedJobName = "mywms";
+		}
+		else {			
+			fixedJobName = jobName;
+			fixedJobName = fixedJobName.replace(' ', '_');
+			fixedJobName = fixedJobName.replace(File.pathSeparatorChar, '_');
+			fixedJobName = fixedJobName.replace(File.separatorChar, '_');
+			fixedJobName = fixedJobName.replace('.', '_');
+		}
+		
+		String logStr = "print " + jobName + " ";
 		try {
 
 			PrintService printService;
@@ -78,7 +97,7 @@ public class LOSPrintServiceBean implements LOSPrintService {
 			if( printer.startsWith("cmd:") ) {
 				String cmd = printer.substring(4);
 				
-				File tmpFile = File.createTempFile("mywms", ".prn");
+				File tmpFile = File.createTempFile(fixedJobName, ".prn");
 				FileOutputStream fileOut = new FileOutputStream(tmpFile);
 				fileOut.write(bytes);
 				fileOut.flush();
@@ -119,7 +138,10 @@ public class LOSPrintServiceBean implements LOSPrintService {
 					watcher = new PrintJobWatcher(job);
 				}
 				
-				job.print(doc, null);
+				HashPrintRequestAttributeSet attr = new HashPrintRequestAttributeSet();
+				attr.add(new JobName(fixedJobName, Locale.getDefault()));
+				
+				job.print(doc, attr);
 	
 				if (watcher != null){
 					watcher.waitForDone();

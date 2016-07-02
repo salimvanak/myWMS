@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2006 - 2013 LinogistiX GmbH
- * 
+ *
  *  www.linogistix.com
- *  
+ *
  *  Project myWMS-LOS
  */
 package de.linogistix.los.inventory.facade;
@@ -83,7 +83,7 @@ public class LOSGoodsReceiptFacadeBean
         implements LOSGoodsReceiptFacade {
 
     private final Logger logger = Logger.getLogger(LOSGoodsReceiptFacadeBean.class);
-    
+
     @EJB
     private LOSGoodsReceiptComponent receiptComponent;
     @EJB
@@ -93,7 +93,7 @@ public class LOSGoodsReceiptFacadeBean
     @EJB
     private ItemDataQueryRemote itemQuery;
     @EJB
-    private LOSUnitLoadService losUlService; 
+    private LOSUnitLoadService losUlService;
     @EJB
     private StockUnitCRUDRemote suCrud;
     @EJB
@@ -132,7 +132,7 @@ public class LOSGoodsReceiptFacadeBean
 	private LOSPrintService printService;
 	@EJB
 	private ManageReceiptService manageGrService;
-	
+
     @PersistenceContext(unitName = "myWMS")
     protected EntityManager manager;
 
@@ -157,7 +157,7 @@ public class LOSGoodsReceiptFacadeBean
         try {
 
             Client c;
-            
+
             if (client == null) {
                 throw new NullPointerException("Client must not be null");
             }
@@ -202,7 +202,7 @@ public class LOSGoodsReceiptFacadeBean
     }
 
     public List<LOSAdvice> getAllowedAdvices(String exp, BODTO<Client> client, BODTO<Lot> lot, BODTO<ItemData> idat) throws InventoryException {
-        Lot l = null; 
+        Lot l = null;
         ItemData i = null;
         Client c;
         if (lot != null){
@@ -211,9 +211,9 @@ public class LOSGoodsReceiptFacadeBean
         if (idat != null){
             i = manager.find(ItemData.class, idat.getId());
         }
-        
+
         c = manager.find(Client.class, client.getId());
-        
+
         return receiptComponent.getSuitableLOSAdvice(exp, c, l, i);
 
     }
@@ -223,7 +223,7 @@ public class LOSGoodsReceiptFacadeBean
     //------------------------------------------------------------------------
     /**
      * eagerly fetches pos.
-     * 
+     *
      * @param number
      * @return
      */
@@ -260,8 +260,8 @@ public class LOSGoodsReceiptFacadeBean
 
         return r;
     }
-    
-    
+
+
 
     public LOSGoodsReceiptPosition createGoodsReceiptPosition(
             BODTO<Client> client,
@@ -272,20 +272,20 @@ public class LOSGoodsReceiptFacadeBean
             BODTO<UnitLoadType> unitLoadType,
             BigDecimal amount,
             BODTO<LOSAdvice> advice) throws FacadeException, ReportException {
-    	return createGoodsReceiptPosition(client, 
+    	return createGoodsReceiptPosition(client,
     			gr, batch, item, unitLoadLabel, unitLoadType, amount,
     			advice,
     			LOSGoodsReceiptType.INTAKE,
     			BusinessObjectLockState.NOT_LOCKED.getLock(), "");
     }
-    	
+
     public LOSGoodsReceiptPosition createGoodsReceiptPosition(
             BODTO<Client> client,
             LOSGoodsReceipt gr,
             BODTO<Lot> batch,
             BODTO<ItemData> item,
             String unitLoadLabel,
-            BODTO<UnitLoadType> unitLoadType, 
+            BODTO<UnitLoadType> unitLoadType,
             BigDecimal amount,
             BODTO<LOSAdvice> advice,
             LOSGoodsReceiptType receiptType,
@@ -303,7 +303,7 @@ public class LOSGoodsReceiptFacadeBean
             BODTO<Lot> batch,
             BODTO<ItemData> item,
             String unitLoadLabel,
-            BODTO<UnitLoadType> unitLoadType, 
+            BODTO<UnitLoadType> unitLoadType,
             BigDecimal amount,
             BODTO<LOSAdvice> advice,
             LOSGoodsReceiptType receiptType,
@@ -312,33 +312,33 @@ public class LOSGoodsReceiptFacadeBean
 
         LOSGoodsReceiptPosition pos;
         LOSUnitLoad ul;
-        
+
         Client c = manager.find(Client.class, client.getId());
         LOSGoodsReceipt goodsReceipt = manager.find(LOSGoodsReceipt.class, gr.getId());
         Lot lot;
         ItemData idat = manager.find(ItemData.class, item.getId());
         LOSStorageLocation sl = manager.find(LOSStorageLocation.class, gr.getGoodsInLocation().getId());
-        
+
         UnitLoadType ulType;
-        
+
         if (unitLoadType != null){
         	ulType = manager.find(UnitLoadType.class, unitLoadType.getId());
         } else{
         	ulType = queryUltService.getDefaultUnitLoadType();
         }
-                
+
         if (idat == null){
         	throw new NullPointerException("" + item.getName());
         }
-        
+
         if (sl == null){
         	throw new NullPointerException("" + gr.getGoodsInLocation().getName());
         }
-        
+
         if (ulType == null){
         	throw new NullPointerException("" + unitLoadType.getName());
         }
-        
+
         if (batch != null){
         	lot = manager.find(Lot.class, batch.getId());
         	if (lot == null){
@@ -349,7 +349,7 @@ public class LOSGoodsReceiptFacadeBean
         } else{
         	lot = null;
         }
-        
+
         boolean printLabel = true;
         boolean isFixedLocation = false;
         LOSStorageLocation targetLocation = null;
@@ -362,7 +362,7 @@ public class LOSGoodsReceiptFacadeBean
 			if( targetLocation == null ) {
 				throw new InventoryException(InventoryExceptionKey.NO_SUCH_STORAGELOCATION, targetLocationName);
 			}
-			
+
 			// Check, whether the target location is a fixed assigned location.
 			// On this locations a special handling is needed, which the posting methods do not know??
 			LOSFixedLocationAssignment fix = queryFixService.getByLocation(targetLocation);
@@ -384,38 +384,38 @@ public class LOSGoodsReceiptFacadeBean
 				throw new InventoryException(InventoryExceptionKey.NO_SUCH_UNITLOAD, targetUnitLoadName);
 			}
         }
-        
-        
+
+
         BODTO<LOSStorageLocation> sldto = new BODTO<LOSStorageLocation>(sl.getId(), sl.getVersion(), sl.toUniqueString());
         BODTO<UnitLoadType> ultTO = new BODTO<UnitLoadType>(ulType.getId(), ulType.getVersion(), ulType.getName());
-        
-        
+
+
         boolean printLabelAutomatically = propertyService.getBooleanDefault(c, null, LOSInventoryPropertyKey.PRINT_GOODS_RECEIPT_LABEL, false);
         if( ! printLabelAutomatically ) {
         	printLabel = false;
         }
-        
+
         try {
 	        if (unitLoadLabel != null && unitLoadLabel.length() > 0) {
-	        	
+
 	        	printLabel = false;
-	        	
+
 	        	try{
 	        		ul = losUlService.getByLabelId(c, unitLoadLabel);
-	        		
-	        		throw new InventoryException(InventoryExceptionKey.UNIT_LOAD_EXISTS, 
-	        									 new Object[]{unitLoadLabel}); 
-	        		
-	        	}catch(EntityNotFoundException enf){ 
+
+	        		throw new InventoryException(InventoryExceptionKey.UNIT_LOAD_EXISTS,
+	        									 new Object[]{unitLoadLabel});
+
+	        	}catch(EntityNotFoundException enf){
 	        		BODTO<LOSUnitLoad> unitLoad = getOrCreateUnitLoad(client, sldto, ultTO, unitLoadLabel);
-	                ul = manager.find(LOSUnitLoad.class, unitLoad.getId()); 
+	                ul = manager.find(LOSUnitLoad.class, unitLoad.getId());
 	        	}
-	        } 
+	        }
 	        else {
 		        if( targetUnitLoad != null ) {
 		        	printLabel = false;
 		        }
-		        
+
 	        	// do not use the label twice
 	        	String label = null;
 	        	int i = 0;
@@ -431,40 +431,40 @@ public class LOSGoodsReceiptFacadeBean
 
             	BODTO<LOSUnitLoad> unitLoad = getOrCreateUnitLoad(client, sldto, ultTO, label);
                 ul = manager.find(LOSUnitLoad.class, unitLoad.getId());
-	
-	        }     
-	        
+
+	        }
+
         } catch (InventoryException ex){
         	throw ex;
         } catch (Throwable ex) {
             logger.error(ex, ex);
             throw new InventoryException(InventoryExceptionKey.CREATE_UNITLOAD, new Object[0]);
         }
-        
+
         pos = receiptComponent.createGoodsReceiptPosition(c, goodsReceipt, "", amount, receiptType, lockCause);
         StockUnit su = receiptComponent.receiveStock(pos, lot, idat, amount, ul, serialNumber);
-        
+
         if (!pos.getItemData().equals(idat.getNumber())){
         	throw new IllegalArgumentException("Item Data has not been set");
         }
-        
+
         su = manager.find(su.getClass(), su.getId());
-        
+
         if(lock > 0){
-        
+
 	        try {
 				suCrud.lock(su, lock, lockCause);
 			} catch (BusinessObjectSecurityException e1) {
 				logger.error(e1.getMessage(), e1);
 				throw new InventoryException(InventoryExceptionKey.STOCKUNIT_CONSTRAINT_VIOLATED, su.toUniqueString());
 			}
-	        
+
 	        pos.setQaLock(lock);
         }
-        
+
         manager.flush();
         manager.merge(pos);
-        
+
         if (advice != null){
         	LOSAdvice a = manager.find(LOSAdvice.class, advice.getId());
         	receiptComponent.assignAdvice(a, pos);
@@ -473,11 +473,11 @@ public class LOSGoodsReceiptFacadeBean
         } else{
         	//ok
         }
-        
+
         if (gr.getReceiptState() == LOSGoodsReceiptState.RAW){
 			receiptComponent.acceptGoodsReceipt(gr);
 		}
-        
+
         if( targetLocation != null ) {
     		try {
 	    		if( isFixedLocation ) {
@@ -501,20 +501,20 @@ public class LOSGoodsReceiptFacadeBean
 				throw e;
 			}
         }
-        
+
         if(printLabel){
         	if( printer == null ) {
 	            printer = propertyService.getString(c, null, LOSInventoryPropertyKey.GOODS_RECEIPT_PRINTER);
         	}
-        	
+
             StockUnitLabel label = suLabelReport.generateStockUnitLabel(ul);
             boolean storeLabel = propertyService.getBooleanDefault(LOSInventoryPropertyKey.STORE_GOODS_RECEIPT_LABEL, false);
             if( storeLabel ) {
             	suLabelReport.storeStockUnitLabel(label);
             }
-        	printService.print(printer, label.getDocument(), label.getType());
+        	printService.print(printer, label.getName(), label.getDocument(), label.getType());
         }
-	        
+
 		manageGrService.onGoodsReceiptPositionCollected(pos);
 
         return pos;
@@ -535,16 +535,16 @@ public class LOSGoodsReceiptFacadeBean
             LOSGoodsReceiptType receiptType,
             int lock,
             String lockCause) throws FacadeException, ReportException {
-    	
+
     	Lot l;
     	BODTO<Lot> lot;
     	Client c;
     	ItemData idat;
-    	
+
     	c = manager.find(Client.class, client.getId());
     	idat = manager.find(ItemData.class, item.getId());
-    	
-    	
+
+
     	try {
 			l = lotService.getByNameAndItemData(c, lotName, idat.getNumber());
 		} catch (EntityNotFoundException e) {
@@ -557,15 +557,15 @@ public class LOSGoodsReceiptFacadeBean
     	} else{
     		lot = manageInventoryFacade.createLot(client, item, lotName, validFrom, validTo, expireLot);
     	}
-    	
-    	return createGoodsReceiptPosition(client, 
+
+    	return createGoodsReceiptPosition(client,
     			gr, lot, item, unitLoadLabel, unitLoadType, amount,
     			advice, receiptType, lock, lockCause
     			);
     }
-    
+
     /**
-     * 
+     *
      * @param c
      * @param sl
      * @param type
@@ -581,9 +581,9 @@ public class LOSGoodsReceiptFacadeBean
         if (c != null){
             cl = manager.find(Client.class, c.getId());
         } else{
-          
+
             cl = clientQuery.getSystemClient();
-           
+
         }
 
         if (cl == null) {
@@ -603,7 +603,7 @@ public class LOSGoodsReceiptFacadeBean
         LOSStorageLocation storLoc = manager.find(LOSStorageLocation.class, sl.getId());
 
         ul = receiptComponent.getOrCreateUnitLoad(cl, storLoc, ulType, ref);
-        
+
         return new BODTO<LOSUnitLoad>(ul.getId(), ul.getVersion(), ul.getLabelId());
     }
 
@@ -613,10 +613,10 @@ public class LOSGoodsReceiptFacadeBean
         if (storLoc.getCurrentTypeCapacityConstraint() != null){
         	type = storLoc.getCurrentTypeCapacityConstraint().getUnitLoadType();
         } else{
-        	
+
 			type = queryUltService.getDefaultUnitLoadType();
 			if (type == null ) throw new RuntimeException("Default unit load type not found ");
-			
+
         }
         return new BODTO<UnitLoadType>(type.getId(), type.getVersion(), type.getName());
     }
@@ -647,7 +647,7 @@ public class LOSGoodsReceiptFacadeBean
         receiptComponent.finishGoodsReceipt(foundGr);
 
     }
-    
+
     public void assignLOSAdvice(LOSAdvice adv, LOSGoodsReceiptPosition pos) throws FacadeException {
 
         if (adv == null) {
@@ -682,16 +682,16 @@ public class LOSGoodsReceiptFacadeBean
 			throws InventoryException {
 		LOSAdvice adv = manager.find(LOSAdvice.class, to.getId());
 		receiptComponent.removeAssignedAdvice(adv, r);
-		
+
 	}
 
-	public Lot createLot(Client client, String lotName, ItemData item, Date validTo) 
+	public Lot createLot(Client client, String lotName, ItemData item, Date validTo)
 	{
 		client = manager.merge(client);
 		item = manager.merge(item);
-		
+
 		Lot lot = queryLotService.getByNameAndItemData(lotName, item);
-		
+
 		if(lot != null){
 			return lot;
 		}
@@ -707,7 +707,7 @@ public class LOSGoodsReceiptFacadeBean
 			createStockUnitLabel(pos, printer);
 		}
 	}
-	
+
 	public StockUnitLabel createStockUnitLabel(LOSGoodsReceiptPosition pos, String printer) 	throws FacadeException {
 		String logStr = "createStockUnitLabel ";
 
@@ -729,18 +729,18 @@ public class LOSGoodsReceiptFacadeBean
 			logger.info(logStr+"Position has no stock unit. => Cannot print label");
 			throw new InventoryException(InventoryExceptionKey.GRPOS_HAS_NO_STOCK, "");
 		}
-		
+
 		LOSUnitLoad unitLoad = (LOSUnitLoad)stock.getUnitLoad();
-		
+
     	StockUnitLabel label = suLabelReport.generateStockUnitLabel(unitLoad);
         boolean storeLabel = propertyService.getBooleanDefault(LOSInventoryPropertyKey.STORE_GOODS_RECEIPT_LABEL, false);
         if( storeLabel ) {
         	suLabelReport.storeStockUnitLabel(label);
         }
-    	printService.print(printer, label.getDocument(), label.getType());
-    	
+    	printService.print(printer, label.getName(), label.getDocument(), label.getType());
+
 		return label;
-		
+
 	}
 
 	public boolean checkSerialNumber(String serialNo, ItemData itemData) {
@@ -750,7 +750,7 @@ public class LOSGoodsReceiptFacadeBean
 		if( serialNo == null || serialNo.length()==0 ) {
 			return false;
 		}
-		
+
 		List<StockUnit> list = stockUnitService.getBySerialNumber(itemData, serialNo);
 		for (StockUnit su : list) {
 			if (BigDecimal.ZERO.compareTo(su.getAmount()) < 0) {
@@ -761,19 +761,19 @@ public class LOSGoodsReceiptFacadeBean
 		return true;
 	}
 
-	
-	
+
+
 	protected void putOnFixedAssigned( String userName, String activityCode, LOSUnitLoad unitload, LOSStorageLocation targetLocation) throws InventoryException,
 			FacadeException {
-		
+
 		// To picking? (implicitly if virtual ul type)
 		UnitLoadType virtual = queryUltService.getPickLocationUnitLoadType();
-		
+
 		if (targetLocation.getUnitLoads() != null && targetLocation.getUnitLoads().size() > 0) {
 			// There is aready a unit load on the destination. => Add stock
-			
+
 			LOSUnitLoad onDestination = targetLocation.getUnitLoads().get(0);
-			
+
 			inventoryComponent.transferStock(unitload, onDestination, activityCode, false);
 			storageService.sendToNirwana( contextService.getCallerUserName(), unitload);
 			logger.info("Transferred Stock to virtual UnitLoadType: "+unitload.toShortString());
@@ -790,15 +790,15 @@ public class LOSGoodsReceiptFacadeBean
 		    String lotName,
 		    String itemDataNumber,
 		    String unitLoadLabel,
-		    String unitLoadTypeName, 
+		    String unitLoadTypeName,
 		    BigDecimal amount,
-		    int lock, String lockCause, 
-		    String serialNumber, 
-		    String targetLocationName, 
+		    int lock, String lockCause,
+		    String serialNumber,
+		    String targetLocationName,
 		    String targetUnitLoadName) throws FacadeException {
 
         LOSUnitLoad ul;
-        
+
         Client client = null;
 		try {
 			client = queryClientService.getByNumber(clientNumber);
@@ -807,29 +807,29 @@ public class LOSGoodsReceiptFacadeBean
         if (client == null){
         	throw new InventoryException(InventoryExceptionKey.NO_SUCH_CLIENT, clientNumber);
         }
-        
-        
+
+
         ItemData idat = queryItemDataService.getByItemNumber(client, itemDataNumber);
         if (idat == null){
         	throw new InventoryException(InventoryExceptionKey.ITEMDATA_NOT_FOUND, itemDataNumber);
         }
-        
+
         UnitLoadType ulType;
-        
+
         if (unitLoadTypeName != null){
         	ulType = queryUltService.getByName(unitLoadTypeName);
         } else{
         	ulType = queryUltService.getDefaultUnitLoadType();
         }
-                
+
         List<LOSStorageLocation> sls = receiptComponent.getGoodsReceiptLocations();
         LOSStorageLocation sl = null;
         if( sls.size()<1 ) {
         	throw new InventoryException(InventoryExceptionKey.NO_GOODS_RECEIPT_LOCATION, "");
         }
     	sl = sls.get(0);
-        
-        
+
+
         Lot lot = null;
         if (lotName != null){
         	try {
@@ -842,7 +842,7 @@ public class LOSGoodsReceiptFacadeBean
         } else if (idat.isLotMandatory()){
         	throw new InventoryException(InventoryExceptionKey.LOT_MANDATORY, idat.getNumber());
         }
-        
+
         boolean printLabel = true;
         boolean isFixedLocation = false;
         LOSStorageLocation targetLocation = null;
@@ -855,7 +855,7 @@ public class LOSGoodsReceiptFacadeBean
 			if( targetLocation == null ) {
 				throw new InventoryException(InventoryExceptionKey.NO_SUCH_STORAGELOCATION, targetLocationName);
 			}
-			
+
 			// Check, whether the target location is a fixed assigned location.
 			// On this locations a special handling is needed, which the posting methods do not know??
 			LOSFixedLocationAssignment fix = queryFixService.getByLocation(targetLocation);
@@ -877,33 +877,33 @@ public class LOSGoodsReceiptFacadeBean
 				throw new InventoryException(InventoryExceptionKey.NO_SUCH_UNITLOAD, targetUnitLoadName);
 			}
         }
-        
-        
+
+
         boolean printLabelAutomatically = propertyService.getBooleanDefault(LOSInventoryPropertyKey.PRINT_GOODS_RECEIPT_LABEL, false);
         if( ! printLabelAutomatically ) {
         	printLabel = false;
         }
-        
+
         try {
 	        if (unitLoadLabel != null && unitLoadLabel.length() > 0) {
-	        	
+
 	        	printLabel = false;
-	        	
+
 	        	try{
 	        		ul = losUlService.getByLabelId(client, unitLoadLabel);
-	        		
-	        		throw new InventoryException(InventoryExceptionKey.UNIT_LOAD_EXISTS, 
-	        									 new Object[]{unitLoadLabel}); 
-	        		
-	        	}catch(EntityNotFoundException enf){ 
+
+	        		throw new InventoryException(InventoryExceptionKey.UNIT_LOAD_EXISTS,
+	        									 new Object[]{unitLoadLabel});
+
+	        	}catch(EntityNotFoundException enf){
 	                ul = receiptComponent.getOrCreateUnitLoad(client, sl, ulType, unitLoadLabel);
 	        	}
-	        } 
+	        }
 	        else {
 		        if( targetUnitLoad != null ) {
 		        	printLabel = false;
 		        }
-		        
+
 	        	// do not use the label twice
 	        	String label = null;
 	        	int i = 0;
@@ -918,15 +918,15 @@ public class LOSGoodsReceiptFacadeBean
 	        	}
 
                 ul = receiptComponent.getOrCreateUnitLoad(client, sl, ulType, unitLoadLabel);
-	        }     
-	        
+	        }
+
         } catch (InventoryException ex){
         	throw ex;
         } catch (Throwable ex) {
             logger.error(ex, ex);
             throw new InventoryException(InventoryExceptionKey.CREATE_UNITLOAD, new Object[0]);
         }
-        
+
 		StockUnit su = inventoryComponent.createStock(client, lot, idat,
 				amount, ul, "IMAN", serialNumber, null, true);
 
@@ -938,9 +938,9 @@ public class LOSGoodsReceiptFacadeBean
 				throw new InventoryException(InventoryExceptionKey.STOCKUNIT_CONSTRAINT_VIOLATED, su.toUniqueString());
 			}
         }
-        
+
         manager.flush();
-        
+
         if( targetLocation != null ) {
     		try {
 	    		if( isFixedLocation ) {
@@ -963,14 +963,14 @@ public class LOSGoodsReceiptFacadeBean
 				throw e;
 			}
         }
-        
+
         if(printLabel){
         	StockUnitLabel label = suLabelReport.generateStockUnitLabel(ul);
             boolean storeLabel = propertyService.getBooleanDefault(LOSInventoryPropertyKey.STORE_GOODS_RECEIPT_LABEL, false);
             if( storeLabel ) {
             	suLabelReport.storeStockUnitLabel(label);
             }
-        	printService.print(null, label.getDocument(), label.getType());
+        	printService.print(null, label.getName(), label.getDocument(), label.getType());
         }
 
 	}
@@ -1005,13 +1005,13 @@ public class LOSGoodsReceiptFacadeBean
 
 		sb.append(" ORDER BY su.amount, su.created ");
 
-		
+
 		logger.debug("Search add location: "+sb.toString());
-		
+
 		Query query = manager.createQuery(sb.toString());
 
 		query.setParameter("itemData", itemData);
-		
+
         if (!callersClient.isSystemClient()) {
         	query.setParameter("cl", callersClient);
         }
@@ -1029,7 +1029,7 @@ public class LOSGoodsReceiptFacadeBean
         	return null;
         }
         Object[] oa = (Object[])o;
-        
+
         return (String)oa[0];
 	}
 
