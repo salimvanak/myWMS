@@ -7,7 +7,6 @@ sourceSets {
 
 dependencies {
   compile project(':server.app:los.common-ejb')
-  compile 'net.sf.jasperreports:jasperreports:4.6.0'
   compile 'org.apache.commons:commons-lang3:3.4'
 }
 

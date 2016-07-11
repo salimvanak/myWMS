@@ -13,6 +13,8 @@ dependencies {
   deploy project(path: 'project-ejb', configuration: 'archives')
 
   earlib 'net.sf.jasperreports:jasperreports:4.6.0'
+  earlib group: 'net.sourceforge.barbecue', name: 'barbecue', version: '1.5-beta1'
+  earlib group: 'net.sf.jasperreports', name: 'jasperreports-fonts', version: '4.0.0'
   earlib 'org.apache.commons:commons-lang3:3.4'
 }
 
@@ -48,6 +50,17 @@ allprojects {
 	repositories {
 		jcenter()
     mavenCentral()
+
+    maven {
+      name "Jasper Reports"
+      url "http://jasperreports.sourceforge.net/maven2/"
+    }
+
+    maven {
+      name "Jasper Reports third party artifacts"
+      url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts/"
+    }
+
 
     maven {
       name "Gradle Repository"

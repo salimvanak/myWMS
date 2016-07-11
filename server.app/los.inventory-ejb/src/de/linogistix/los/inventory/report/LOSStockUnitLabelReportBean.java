@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2006 - 2012 LinogistiX GmbH
- * 
+ *
  *  www.linogistix.com
- *  
+ *
  *  Project myWMS-LOS
  */
 package de.linogistix.los.inventory.report;
@@ -33,6 +33,9 @@ import de.linogistix.los.inventory.service.StockUnitLabelService;
 import de.linogistix.los.location.model.LOSUnitLoad;
 
 /**
+ * This report is used for printing labels from unit loads that usually
+ * contain a single stock unit.  For example, when booking and labelling new
+ * stock
  *
  * @author trautm
  */
@@ -49,14 +52,14 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 
     @PersistenceContext(unitName = "myWMS")
 	private EntityManager manager;
-    
-    
-    
+
+
+
 	/**
 	 * Generation of a goods receipt stock unit label
-	 * The object and report is generated. 
+	 * The object and report is generated.
 	 * It is not persisted.
-	 * 
+	 *
 	 * @param unitLoad
 	 * @return
 	 * @throws FacadeException
@@ -64,9 +67,9 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 	public StockUnitLabel generateStockUnitLabel(LOSUnitLoad unitLoad) throws FacadeException {
 		String logStr = "generateStockUnitLabel ";
 		StockUnitLabel label = null;
-		
+
 		log.info(logStr+"Generate stock unit label for unitLoad="+unitLoad.getLabelId());
-		
+
 		label = entityGenerator.generateEntity( StockUnitLabel.class );
 		label.setName( "LOS-"+unitLoad.getLabelId() );
 		label.setClient( unitLoad.getClient() );
@@ -76,10 +79,10 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 
 		SimpleDateFormat sd = new SimpleDateFormat("dd.MM.yyyy");
 		label.setDateRef( sd.format(new Date()) );
-		
 
-		
-		
+
+
+
 		List<LOSStockUnitReportTO> valueMap = new ArrayList<LOSStockUnitReportTO>();
 
 		for( StockUnit stock : unitLoad.getStockUnitList() ) {
@@ -92,20 +95,25 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 			labelPos.lotName = stock.getLot() == null ? "" : stock.getLot().getName();
 			labelPos.amount = stock.getAmount();
 			labelPos.serialNumber = stock.getSerialNumber();
-			
+
+
+			if (stock.getLot() != null) {
+				labelPos.bestBefore = stock.getLot().getBestBeforeEnd();
+				labelPos.useNotBefore = stock.getLot().getUseNotBefore();
+			}
+
 			valueMap.add(labelPos);
 
-			
 			label.setAmount(stock.getAmount());
 			label.setItemdataRef(stock.getItemData().getNumber());
 			label.setItemNameRef(stock.getItemData().getName());
 			label.setItemUnit( stock.getItemData().getHandlingUnit().getUnitName() );
 			label.setLotRef(stock.getLot() == null ? "" : stock.getLot().getName());
 			label.setScale(stock.getItemData().getScale());
-			
+
 		}
 
-		
+
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put("labelId", unitLoad.getLabelId() );
 		parameters.put("formattedDate", sd.format(new Date()) );
@@ -113,6 +121,7 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 		parameters.put("clientNumber", unitLoad.getClient().getNumber() );
 		parameters.put("clientName", unitLoad.getClient().getName() );
 		parameters.put("clientCode", unitLoad.getClient().getCode() );
+		parameters.put("unitLoadType", unitLoad.getType().getName() );
 
 		byte[] bytes = reportGenerator.createPdf(unitLoad.getClient(), "StockUnitLabel", InventoryBundleResolver.class, valueMap, parameters);
 		label.setDocument(bytes);
@@ -121,11 +130,11 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 		return label;
 
 	}
-	
+
 	/**
 	 * Persist a stock unit label
 	 * If it is already existing, it will be replaced.
-	 * 
+	 *
 	 * @param label
 	 * @return
 	 * @throws FacadeException
@@ -144,9 +153,9 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 				return null;
 			}
 		}
-		
+
 		manager.persist(label);
-		
+
 		return label;
 
 	}

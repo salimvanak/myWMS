@@ -1,7 +1,18 @@
+sourceSets {
+  main {
+    java {
+      srcDir 'src'
+    }
+    resources {
+      srcDir 'src'
+    }
+  }
+}
+
 dependencies {
-  compile project(':server.app:los.inventory-ejb')  
-  compile project(':server.app:los.stocktaking-ejb')  
-  compile project(':server.app:los.mobile')  
+  compile project(':server.app:los.inventory-ejb')
+  compile project(':server.app:los.stocktaking-ejb')
+  compile project(':server.app:los.mobile')
 }
 
 jar {

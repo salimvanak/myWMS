@@ -1,13 +1,14 @@
 /*
  * Copyright (c) 2006 - 2012 LinogistiX GmbH
- * 
+ *
  *  www.linogistix.com
- *  
+ *
  *  Project myWMS-LOS
  */
 package de.linogistix.los.inventory.report;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 import de.linogistix.los.util.StringTools;
 
@@ -18,50 +19,68 @@ import de.linogistix.los.util.StringTools;
 public class LOSStockUnitReportTO {
 
 	public String pos = "";
-	
+
 	public String itemNumber = "";
 	public String itemName = "";
 	public String itemUnit = "";
 	public int itemScale;
-	
+
 	public String lotName = "";
 	public String serialNumber = "";
 	public BigDecimal amount = BigDecimal.ZERO;
+	public Date useNotBefore;
+	public Date bestBefore;
+
+	public Date getUseNotBefore() {
+		return useNotBefore;
+	}
+
+	public void setUseNotBefore(Date useNotBefore) {
+		this.useNotBefore = useNotBefore;
+	}
+
+	public Date getBestBefore() {
+		return bestBefore;
+	}
+
+	public void setBestBefore(Date bestBefore) {
+		this.bestBefore = bestBefore;
+	}
 
 	public String getPos() {
 		return pos;
 	}
-	
+
 	public String getItemNumber() {
 		return itemNumber;
 	}
-	
+
 	public String getFormattedItemNumber() {
 		if( !StringTools.isEmpty(lotName) ) {
 			return itemNumber + " (" + lotName + ")";
 		}
 		return itemNumber;
 	}
-	
+
 	public String getItemName() {
 		return itemName;
 	}
-	
+
 	public BigDecimal getAmount() {
 		return amount;
 	}
-	
+
 	public String getFormattedAmount() {
 		if( amount != null && amount.compareTo(BigDecimal.ZERO)!=0 ) {
 			return amount.toString();
 		}
 		return "";
 	}
-	
+
 	public String getItemUnit() {
 		return itemUnit;
 	}
-	
+
 	public String getFormattedItemUnit() {
 		if( amount != null && amount.compareTo(BigDecimal.ZERO)!=0 ) {
 			return itemUnit;
@@ -76,6 +95,4 @@ public class LOSStockUnitReportTO {
 	public String getSerialNumber() {
 		return serialNumber;
 	}
-	
-	
 }
