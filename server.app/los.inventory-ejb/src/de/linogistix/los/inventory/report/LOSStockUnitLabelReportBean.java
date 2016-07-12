@@ -122,6 +122,7 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 		parameters.put("clientName", unitLoad.getClient().getName() );
 		parameters.put("clientCode", unitLoad.getClient().getCode() );
 		parameters.put("unitLoadType", unitLoad.getType().getName() );
+		parameters.put("weight", unitLoad.getWeight());
 
 		byte[] bytes = reportGenerator.createPdf(unitLoad.getClient(), "StockUnitLabel", InventoryBundleResolver.class, valueMap, parameters);
 		label.setDocument(bytes);
