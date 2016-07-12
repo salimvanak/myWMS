@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2012-2013 LinogistiX GmbH
- * 
+ *
  *  www.linogistix.com
- *  
+ *
  *  Project myWMS-LOS
  */
 package de.linogistix.mobileserver.processes.picking;
@@ -25,11 +25,12 @@ import de.linogistix.los.location.model.LOSUnitLoad;
 public class PickingMobilePos implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	
+
 	public long id;
 	public String clientNumber;
 	public String pickingOrderNumber;
 	public String customerOrderNumber;
+	public String customerOrderPosNumber;
 	public String itemNo;
 	public String itemName;
 	public List<String> eanList;
@@ -52,13 +53,14 @@ public class PickingMobilePos implements Serializable {
 	public void init( LOSPickingPosition pos ) {
 		init(pos,null,null);
 	}
-	
+
 	public void init( LOSPickingPosition pos, List<String> eanList, Boolean fixedLocation ) {
-		
+
 		this.id = pos.getId();
 		this.clientNumber = pos.getClient().getNumber();
 		this.pickingOrderNumber = (pos.getPickingOrder() == null ? null : pos.getPickingOrder().getNumber());
 		this.customerOrderNumber = pos.getCustomerOrderPosition() == null ? "" : pos.getCustomerOrderPosition().getOrder().getNumber();
+		this.customerOrderPosNumber = pos.getCustomerOrderPosition() == null ? "" : pos.getCustomerOrderPosition().getNumber();
 		this.itemNo = pos.getItemData().getNumber();
 		this.itemName = pos.getItemData().getName();
 		this.locationName = pos.getPickFromLocationName();
@@ -75,7 +77,7 @@ public class PickingMobilePos implements Serializable {
 		if( fixedLocation != null ) {
 			this.fixedLocation = fixedLocation;
 		}
-		
+
 		StockUnit su = pos.getPickFromStockUnit();
 		if( su != null ) {
 			this.amountStock = su.getAmount();
@@ -92,12 +94,12 @@ public class PickingMobilePos implements Serializable {
 			locationName = loc.getName();
 			locationTypeName = loc.getType().getName();
 			locationTypeId = loc.getType().getId();
-			
+
 			this.locationOrderIdx = loc.getOrderIndex();
 		}
 
 	}
-	
+
 	public void init( PickingMobilePos pos ) {
 		this.id = pos.id;
 		this.clientNumber = pos.clientNumber;
@@ -108,7 +110,7 @@ public class PickingMobilePos implements Serializable {
 		this.locationName = pos.locationName;
 		this.locationCode = pos.locationCode;
 		this.locationOrderIdx = pos.locationOrderIdx;
-		this.locationTypeName = pos.locationTypeName; 
+		this.locationTypeName = pos.locationTypeName;
 		this.locationTypeId = pos.locationTypeId;
 		this.unitLoadLabel = pos.unitLoadLabel;
 		this.amount = pos.amount;
@@ -116,16 +118,16 @@ public class PickingMobilePos implements Serializable {
 		this.state = pos.state;
 		this.pickingOrderId = pos. pickingOrderId;
 		this.pickingType = pos.pickingType;
-		
-		this.checkLocationEmpty = pos.checkLocationEmpty; 
+
+		this.checkLocationEmpty = pos.checkLocationEmpty;
 		this.amountStock = pos.amountStock;
 		this.serialRequired = pos.serialRequired;
 	}
-	
+
 	public boolean hasEan() {
 		return ( eanList!=null && eanList.size()>0 );
 	}
-	
+
 	public String toString() {
 		return "[id="+id+", location="+locationName+", item="+itemNo+", amount="+amount+", order="+pickingOrderNumber+"]";
 	}
