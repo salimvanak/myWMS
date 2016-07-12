@@ -1,5 +1,5 @@
 # myWMS
-A branch of myWMS Warehouse Management System as published by https://sourceforge.net/projects/mywmslos/
+A branch of myWMS Warehouse Management System as published by https://sourceforge.net/projects/mywmslos/ and http://www.mywms.org/
 
 myWMS is a professional open source Warehouse Management System WMS under GPL. 
 It is running in industrial environments and supports all basic processes. 
