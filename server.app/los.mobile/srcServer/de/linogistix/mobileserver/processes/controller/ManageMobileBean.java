@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2010-2013 LinogistiX GmbH
- * 
+ *
  * www.linogistix.com
- * 
+ *
  * Project: myWMS-LOS
 */
 package de.linogistix.mobileserver.processes.controller;
@@ -19,8 +19,8 @@ import de.linogistix.mobileserver.processes.picking.PickingMobilePos;
 
 
 public class ManageMobileBean implements ManageMobile {
-	
-	
+
+
 	public List<MobileFunction> getFunctions() {
 		List<MobileFunction> functionList = new ArrayList<MobileFunction>();
 		functionList.add(new MobileFunction("de.linogistix.mobile.processes.info.InfoBean"));
@@ -32,20 +32,25 @@ public class ManageMobileBean implements ManageMobile {
 		functionList.add(new MobileFunction("de.linogistix.mobile.processes.shipping.ShippingBean"));
 		functionList.add(new MobileFunction("de.linogistix.mobile.processes.replenish.ReplenishMobileBean"));
 		functionList.add(new MobileFunction("de.linogistix.mobile.processes.stocktaking.StockTakingBean"));
-		
+
 		return functionList;
 	}
-	
+
 
 	public int getMenuPageSize() {
 		return 3;
 	}
-	
+
 	public Comparator<PickingMobilePos> getPickingComparator() {
 		return new PickingMobileComparator(false);
 	}
-	
+
 	public String getPickingSelectionText(LOSPickingOrder pickingOrder) {
 		return pickingOrder.getNumber();
+	}
+
+	@Override
+	public OnPickCompleteBehaviour getOnPickCompleteBehaviour() {
+		return OnPickCompleteBehaviour.Scan_Target_Location;
 	}
 }

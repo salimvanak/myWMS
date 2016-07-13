@@ -67,6 +67,7 @@ import de.linogistix.los.model.State;
 import de.linogistix.los.util.StringTools;
 import de.linogistix.los.util.businessservice.ContextService;
 import de.linogistix.mobileserver.processes.controller.ManageMobile;
+import de.linogistix.mobileserver.processes.controller.ManageMobile.OnPickCompleteBehaviour;
 
 /**
  * @author krane
@@ -783,5 +784,8 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 		return manageMobile.getPickingComparator();
 	}
 
-
+	@Override
+	public OnPickCompleteBehaviour getOnPickCompleteBehaviour() {
+		return manageMobile.getOnPickCompleteBehaviour();
+	}
 }

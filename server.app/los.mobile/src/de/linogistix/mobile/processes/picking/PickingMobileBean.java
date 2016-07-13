@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2011-2013 LinogistiX GmbH
- * 
+ *
  *  www.linogistix.com
- *  
+ *
  *  Project myWMS-LOS
  */
 package de.linogistix.mobile.processes.picking;
@@ -37,13 +37,13 @@ public class PickingMobileBean extends BasicDialogBean {
 	// ***********************************************************************
 	// Switches. Configured with system properties
 	// ***********************************************************************
-	
+
 	protected Long selectedOrderId;
 	protected List<SelectItem> orderSelectList;
-	
+
 	protected PickingMobileData data;
 	protected List<String> serialList = null;
-	
+
 	protected String inputCode = "";
 	protected String inputPrinter = "";
 	protected BigDecimal amountTaken;
@@ -54,12 +54,12 @@ public class PickingMobileBean extends BasicDialogBean {
 
 	protected boolean showClient = true;
 
-	
+
 	public PickingMobileBean() {
 		super();
-		
+
 		data = new PickingMobileData();
-		
+
 		Client client = data.getDefaultClient();
 		showClient = (client == null);
 	}
@@ -80,7 +80,7 @@ public class PickingMobileBean extends BasicDialogBean {
 	String selNumPos;
 	String selDate;
 	String selStrategy;
-	
+
 	public void init() {
 		log.debug("init");
 		amountTaken = null;
@@ -97,17 +97,17 @@ public class PickingMobileBean extends BasicDialogBean {
 		selNumPos = "";
 		selDate = "";
 		selStrategy  ="";
-		
+
 		data.reset();
 	}
-	
+
 	@Override
 	public void init(String[] args) {
 		super.init(args);
 		init();
 	}
 
-	
+
 	protected void initPos() {
 		log.debug("Initialize position");
 		inputCode = null;
@@ -136,9 +136,9 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 		return getNavigationKey(PickingMobileNavigation.PICK_ORDER_SELECT);
 	}
-	
-	
-	
+
+
+
 	// ***********************************************************************
 	// OrderSelect.jsp
 	// ***********************************************************************
@@ -148,7 +148,7 @@ public class PickingMobileBean extends BasicDialogBean {
 	public String processOrderSelect(){
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		if( code.length() > 0 ) {
 			orderSelectList = getCalculatedPickingOrders( code );
 			if( orderSelectList == null || orderSelectList .size() == 0 ) {
@@ -175,7 +175,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			orderSelectList = null;
 			return "";
 		}
-		
+
 		try {
 			data.loadOrder(selectedOrderId);
 			orderSelectList = null;
@@ -196,9 +196,9 @@ public class PickingMobileBean extends BasicDialogBean {
 			return "";
 		}
 
-		
+
 	}
-	
+
 	public String processOrderSelectCancel() {
 		try {
 			data.removeAllOrders();
@@ -206,7 +206,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return "";
 		}
-			
+
 		init();
 		return getNavigationKey(PickingMobileNavigation.PICK_MENU);
 	}
@@ -230,7 +230,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			}
 			loadSelectedOrder();
 		}
-		
+
 		log.info(logStr+"Found "+orderSelectList.size()+" orders");
 		return orderSelectList;
 	}
@@ -241,15 +241,15 @@ public class PickingMobileBean extends BasicDialogBean {
 			selectedOrderId = Long.valueOf(sel);
 		} catch( Throwable t ) {}
 	}
-	
+
 	public String getSelectedOrder(){
 		if( selectedOrderId == null ) {
 			return null;
 		}
-		
+
 		return selectedOrderId.toString();
 	}
-	
+
     public void orderSelectionChanged(ValueChangeEvent vce) {
     	String sel = (String)vce.getNewValue();
     	setSelectedOrder(sel);
@@ -275,7 +275,7 @@ public class PickingMobileBean extends BasicDialogBean {
 	    	selStrategy = "";
     	}
     }
-    
+
 	// ***********************************************************************
 	// PickToPrint.jsp
 	// ***********************************************************************
@@ -285,7 +285,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		inputPrinter = "";
 
 		log.debug(logStr+getTrace()+", input="+code);
-		
+
 		currentPrinter = (code.length()==0 ? null : code);
 
 		try {
@@ -297,7 +297,7 @@ public class PickingMobileBean extends BasicDialogBean {
 
 		return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_TARGET);
 	}
-	
+
 	public String processPickToPrintSkip(){
 		String logStr = " processPickToPrintSkip";
 		log.debug(logStr+getTrace());
@@ -313,21 +313,21 @@ public class PickingMobileBean extends BasicDialogBean {
 	public String processOrderSummary(){
 		return processOrderInfo();
 	}
-	
+
 	public String processOrderSummaryCancel(){
 		return processOrderInfoCancel();
 	}
-	
+
 	// ***********************************************************************
 	// OrderInfo.jsp
 	// ***********************************************************************
 	public String processOrderInfo(){
 		String logStr="processOrderInfo ";
 		log.debug(logStr+getTrace());
-		
+
 		try {
 			data.startPicking();
-			
+
 			if( data.setFirstPick() ) {
 				return getNavigationKey(PickingMobileNavigation.PICK_PICKFROM);
 			}
@@ -335,12 +335,12 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return "";
 		}
-		
+
 		log.error(logStr+"No pick found to process");
 		JSFHelper.getInstance().message( resolve("MsgNoPos") );
 		return processOrderInfoCancel();
 	}
-	
+
 	public String processOrderInfoCancel(){
 		String logStr = "processOrderInfoCancel ";
 		log.debug(logStr+getTrace());
@@ -357,12 +357,12 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return "";
 		}
-		
+
 		init();
-		
+
 		return getNavigationKey(PickingMobileNavigation.PICK_ORDER_SELECT);
 	}
-	
+
 	// ***********************************************************************
 	// PickFrom.jsp
 	// ***********************************************************************
@@ -370,14 +370,14 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processPickFrom ";
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		log.debug(logStr+getTrace()+", input="+code);
 
 		if( code.length() == 0 ) {
 			JSFHelper.getInstance().message( resolve("MsgEnterSomething") );
 			return "";
 		}
-		
+
 		initPos();
 
 		try {
@@ -386,10 +386,10 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return "";
 		}
-		
+
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 	}
-	
+
 	public String processPickFromFunction(){
 		return getNavigationKey(PickingMobileNavigation.PICK_PICKFROM_FUNCTION);
 	}
@@ -401,11 +401,11 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processPick ";
 		log.debug(logStr+getTrace());
 
-		
+
 		amountTaken = null;
 		amountRemaining = null;
 		locationCounted = false;
-		
+
 		try {
 			// 06.08.2013, krane, Check correct pick. With browser back key, it is possible to select the wrong pick
 			if( currentId == null || (data.getCurrentPick()!=null && !currentId.equals(data.getCurrentPick().id)) ) {
@@ -414,11 +414,11 @@ public class PickingMobileBean extends BasicDialogBean {
 				data.setCurrentPick();
 				return getNavigationKey(PickingMobileNavigation.PICK_PICKFROM);
 			}
-			
+
 			if( getNumSerial() > (serialList == null ? 0 : serialList.size()) ) {
 				return getNavigationKey(PickingMobileNavigation.PICK_PICK_SERIAL);
 			}
-			
+
 			if( data.isLocationEmpty() ) {
 				return getNavigationKey(PickingMobileNavigation.PICK_PICK_EMPTY);
 			}
@@ -430,13 +430,13 @@ public class PickingMobileBean extends BasicDialogBean {
 			return "";
 		}
 	}
-	
+
 	public String processPickFunction(){
 		String logStr = "processPickFunction ";
 		log.debug(logStr+getTrace());
 
 		amountTaken = null;
-		
+
 		// 06.08.2013, krane, Check correct pick. With browser back key, it is possible to select the wrong pick
 		if( currentId == null || (data.getCurrentPick()!=null && !currentId.equals(data.getCurrentPick().id)) ) {
 			log.warn(logStr+"Got wrong pick-id. Abort");
@@ -446,7 +446,7 @@ public class PickingMobileBean extends BasicDialogBean {
 
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_FUNCTION);
 	}
-	
+
 	// ***********************************************************************
 	// PickSerial.jsp
 	// ***********************************************************************
@@ -454,14 +454,14 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processSerial ";
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		log.debug(logStr+getTrace()+", input="+code);
 
 		if( code.length() == 0 ) {
 			JSFHelper.getInstance().message( resolve("MsgEnterSomething") );
 			return "";
 		}
-		
+
 		try {
 			data.checkSerial(serialList, code);
 		}
@@ -481,7 +481,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			return "";
 		}
 	}
-	
+
 	public String processSerialCancel(){
 		String logStr = "processSerialCancel ";
 		log.debug(logStr+getTrace());
@@ -491,7 +491,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		serialList = null;
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 	}
-	
+
 	public String confirmSelectSerial() throws FacadeException {
 		String logStr = "confirmSelectSerial ";
 		log.info(logStr+getTrace()+", SERIAL: required="+getNumSerial()+"selected="+(serialList==null?0:serialList.size()));
@@ -501,18 +501,18 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 
 		data.confirmPick( amountTaken, amountRemaining, serialList, locationCounted );
-		
+
 		amountTaken = null;
 		amountRemaining = null;
 		locationCounted = false;
 		serialList = null;
-		
+
 		if( data.setNextPick() ) {
 			return getNavigationKey(PickingMobileNavigation.PICK_PICKFROM);
 		}
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_DONE);
 	}
-	
+
 	// ***********************************************************************
 	// PickFunction.jsp
 	// ***********************************************************************
@@ -529,7 +529,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_DONE);
 	}
-	
+
 	public String processPickFunctionCancel(){
 		String logStr = "processPickFunctionCancel ";
 		log.debug(logStr+getTrace());
@@ -544,7 +544,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return "";
 		}
-		
+
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_DONE);
 	}
 
@@ -583,7 +583,7 @@ public class PickingMobileBean extends BasicDialogBean {
 				data.setCurrentPick();
 				return getNavigationKey(PickingMobileNavigation.PICK_PICKFROM);
 			}
-			
+
 			amountRemaining = BigDecimal.ZERO;
 			locationCounted = true;
 			return confirmSelectSerial();
@@ -592,23 +592,23 @@ public class PickingMobileBean extends BasicDialogBean {
 			return "";
 		}
 	}
-	
+
 	public String processPickEmptyNo(){
 		String logStr = "processPickEmptyNo ";
 		log.debug(logStr+getTrace());
 		amountRemaining = null;
 		locationCounted = false;
-		
-		// Only if the location is empty, a partial pick is allowed  
+
+		// Only if the location is empty, a partial pick is allowed
 		if( amountTaken != null ) {
 			amountTaken = null;
 			JSFHelper.getInstance().message( resolve("MsgPickRequestedAmount") );
 			return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 		}
-		
+
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_REMAINING);
 	}
-	
+
 	// ***********************************************************************
 	// PickRemaining.jsp
 	// ***********************************************************************
@@ -616,7 +616,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processPickRemaining ";
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		log.debug(logStr+getTrace()+", input="+code);
 
 		try {
@@ -631,7 +631,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 		}
-		
+
 		if( code.length() == 0 ) {
 			JSFHelper.getInstance().message( resolve("MsgEnterSomething") );
 			return "";
@@ -658,7 +658,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			return "";
 		}
 	}
-	
+
 	public String processPickRemainingCancel(){
 		String logStr = "processPickRemainingCancel ";
 		log.debug(logStr+getTrace());
@@ -668,7 +668,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		locationCounted = false;
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 	}
-	
+
 	// ***********************************************************************
 	// PickMissing.jsp
 	// ***********************************************************************
@@ -676,7 +676,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processPickMissing ";
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		log.debug(logStr+getTrace()+", input="+code);
 
 		try {
@@ -691,7 +691,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 		}
-		
+
 		BigDecimal amount = null;
 		if( code.length() == 0 ) {
 			JSFHelper.getInstance().message( resolve("MsgEnterSomething") );
@@ -708,17 +708,17 @@ public class PickingMobileBean extends BasicDialogBean {
 			JSFHelper.getInstance().message( resolve("MsgEnterValidAmount") );
 			return "";
 		}
-		
+
 		// Entered amount must be < requested amount
 		if( data.getAmount().compareTo(amount)<=0 ) {
 			JSFHelper.getInstance().message( resolve("MsgAmountLessRequested") );
 			return "";
 		}
-		
+
 		amountTaken = amount;
 		amountRemaining = BigDecimal.ZERO;
 		locationCounted = false;
-		
+
 		try {
 			return confirmSelectSerial();
 		} catch (FacadeException e) {
@@ -726,7 +726,7 @@ public class PickingMobileBean extends BasicDialogBean {
 			return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 		}
 	}
-	
+
 	public String processPickMissingCancel(){
 		String logStr = "processPickMissingCancel ";
 		log.debug(logStr+getTrace());
@@ -737,7 +737,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK);
 	}
 
-	
+
 	// ***********************************************************************
 	// LocationEmpty.jsp
 	// ***********************************************************************
@@ -753,13 +753,13 @@ public class PickingMobileBean extends BasicDialogBean {
 			return "";
 		}
 	}
-	
+
 	public String processLocationEmptyNo(){
 		String logStr = "processLocationEmptyNo ";
 		log.debug(logStr+getTrace());
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_REMAINING);
 	}
-	
+
 	// ***********************************************************************
 	// PickToCompleted.jsp
 	// ***********************************************************************
@@ -768,14 +768,14 @@ public class PickingMobileBean extends BasicDialogBean {
 		log.debug(logStr+getTrace());
 		return getNavigationKey(PickingMobileNavigation.PICK_PICK_DONE);
 	}
-	
+
 	public String processPickToCompletedNo(){
 		String logStr = "processPickToCompletedNo ";
 		log.debug(logStr+getTrace());
 		return getNavigationKey(PickingMobileNavigation.PICK_PICKFROM);
 	}
 
-	
+
 	// ***********************************************************************
 	// PickToLabel.jsp
 	// ***********************************************************************
@@ -783,7 +783,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processPickToLabelPrint ";
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		log.debug(logStr+getTrace()+", input="+code);
 
 		if( code.length() > 0 ) {
@@ -809,7 +809,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 		return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_PRINT);
 	}
-	
+
 	// ***********************************************************************
 	// PickToTarget.jsp
 	// ***********************************************************************
@@ -817,7 +817,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		String logStr = "processPickToTarget ";
 		String code = inputCode == null ? "" : inputCode.trim();
 		inputCode = "";
-		
+
 		log.debug(logStr+getTrace()+", input="+code);
 
 		if( code.length() == 0 ) {
@@ -835,11 +835,11 @@ public class PickingMobileBean extends BasicDialogBean {
 
 		return getNavigationKey(PickingMobileNavigation.PICK_ORDER_DONE);
 	}
-	
+
 	public String processPickToTargetLabel(){
 		return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_LABEL_POSTPICK);
 	}
-	
+
 	// ***********************************************************************
 	// PickDone.jsp
 	// ***********************************************************************
@@ -850,14 +850,21 @@ public class PickingMobileBean extends BasicDialogBean {
 		try {
 			data.startPutAway();
 			if( data.getCurrentPickTo() != null ) {
-				return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_TARGET);
+				switch (data.facade.getOnPickCompleteBehaviour()) {
+				case Print_Label:
+					return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_PRINT);
+				case Scan_Label:
+					return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_LABEL_POSTPICK);
+				default:
+					return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_TARGET);
+				}
 			}
 			data.finishProcess();
 		} catch (FacadeException e) {
 			JSFHelper.getInstance().message( e.getLocalizedMessage(getUIViewRoot().getLocale()) );
 			return "";
 		}
-		
+
 		return getNavigationKey(PickingMobileNavigation.PICK_ORDER_DONE);
 	}
 
@@ -886,7 +893,7 @@ public class PickingMobileBean extends BasicDialogBean {
 	public void setInputPrinter(String inputCode) {
 		this.inputPrinter = inputCode;
 	}
-	
+
 	// ***********************************************************************
 	public boolean isShowClient() {
 		return showClient;
@@ -929,25 +936,25 @@ public class PickingMobileBean extends BasicDialogBean {
 	public String getCustomerName() {
 		return data.getCurrentOrder().customerName;
 	}
-	
+
 	public String getNumPos() {
 		return ""+data.getCurrentOrder().numPos;
 	}
 	public String getPickFromName() {
 		return data.getCurrentPick() == null ? "" : data.getCurrentPick().locationName;
-	}	
+	}
 	public String getPickFromLabel() {
 		return data.getCurrentPick() == null ? "" : data.getCurrentPick().unitLoadLabel;
-	}	
+	}
 	public String getPickAmount() {
 		return data.getCurrentPick() == null ? "" : data.getCurrentPick().amount.toString();
-	}	
+	}
 	public String getPickUnit() {
 		return data.getCurrentPick() == null ? "" : data.getCurrentPick().unitName;
-	}	
+	}
 	public String getPickItemName() {
 		return data.getCurrentPick() == null ? "" : data.getCurrentPick().itemName;
-	}	
+	}
 	public String getPickItemNumber() {
 		return data.getCurrentPick() == null ? "" : data.getCurrentPick().itemNo;
 	}
@@ -957,7 +964,7 @@ public class PickingMobileBean extends BasicDialogBean {
 	public String getPickToTargetName() {
 		return data.getCurrentOrder().targetName;
 	}
-	
+
 	public String getSelCustomerOrderNumber() {
 		return selCustomerOrderNumber;
 	}
@@ -976,7 +983,7 @@ public class PickingMobileBean extends BasicDialogBean {
 	public String getSelStrategy() {
 		return selStrategy;
 	}
-	
+
 	public String getOrderSummary() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html>");
@@ -989,10 +996,10 @@ public class PickingMobileBean extends BasicDialogBean {
 			sb.append(numPick==1?"1 Pick":(""+numPick+" Picks"));
 		}
 		sb.append("</html>");
-		
+
 		return sb.toString();
 	}
-	
+
 	public String getSerialInfo() {
 		return "" + (serialList == null ? 1 : (serialList.size()+1)) + " / " + getNumSerial();
 	}
@@ -1006,9 +1013,9 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 		return false;
 	}
-	
-	
-	
+
+
+
 	protected int getNumSerial() {
 		if( data.getCurrentPick() == null ) {
 			return 0;
@@ -1021,16 +1028,16 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 		return data.getCurrentPick().amount.intValue();
 	}
-	
+
 	public Long getCurrentId() {
 		PickingMobilePos pick = data.getCurrentPick();
-		currentId = (pick == null ? null : pick.id); 
+		currentId = (pick == null ? null : pick.id);
 		return currentId;
 	}
 	public void setCurrentId(Long currentId) {
 		this.currentId = currentId;
 	}
-	
+
 	// ***********************************************************************
 	@Override
 	protected ResourceBundle getResourceBundle() {
@@ -1043,17 +1050,17 @@ public class PickingMobileBean extends BasicDialogBean {
 
 	private String getTrace() {
 		String value = "PickingOrder=";
-		
+
 		PickingMobileOrder order = data.getCurrentOrder();
 		if( order != null ) {
 			value += order.pickingOrderNumber;
 		}
-		
+
 		PickingMobilePos pick = data.getCurrentPick();
 		if( pick!=null ) {
 			value += ", PickId="+pick.id;
 		}
-		
+
 		return value;
 	}
 
