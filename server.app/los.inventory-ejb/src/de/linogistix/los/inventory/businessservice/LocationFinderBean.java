@@ -60,8 +60,10 @@ import de.linogistix.los.location.service.QueryFixedAssignmentService;
  * @author krane
  *
  * This has been altered to allow for a target location to be calculated.
- * The bean then will look for a location near the target using the XPos, YPos, ZPos
- * of each {@link LOSStorageLocation}.
+ * The bean then will look for the closest location to the target.
+ *
+ * The default implementation of "closest" uses the XPos, YPos, ZPos of {@link LOSStorageLocation}.
+ * where (XPos, ZPos) is a point on the floor and YPos is the vertical distance from the floor (the level).
  * Locations within the same zone are considered closer than locations in different zones.
  *
  * @author Salim Vanak
