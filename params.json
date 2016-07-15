@@ -1,0 +1,6 @@
+{
+  "name": "Mywms",
+  "tagline": "A branch of myWMS Warehouse Management System",
+  "body": "# myWMS, Professional Open Source Warehouse Management System\r\nA branch of myWMS Warehouse Management System as published by https://sourceforge.net/projects/mywmslos/ and http://www.mywms.org/\r\n\r\nmyWMS is a professional open source Warehouse Management System WMS under GPL.\r\nIt is running in industrial environments and supports all basic processes.\r\nIt runs on mobile terminals and works with Barcodes. The software is a JEE architecture running on WildFly Application Server.\r\n\r\nI have clients running this software in their businesses.  We realised that the original software needed  \r\nsome new features and a number of bug fixes.  I also plan on a complete overhaul of the desktop software.\r\n\r\nIf you plan to use this software or find it useful in another project, please get in touch.\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
