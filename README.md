@@ -1,8 +1,8 @@
-# myWMS
+# myWMS, Professional Open Source Warehouse Management System
 A branch of myWMS Warehouse Management System as published by https://sourceforge.net/projects/mywmslos/ and http://www.mywms.org/
 
-myWMS is a professional open source Warehouse Management System WMS under GPL. 
-It is running in industrial environments and supports all basic processes. 
+myWMS is a professional open source Warehouse Management System WMS under GPL.
+It is running in industrial environments and supports all basic processes.
 It runs on mobile terminals and works with Barcodes. The software is a JEE architecture running on WildFly Application Server.
 
 I have clients running this software in their businesses.  We realised that the original software needed  
