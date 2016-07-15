@@ -350,7 +350,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		try {
 			data.startPutAway();
 			if( data.getCurrentPickTo() != null ) {
-				return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_TARGET);
+				return getOnPickCompleteNavigationKey();
 			}
 			data.removeAllOrders();
 		} catch (FacadeException e) {
@@ -850,14 +850,7 @@ public class PickingMobileBean extends BasicDialogBean {
 		try {
 			data.startPutAway();
 			if( data.getCurrentPickTo() != null ) {
-				switch (data.facade.getOnPickCompleteBehaviour()) {
-				case Print_Label:
-					return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_PRINT);
-				case Scan_Label:
-					return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_LABEL_POSTPICK);
-				default:
-					return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_TARGET);
-				}
+				return getOnPickCompleteNavigationKey();
 			}
 			data.finishProcess();
 		} catch (FacadeException e) {
@@ -866,6 +859,21 @@ public class PickingMobileBean extends BasicDialogBean {
 		}
 
 		return getNavigationKey(PickingMobileNavigation.PICK_ORDER_DONE);
+	}
+
+	/**
+	 * Returns the configured action when a pick is complete
+	 * @return
+	 */
+	private String getOnPickCompleteNavigationKey() {
+		switch (data.facade.getOnPickCompleteBehaviour()) {
+		case Print_Label:
+			return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_PRINT);
+		case Scan_Label:
+			return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_LABEL_POSTPICK);
+		default:
+			return getNavigationKey(PickingMobileNavigation.PICK_PICKTO_TARGET);
+		}
 	}
 
 	// ***********************************************************************
