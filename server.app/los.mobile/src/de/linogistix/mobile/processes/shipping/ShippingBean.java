@@ -1,7 +1,8 @@
 /*
- *
+ * Copyright (c) 2006 - 2013 LinogistiX GmbH
+ * 
  * www.linogistix.com
- *
+ * 
  * Project: myWMS-LOS
 */
 package de.linogistix.mobile.processes.shipping;
@@ -19,7 +20,11 @@ import org.mywms.facade.FacadeException;
 
 import de.linogistix.los.inventory.facade.LOSGoodsOutFacade;
 import de.linogistix.los.inventory.facade.LOSGoodsOutTO;
+import de.linogistix.los.inventory.model.LOSCustomerOrder;
 import de.linogistix.los.inventory.query.dto.LOSGoodsOutRequestTO;
+import de.linogistix.los.inventory.service.LOSCustomerOrderService;
+import de.linogistix.los.inventory.service.LOSGoodsOutRequestService;
+import de.linogistix.los.inventory.service.dto.GoodsReceiptTO;
 import de.linogistix.los.util.StringTools;
 import de.linogistix.mobile.common.gui.bean.BasicDialogBean;
 import de.linogistix.mobile.common.system.JSFHelper;
@@ -35,22 +40,22 @@ public class ShippingBean extends BasicDialogBean {
 	protected LOSGoodsOutTO currentOrderTO = null;
 	protected String inputUnitLoadLabel = "";
 	protected String searchOrderList = "";
-	protected List<SelectItem> orderList = null;
-
+	protected List<SelectItem> orderList = null; 
+	
 	public ShippingBean() {
 		super();
 		goFacade = super.getStateless(LOSGoodsOutFacade.class);
 	}
-
+	
 	public String getNavigationKey() {
 		return ShippingNavigation.SHIPPING_SELECT_ORDER.name();
 	}
-
+	
 	public String getTitle() {
 		return resolve("Shipping");
 	}
 
-	/**
+	/** 
 	 * reset all variables to default values
 	 */
 	protected void init() {
@@ -59,12 +64,12 @@ public class ShippingBean extends BasicDialogBean {
 		currentOrderTO = null;
 		orderList = null;
 	}
-
+	
 	private LOSGoodsOutTO findGoodsOutOrder(String searchStr) throws FacadeException {
 		LOSGoodsOutTO order = goFacade.load(searchOrderList);
 		return order;
 	}
-
+	
 
 	public String processSelectOrder() {
 		orderList = null;
@@ -83,25 +88,25 @@ public class ShippingBean extends BasicDialogBean {
 			JSFHelper.getInstance().message(resolve("MsgOrderNotFound"));
 			return "";
 		}
-
+		
 		try {
 			goFacade.start(currentOrderTO.getOrderId());
-		}
+		} 
 		catch (FacadeException e) {
 			JSFHelper.getInstance().message(e.getLocalizedMessage(getLocale()));
 			return "";
 		}
-
+		
 		return ShippingNavigation.SHIPPING_SCAN_UNITLOAD.toString();
 	}
-
+	
 
 	public String processCancelSelectOrder() {
 		init();
 		return ShippingNavigation.SHIPPING_BACK_TO_MENU.toString();
 	}
 
-
+	
 	public String processShowInfo() {
 		return ShippingNavigation.SHIPPING_SHOW_INFO.toString();
 	}
@@ -112,7 +117,7 @@ public class ShippingBean extends BasicDialogBean {
 			JSFHelper.getInstance().message(resolve("MsgOrderNotLoaded"));
 			return ShippingNavigation.SHIPPING_SELECT_ORDER.toString();
 		}
-
+		
 		if( inputUnitLoadLabel == null ) {
 			JSFHelper.getInstance().message(resolve("MsgEnterUnitLoad"));
 			return ShippingNavigation.SHIPPING_SCAN_UNITLOAD.toString();
@@ -122,16 +127,16 @@ public class ShippingBean extends BasicDialogBean {
 			JSFHelper.getInstance().message(resolve("MsgEnterUnitLoad"));
 			return ShippingNavigation.SHIPPING_SCAN_UNITLOAD.toString();
 		}
-
+		
 		try {
 			goFacade.finishPosition(inputUnitLoadLabel, currentOrderTO.getOrderId());
 		} catch (FacadeException e) {
 			JSFHelper.getInstance().message(e.getLocalizedMessage(getLocale()));
 			return "";
 		}
-
+		
 		inputUnitLoadLabel = "";
-
+		
 		try {
 			currentOrderTO = goFacade.getOrderInfo(currentOrderTO.getOrderId());
 			if( currentOrderTO.isFinished() ) {
@@ -142,16 +147,16 @@ public class ShippingBean extends BasicDialogBean {
 			JSFHelper.getInstance().message(e.getLocalizedMessage(getLocale()));
 			return "";
 		}
-
+		
 		return ShippingNavigation.SHIPPING_SCAN_UNITLOAD.toString();
 	}
-
+	
 	public String processCancelUnitLoad() {
 		if( currentOrderTO == null ) {
 			JSFHelper.getInstance().message(resolve("MsgOrderNotLoaded"));
 			return ShippingNavigation.SHIPPING_SELECT_ORDER.toString();
 		}
-
+		
 		try {
 			goFacade.cancel(currentOrderTO.getOrderId());
 			return ShippingNavigation.SHIPPING_SHOW_SUMMARY.toString();
@@ -161,14 +166,14 @@ public class ShippingBean extends BasicDialogBean {
 		}
 
 	}
-
+	
 	public String processShowUnitLoad() {
 		return ShippingNavigation.SHIPPING_SCAN_UNITLOAD.toString();
 	}
-
-
+	
+	
     public List<SelectItem> getOrderList() {
-
+    	
 		if( orderList == null ) {
 			orderList = new ArrayList<SelectItem>();
 
@@ -185,7 +190,7 @@ public class ShippingBean extends BasicDialogBean {
 			}
 		}
 
-
+    	
 		return orderList;
     }
 
@@ -203,23 +208,23 @@ public class ShippingBean extends BasicDialogBean {
     		log.error(e.getMessage(), e);
     	}
     }
-
+    
 	public String processSummaryFinish() {
 		init();
 		return ShippingNavigation.SHIPPING_SELECT_ORDER.toString();
 	}
-
+	
 	public String processInfoFinish() {
 		return ShippingNavigation.SHIPPING_SCAN_UNITLOAD.toString();
 	}
-
+	
 	public String getOrderNumber() {
 		return currentOrderTO == null ? "" : currentOrderTO.getOrderNumber();
 	}
-
+	
 	public void setOrderNumber(String orderNumber) {
 	}
-
+	
 	public String getComment() {
 		return currentOrderTO == null ? "" : currentOrderTO.getComment();
 	}
@@ -227,11 +232,11 @@ public class ShippingBean extends BasicDialogBean {
 	public String getNextUnitLoadLabel() {
 		return currentOrderTO == null ? "" : currentOrderTO.getNextUnitLoadLabelId();
 	}
-
+	
 	public String getNextLocation() {
 		return currentOrderTO == null ? "" : currentOrderTO.getNextLocationName();
 	}
-
+	
 	public String getNumPosDone() {
 		return currentOrderTO == null ? "" : Long.valueOf(currentOrderTO.getNumPosDone()).toString();
 	}
@@ -239,12 +244,12 @@ public class ShippingBean extends BasicDialogBean {
 	public String getNumPosOpen() {
 		return currentOrderTO == null ? "" : Long.valueOf(currentOrderTO.getNumPosOpen()).toString();
 	}
-
+	
 	public String getNumPos() {
 		if( currentOrderTO == null ) {
 			return "";
 		}
-		long numPos = currentOrderTO.getNumPosDone() + currentOrderTO.getNumPosOpen();
+		long numPos = currentOrderTO.getNumPosDone() + currentOrderTO.getNumPosOpen(); 
 		return Long.valueOf(numPos).toString();
 	}
 
