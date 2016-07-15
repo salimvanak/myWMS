@@ -1,6 +1,14 @@
+plugins {
+  id "org.hibernate.gradle.tools" version "1.2.2"
+}
+
 apply plugin: 'ear'
 
 version = '1.8.0'
+
+configurations {
+    hibtools
+}
 
 dependencies {
   deploy project('mywms.as')
@@ -16,7 +24,59 @@ dependencies {
   earlib group: 'net.sourceforge.barbecue', name: 'barbecue', version: '1.5-beta1'
   earlib group: 'net.sf.jasperreports', name: 'jasperreports-fonts', version: '4.0.0'
   earlib 'org.apache.commons:commons-lang3:3.4'
+
+  hibtools 'org.hibernate:hibernate-tools:4.+'
+  hibtools project('mywms.as')
+  hibtools project('los.common-ejb')
+  hibtools project('los.location-ejb')
+  hibtools project('los.inventory-ejb')
+  hibtools project('los.stocktaking-ejb')
+  hibtools project('los.mobile')
+  hibtools group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
+  hibtools group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
 }
+
+task createSQLScript(dependsOn: ['build']) << {
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(drop: 'false', export: 'false', outputfilename: 'mydb.sql')
+    }
+}
+
+task dropSchema(dependsOn: ['build']) << {
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(export: 'true' create: 'false' update:'false' drop:'true')
+    }
+}
+
+task createSchema(dependsOn: ['build']) << {
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(create: 'true' export: 'true')
+    }
+}
+
+task updateSchema(dependsOn: ['build']) << {
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(export: 'true' create: 'false' update:'true' drop:'false')
+    }
+}
+
+
 
 ear {
   archiveName 'los.reference.ear'
