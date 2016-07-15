@@ -1,3 +1,7 @@
+plugins {
+  id "org.hibernate.gradle.tools" version "1.2.2"
+}
+
 apply plugin: 'ear'
 
 version = '1.8.0'
@@ -30,6 +34,7 @@ dependencies {
   hibtools project('los.mobile')
   hibtools group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.21'
   hibtools group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
+<<<<<<< HEAD
 }
 
 task createSQLScript(dependsOn: ['build']) << {
@@ -52,13 +57,41 @@ task dropSchema(dependsOn: ['build']) << {
     }
 }
 
+=======
+}
+
+task createSQLScript(dependsOn: ['build']) << {
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(drop: 'false', export: 'false', outputfilename: 'mydb.sql')
+    }
+}
+
+task dropSchema(dependsOn: ['build']) << {
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(export: 'true' create: 'false' update:'false' drop:'true')
+    }
+}
+
+>>>>>>> 8898db05ce0c702f67b56df2d617ab11bbffde92
 task createSchema(dependsOn: ['build']) << {
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
     ant.hibernatetool(destdir: file('build')) {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+<<<<<<< HEAD
         ant.hbm2ddl(create: 'true', export: 'true')
+=======
+        ant.hbm2ddl(create: 'true' export: 'true')
+>>>>>>> 8898db05ce0c702f67b56df2d617ab11bbffde92
     }
 }
 
@@ -68,7 +101,11 @@ task updateSchema(dependsOn: ['build']) << {
             classpath: configurations.hibtools.asPath)
     ant.hibernatetool(destdir: file('build')) {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+<<<<<<< HEAD
         ant.hbm2ddl(export: 'true', create: 'false', update:'true', drop:'false')
+=======
+        ant.hbm2ddl(export: 'true' create: 'false' update:'true' drop:'false')
+>>>>>>> 8898db05ce0c702f67b56df2d617ab11bbffde92
     }
 }
 
