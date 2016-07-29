@@ -731,16 +731,13 @@ public class LOSGoodsReceiptFacadeBean
 		}
 
 		LOSUnitLoad unitLoad = (LOSUnitLoad)stock.getUnitLoad();
-
-    	StockUnitLabel label = suLabelReport.generateStockUnitLabel(unitLoad);
-        boolean storeLabel = propertyService.getBooleanDefault(LOSInventoryPropertyKey.STORE_GOODS_RECEIPT_LABEL, false);
-        if( storeLabel ) {
-        	suLabelReport.storeStockUnitLabel(label);
-        }
-    	printService.print(printer, label.getName(), label.getDocument(), label.getType());
-
+		StockUnitLabel label = suLabelReport.generateStockUnitLabel(unitLoad);
+		boolean storeLabel = propertyService.getBooleanDefault(LOSInventoryPropertyKey.STORE_GOODS_RECEIPT_LABEL, false);
+		if( storeLabel ) {
+			suLabelReport.storeStockUnitLabel(label);
+		}
+		printService.print(printer, label.getName(), label.getDocument(), label.getType());
 		return label;
-
 	}
 
 	public boolean checkSerialNumber(String serialNo, ItemData itemData) {

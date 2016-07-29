@@ -85,34 +85,38 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 
 		List<LOSStockUnitReportTO> valueMap = new ArrayList<LOSStockUnitReportTO>();
 
-		for( StockUnit stock : unitLoad.getStockUnitList() ) {
-			LOSStockUnitReportTO labelPos;
-			labelPos = new LOSStockUnitReportTO();
-			labelPos.itemNumber = stock.getItemData().getNumber();
-			labelPos.itemName = stock.getItemData().getName();
-			labelPos.itemUnit = stock.getItemData().getHandlingUnit().getUnitName();
-			labelPos.itemScale = stock.getItemData().getScale();
-			labelPos.lotName = stock.getLot() == null ? "" : stock.getLot().getName();
-			labelPos.amount = stock.getAmount();
-			labelPos.serialNumber = stock.getSerialNumber();
-
-
-			if (stock.getLot() != null) {
-				labelPos.bestBefore = stock.getLot().getBestBeforeEnd();
-				labelPos.useNotBefore = stock.getLot().getUseNotBefore();
-			}
-
-			valueMap.add(labelPos);
-
-			label.setAmount(stock.getAmount());
-			label.setItemdataRef(stock.getItemData().getNumber());
-			label.setItemNameRef(stock.getItemData().getName());
-			label.setItemUnit( stock.getItemData().getHandlingUnit().getUnitName() );
-			label.setLotRef(stock.getLot() == null ? "" : stock.getLot().getName());
-			label.setScale(stock.getItemData().getScale());
-
+		if ("Nirwana".equals(unitLoad.getLabelId())) {
+			log.info(logStr+"Skipping stock untis for unit load Nirwana");
+			valueMap.add(new LOSStockUnitReportTO());
 		}
+		else {
+			for( StockUnit stock : unitLoad.getStockUnitList() ) {
+				LOSStockUnitReportTO labelPos;
+				labelPos = new LOSStockUnitReportTO();
+				labelPos.itemNumber = stock.getItemData().getNumber();
+				labelPos.itemName = stock.getItemData().getName();
+				labelPos.itemUnit = stock.getItemData().getHandlingUnit().getUnitName();
+				labelPos.itemScale = stock.getItemData().getScale();
+				labelPos.lotName = stock.getLot() == null ? "" : stock.getLot().getName();
+				labelPos.amount = stock.getAmount();
+				labelPos.serialNumber = stock.getSerialNumber();
 
+
+				if (stock.getLot() != null) {
+					labelPos.bestBefore = stock.getLot().getBestBeforeEnd();
+					labelPos.useNotBefore = stock.getLot().getUseNotBefore();
+				}
+
+				valueMap.add(labelPos);
+
+				label.setAmount(stock.getAmount());
+				label.setItemdataRef(stock.getItemData().getNumber());
+				label.setItemNameRef(stock.getItemData().getName());
+				label.setItemUnit( stock.getItemData().getHandlingUnit().getUnitName() );
+				label.setLotRef(stock.getLot() == null ? "" : stock.getLot().getName());
+				label.setScale(stock.getItemData().getScale());
+			}
+		}
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put("labelId", unitLoad.getLabelId() );

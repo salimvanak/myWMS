@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2006 - 2013 LinogistiX GmbH
- * 
+ *
  *  www.linogistix.com
- *  
+ *
  *  Project myWMS-LOS
  */
 package de.linogistix.los.inventory.report;
@@ -50,7 +50,7 @@ import de.linogistix.los.util.StringTools;
 public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 
 	private static final Logger log = Logger.getLogger(LOSUnitLoadReportBean.class);
-	
+
 	@EJB
 	private LOSJasperReportGenerator reportGenerator;
 	@EJB
@@ -64,17 +64,17 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 
     @PersistenceContext(unitName = "myWMS")
 	private EntityManager manager;
-    
-    
-    
+
+
+
 	public PickReceipt generateUnitLoadReport(LOSUnitLoad unitLoad) throws FacadeException {
 		String logStr = "generateUnitLoadReport ";
 		PickReceipt label = null;
-		
+
 		log.info(logStr+"Generate report for unitLoad="+unitLoad.getLabelId());
-		
+
 		LOSPickingUnitLoad pul = pulService.getByLabel(unitLoad.getLabelId());
-		
+
 		label = entityGenerator.generateEntity( PickReceipt.class );
 		label.setName( "LOS-"+unitLoad.getLabelId() );
 		label.setClient( unitLoad.getClient() );
@@ -83,14 +83,13 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 		label.setType(DocumentTypes.APPLICATION_PDF.toString());
 
 		label.setPositions( new ArrayList<PickReceiptPosition>() );
-		
-		
+
 		LOSCustomerOrder customerOrder = null;
 		LOSPickingOrder pickingOrder = null;
 		if( pul != null ) {
 			String customerOrderNumber = pul.getCustomerOrderNumber();
 			customerOrder = customerOrderService.getByNumber(customerOrderNumber);
-			
+
 			if( customerOrder != null ) {
 				label.setOrderNumber( customerOrder.getNumber() );
 			}
@@ -99,49 +98,54 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 				label.setPickNumber( pul.getPickingOrder().getNumber() );
 			}
 		}
-		
+
 		Map<String, LOSStockUnitReportTO> valueMap = new HashMap<String, LOSStockUnitReportTO>();
 
-		for( StockUnit stock : unitLoad.getStockUnitList() ) {
-			
-			
-			PickReceiptPosition pickReceiptPos = entityGenerator.generateEntity( PickReceiptPosition.class );
-			pickReceiptPos.setAmount(stock.getAmount());
-			pickReceiptPos.setArticleDescr(stock.getItemData().getName());
-			pickReceiptPos.setArticleRef(stock.getItemData().getNumber());
-			pickReceiptPos.setLotRef( stock.getLot() == null ? "" : stock.getLot().getName() );
-			pickReceiptPos.setReceipt(label);
-			label.getPositions().add(pickReceiptPos);
-			
-			
-			String key = stock.getItemData().getNumber();
-			if( stock.getLot() != null ) {
-				key+="-LOT-"+stock.getLot().getName();
-			}
-			LOSStockUnitReportTO labelPos = valueMap.get(key);
-			if( labelPos == null ) {
-				labelPos = new LOSStockUnitReportTO();
-				labelPos.itemNumber = stock.getItemData().getNumber();
-				labelPos.itemName = stock.getItemData().getName();
-				labelPos.itemUnit = stock.getItemData().getHandlingUnit().getUnitName();
-				labelPos.itemScale = stock.getItemData().getScale();
-				labelPos.lotName = stock.getLot() == null ? "" : stock.getLot().getName();
-				labelPos.amount = stock.getAmount();
-//				labelPos.serialNumber = stock.getSerialNumber();
-				labelPos.serialNumber = "";
-				
-				valueMap.put(key, labelPos);
-			}
-			else {
-				labelPos.amount = labelPos.amount.add(stock.getAmount());
-			}
-			
-			if( !StringTools.isEmpty(stock.getSerialNumber()) ) {
-				labelPos = new LOSStockUnitReportTO();
-				key = key + "-SERIAL-" + stock.getSerialNumber();
-				labelPos.itemNumber = stock.getItemData().getNumber();
-				labelPos.serialNumber = stock.getSerialNumber();
-				valueMap.put(key, labelPos);
+		if ("Nirwana".equals(unitLoad.getLabelId())) {
+			log.info(logStr+"Skipping stock untis for unit load Nirwana");
+		}
+		else {
+			for( StockUnit stock : unitLoad.getStockUnitList() ) {
+
+
+				PickReceiptPosition pickReceiptPos = entityGenerator.generateEntity( PickReceiptPosition.class );
+				pickReceiptPos.setAmount(stock.getAmount());
+				pickReceiptPos.setArticleDescr(stock.getItemData().getName());
+				pickReceiptPos.setArticleRef(stock.getItemData().getNumber());
+				pickReceiptPos.setLotRef( stock.getLot() == null ? "" : stock.getLot().getName() );
+				pickReceiptPos.setReceipt(label);
+				label.getPositions().add(pickReceiptPos);
+
+
+				String key = stock.getItemData().getNumber();
+				if( stock.getLot() != null ) {
+					key+="-LOT-"+stock.getLot().getName();
+				}
+				LOSStockUnitReportTO labelPos = valueMap.get(key);
+				if( labelPos == null ) {
+					labelPos = new LOSStockUnitReportTO();
+					labelPos.itemNumber = stock.getItemData().getNumber();
+					labelPos.itemName = stock.getItemData().getName();
+					labelPos.itemUnit = stock.getItemData().getHandlingUnit().getUnitName();
+					labelPos.itemScale = stock.getItemData().getScale();
+					labelPos.lotName = stock.getLot() == null ? "" : stock.getLot().getName();
+					labelPos.amount = stock.getAmount();
+					//				labelPos.serialNumber = stock.getSerialNumber();
+					labelPos.serialNumber = "";
+
+					valueMap.put(key, labelPos);
+				}
+				else {
+					labelPos.amount = labelPos.amount.add(stock.getAmount());
+				}
+
+				if( !StringTools.isEmpty(stock.getSerialNumber()) ) {
+					labelPos = new LOSStockUnitReportTO();
+					key = key + "-SERIAL-" + stock.getSerialNumber();
+					labelPos.itemNumber = stock.getItemData().getNumber();
+					labelPos.serialNumber = stock.getSerialNumber();
+					valueMap.put(key, labelPos);
+				}
 			}
 		}
 
@@ -152,11 +156,11 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 		List<LOSStockUnitReportTO> valueList2 = new ArrayList<LOSStockUnitReportTO>();
 		String itemNumber = null;
 		int i = 1;
-		
-		
+
+
 		for( LOSStockUnitReportTO value : valueList ) {
 			if( itemNumber != null && !itemNumber.equals(value.itemNumber) ) {
-				valueList2.add( new LOSStockUnitReportTO() );
+				//valueList2.add( new LOSStockUnitReportTO() );
 			}
 			itemNumber = value.itemNumber;
 
@@ -175,7 +179,7 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 			}
 
 		}
-		
+
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put("formattedOrderNumber", customerOrder == null ? "" : StringTools.isEmpty(customerOrder.getExternalNumber()) ? customerOrder.getNumber() : customerOrder.getExternalNumber() );
 		SimpleDateFormat sd = new SimpleDateFormat("dd.MM.yyyy");
@@ -192,7 +196,8 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 		parameters.put("targetLocationName", customerOrder == null ? "" : customerOrder.getDestination() == null ? "" : customerOrder.getDestination().getName() );
 		parameters.put("orderStrategyName", customerOrder == null ? "" : customerOrder.getStrategy() == null ? "" : customerOrder.getStrategy().getName() );
 		parameters.put("prio", customerOrder == null ? 0 : customerOrder.getPrio() );
-		
+		parameters.put("weight", pul.getUnitLoad().getWeight());
+
 		byte[] bytes = reportGenerator.createPdf(unitLoad.getClient(), "UnitLoadLabel", InventoryBundleResolver.class, valueList2, parameters);
 		label.setDocument(bytes);
 
@@ -212,33 +217,33 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 			manager.remove(labelOld);
 			manager.flush();
 		}
-		
+
 		manager.persist(label);
 		for( PickReceiptPosition pos : label.getPositions() ) {
 			manager.persist(pos);
 		}
-		
+
 		return label;
 	}
 
-	
 
-	
+
+
 	class ReceiptPositionComparator implements Comparator<LOSStockUnitReportTO>{
 		public int compare(LOSStockUnitReportTO o1, LOSStockUnitReportTO o2) {
 			int x = o1.itemNumber.compareTo(o2.itemNumber);
 			if( x != 0 ) {
 				return x;
 			}
-			
+
 			if( o1.serialNumber != null && o2.serialNumber != null ) {
 				x = o1.serialNumber.compareTo(o2.serialNumber);
 				if( x != 0 ) {
 					return x;
 				}
 			}
-			
-			return o1.amount.compareTo(o2.amount); 
+
+			return o1.amount.compareTo(o2.amount);
 		}
 	}
-}	
+}
