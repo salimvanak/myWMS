@@ -175,22 +175,38 @@ public class MagicStockQueryBean implements MagicStockQuery {
 			if( stock == null ) {
 				if (stockList.isEmpty()) {
 					if (replenishService.isBeingReplenished(itemData)) {
+						log.error(logStr+" " + StockCheckResultType.WAIT_FOR_REPLENISH);
 						return new StockCheckResult(itemData.getNumber(), amountToPick,
 								StockCheckResultType.WAIT_FOR_REPLENISH);
 					}
 					else {
 						Map<String, QueryInventoryTO> amountInStock = queryInventoryBusiness.getInvMap(client, lot, itemData, true, true);
 						if (amountInStock.size() == 0) {
+							log.error(logStr+" " + StockCheckResultType.NOT_ENOUGH_STOCK);
 							return new StockCheckResult(itemData.getNumber(), amount.subtract(amountToPick),
 								StockCheckResultType.NOT_ENOUGH_STOCK);
 						}
 						else {
-							return new StockCheckResult(itemData.getNumber(), amountToPick,
-									StockCheckResultType.NOT_AVIALABLE_FOR_PICKING);
+							BigDecimal stockOnHand = BigDecimal.ZERO;
+							for (QueryInventoryTO i :amountInStock.values()) {
+								stockOnHand = stockOnHand.add(i.available);
+							}
+							
+							if (stockOnHand.compareTo(amount) < 0) {
+								log.error(logStr+" " + StockCheckResultType.NOT_ENOUGH_STOCK);
+								return new StockCheckResult(itemData.getNumber(), amount.subtract(amountToPick),
+									StockCheckResultType.NOT_ENOUGH_STOCK);								
+							}
+							else {
+								log.error(logStr+" " + StockCheckResultType.NOT_AVIALABLE_FOR_PICKING);
+								return new StockCheckResult(itemData.getNumber(), amountToPick,
+										StockCheckResultType.NOT_AVIALABLE_FOR_PICKING);
+							}
 						}
 					}
 				}
 				else {
+					log.error(logStr+" " + StockCheckResultType.REMAINING_STOCK_RESERVED);
 					return new StockCheckResult(itemData.getNumber(), amountToPick, StockCheckResultType.REMAINING_STOCK_RESERVED);
 				}
 			}
