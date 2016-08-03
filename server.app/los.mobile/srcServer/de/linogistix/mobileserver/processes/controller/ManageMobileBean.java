@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.ejb.Stateless;
-
 import de.linogistix.los.inventory.model.LOSPickingOrder;
 import de.linogistix.mobileserver.processes.picking.PickingMobileComparator;
 import de.linogistix.mobileserver.processes.picking.PickingMobilePos;
