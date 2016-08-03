@@ -8,6 +8,8 @@
 package de.linogistix.los.inventory.report;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 
 import de.linogistix.los.util.StringTools;
@@ -94,5 +96,23 @@ public class LOSStockUnitReportTO {
 
 	public String getSerialNumber() {
 		return serialNumber;
+	}
+
+	@SuppressWarnings("deprecation")
+	public static Collection<LOSStockUnitReportTO> createBeanCollection() {
+		ArrayList<LOSStockUnitReportTO> l = new ArrayList<>();
+		LOSStockUnitReportTO a = new LOSStockUnitReportTO();
+		a.amount = new BigDecimal(999);
+		a.bestBefore = new Date();
+		a.itemName = "This is the item description that is 60 charactors long XXX.";
+		a.itemNumber = "0123456789";
+		a.itemScale = 3;
+		a.itemUnit = "Peices";
+		a.lotName = "LOT-1234567890/20CHAR";
+		a.pos = "POSITION-00000";
+		a.serialNumber = "SERIAL NUMBER-20CHARS";
+		a.useNotBefore = new Date(2099, 1, 1);
+		l.add(a);
+		return l;
 	}
 }
