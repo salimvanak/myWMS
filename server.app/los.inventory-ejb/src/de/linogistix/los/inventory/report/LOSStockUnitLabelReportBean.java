@@ -94,7 +94,15 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 			valueMap.add(new LOSStockUnitReportTO());
 		}
 		else {
-			for( StockUnit stock : unitLoad.getStockUnitList() ) {
+			List<StockUnit> stockUnitList = unitLoad.getStockUnitList();
+			final int maxStockUnits = 10;
+			if (stockUnitList.size() > maxStockUnits) {
+				log.error(logStr+"Max stock units exceded, only the first " 
+						+ maxStockUnits + " of " + unitLoad.getStockUnitList().size() 
+						+ "stock units printed for unit load unitLoad " + unitLoad.getLabelId());
+				stockUnitList = stockUnitList.subList(0, maxStockUnits);
+			}
+			for( StockUnit stock : stockUnitList ) {
 				LOSStockUnitReportTO labelPos;
 				labelPos = new LOSStockUnitReportTO();
 				labelPos.itemNumber = stock.getItemData().getNumber();
