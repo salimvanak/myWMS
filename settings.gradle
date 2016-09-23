@@ -1,3 +1,4 @@
+include ':client.app'
 include ':server.app:mywms.as'
 include ':server.app:los.common-ejb'
 include ':server.app:los.inventory-ejb'
@@ -5,4 +6,3 @@ include ':server.app:los.location-ejb'
 include ':server.app:los.stocktaking-ejb'
 include ':server.app:los.mobile'
 include ':server.app:project-ejb'
-

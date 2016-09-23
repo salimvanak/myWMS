@@ -33,7 +33,6 @@ import de.linogistix.los.inventory.query.dto.StockUnitTO;
 import de.linogistix.los.inventory.service.StockUnitLockState;
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
 import de.linogistix.los.location.model.LOSStorageLocation;
-import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.BusinessObjectQueryBean;
 import de.linogistix.los.query.LOSResultList;

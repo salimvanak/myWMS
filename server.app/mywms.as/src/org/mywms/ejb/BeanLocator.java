@@ -7,6 +7,7 @@
 package org.mywms.ejb;
 
 import java.io.Externalizable;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -136,7 +137,7 @@ public class BeanLocator implements Externalizable {
 		if (appServerProps != null) {
 			appServerProperties = appServerProps;
 		}
-
+		initialContextProperties = new Properties();
 		applicationName = this.appServerProperties.getProperty("org.mywms.env.applicationName");
 		
 //		appServerProperties.put(Context.INITIAL_CONTEXT_FACTORY,
@@ -376,16 +377,12 @@ public class BeanLocator implements Externalizable {
     	String logStr="resolve ";
         String beanName;
         String jndiName;
-        beanName =
-        		interfaceClazz.getSimpleName().replaceFirst(
-                "Remote",
-                "");
+        beanName = interfaceClazz.getSimpleName().replaceFirst("Remote","");
        jndiName ="ejb:" + applicationName
-                + "/"+ moduleName + "/"
-                + beanName
-                + "Bean!" + interfaceClazz.getName();
-       logger.debug(logStr+
-    		   "jndiName: "+jndiName);
+                + "/"+ moduleName + "//"
+                + beanName + "Bean!" + interfaceClazz.getName();
+       logger.debug(logStr+ "jndiName: "+jndiName);
+       System.out.println(logStr+ "jndiName: "+jndiName);
        return  jndiName;
     }
 
