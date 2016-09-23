@@ -1,0 +1,34 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+version = '0.0.1'
+
+repositories {
+  jcenter()
+  mavenCentral()
+
+  maven {
+    name "Jasper Reports"
+    url "http://jasperreports.sourceforge.net/maven2/"
+  }
+
+  maven {
+    name "Jasper Reports third party artifacts"
+    url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts/"
+  }
+}
+
+dependencies {
+  compile group: 'org.wildfly', name: 'wildfly-ejb-client-bom', version: '8.2.1.Final'
+  compile 'log4j:log4j:1.2.17'
+  compile group: 'javax', name: 'javaee-api', version: '7.0'
+  compile fileTree(dir: 'lib', include: '*.jar')
+
+  compile project(':server.app:mywms.as')
+  compile project(':server.app:los.common-ejb')
+  compile project(':server.app:los.location-ejb')
+  compile project(':server.app:los.inventory-ejb')
+  compile project(':server.app:los.stocktaking-ejb')
+  compile project(':server.app:los.mobile')
+  compile project(':server.app:los.common-ejb')
+}
