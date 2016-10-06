@@ -12,6 +12,7 @@ import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.beans.InvalidationListener;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
@@ -31,6 +32,7 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	
 	public BODTOTable() {
 		this(null);
+		getTable().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 	}
 
 	public BODTOTable(String saveSettingsUID) {

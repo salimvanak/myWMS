@@ -3,9 +3,9 @@ package uk.ltd.mediamagic.mywms;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jboss.logmanager.Level;
 import org.mywms.model.BasicEntity;
 
 import de.linogistix.los.crud.BusinessObjectCRUDRemote;
@@ -34,7 +34,8 @@ public class BeanDirectory {
 	private static final ClassLookup<Class<? extends BusinessObjectQueryRemote<? extends BasicEntity>>> 
 		queryLookup = new ClassLookup<>(BeanDirectory::findQuery);
 	
-	private static final ClassLookup<Class<? extends BODTO<? extends BasicEntity>>> 
+	@SuppressWarnings("rawtypes")
+	private static final ClassLookup<Class<? extends BODTO>> 
 		bodtoLookup = new ClassLookup<>(BeanDirectory::findBODTO);
 
 	static {
@@ -78,9 +79,9 @@ public class BeanDirectory {
 		return find(cls, BusinessObjectQueryRemote.class, BeanDirectory.getQueryClassName(cls));
 	}
 	
-	@SuppressWarnings("unchecked")
-	static Class<? extends BODTO<?>> findBODTO(Class<? extends BasicEntity> cls) {
-		return (Class<? extends BODTO<?>>) find(cls, BODTO.class, BeanDirectory.getBODTOClassName(cls));
+	@SuppressWarnings("rawtypes")
+	static Class<? extends BODTO> findBODTO(Class<? extends BasicEntity> cls) {
+		return (Class<? extends BODTO>) find(cls, BODTO.class, BeanDirectory.getBODTOClassName(cls));
 	}
 	
 	/**

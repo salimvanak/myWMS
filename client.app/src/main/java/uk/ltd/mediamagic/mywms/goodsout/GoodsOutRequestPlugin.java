@@ -85,7 +85,8 @@ public class GoodsOutRequestPlugin  extends BODTOPlugin<LOSGoodsOutRequest> {
 		TemplateQuery template = source.createQueryTemplate();
 		if (filterValue != OpenFilter.All) {
 			TemplateQueryFilter filter = template.addNewFilter();
-			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "outState", LOSGoodsOutRequestState.FINISHED));
+			filter.addWhereToken(new TemplateQueryWhereToken(
+					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "outState", LOSGoodsOutRequestState.FINISHED));
 		}
 
 		QueryDetail detail = source.createQueryDetail();

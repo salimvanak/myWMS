@@ -9,7 +9,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jboss.util.Strings;
 import org.mywms.model.BasicEntity;
 
 import de.linogistix.los.query.BODTO;
@@ -49,6 +48,7 @@ import javafx.stage.PopupWindow;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;

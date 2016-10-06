@@ -14,7 +14,6 @@ jar {
   from ('./') {
     include 'META-INF/*'
     exclude 'META-INF/application.xml'
-    exclude 'META-INF/persistence.xml'  
+    exclude 'META-INF/persistence.xml'
   }
 }
-

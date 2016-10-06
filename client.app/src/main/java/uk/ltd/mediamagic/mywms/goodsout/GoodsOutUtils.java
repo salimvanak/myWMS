@@ -8,7 +8,7 @@ import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class GoodsOutUtils {
-	enum OpenFilter {Open, All};
+	public enum OpenFilter {Open, All};
 	
 	public static Node getIcon(int state) {
 		if (state == State.RAW) return R.svgPaths.createIconFromFile("package8.svg", IconSize.XLarge);

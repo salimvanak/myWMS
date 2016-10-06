@@ -227,11 +227,11 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		.with(CrudTable.class)
 			.withSelection(Flow.EDIT_ACTION, this::getEditor)
 			.alias(Flow.TABLE_SELECT_ACTION, Flow.EDIT_ACTION)
-			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh(s, c))
+			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((CrudTable<T>)s, c))
 		.end()
 		.with(MyWMSEditor.class)
 			.action(Flow.SAVE_ACTION, this::save)
-			.action(Flow.REFRESH_ACTION, this::refresh)
+			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((PoJoEditor<T>)s,f,c))
 		.end();		
 		return flow;
 	}

@@ -3,6 +3,7 @@ package uk.ltd.mediamagic.mywms.inventory;
 import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -91,6 +92,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 			.withSelection(Action.LOCK, this::lock)
 			.withSelection(Action.TRANSFER, this::transfer)
 			.withSelection(Action.CHANGE_AMOUNT, this::changeAmount)
+			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
 		.end();
 		return flow;
 	}
@@ -119,6 +121,24 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 		context.getExecutor().call(() -> {
 			StockUnit su = suCrud.retrieve(id);
 			manageInventory.changeAmount(new StockUnitTO(su), amountVal, resVal, commentVal);
+			return null;
+		});
+	}
+
+	private void sendToNirwana(Object source, Flow flow, ViewContext context, TableKey key) {
+		final long id = key.get("id");
+		
+		boolean ok = MDialogs.create(context.getRootNode())
+				.masthead("Send stock unit " + id + " to Nirwana")
+				.showYesNo(MDialogs.Yes3);
+		
+		if (!ok) return;
+	
+		StockUnitCRUDRemote suCrud = context.getBean(StockUnitCRUDRemote.class);
+		ManageInventoryFacade manageInventory = context.getBean(ManageInventoryFacade.class);
+		context.getExecutor().call(() -> {
+			StockUnit su = suCrud.retrieve(id);
+			manageInventory.sendStockUnitsToNirwana(Collections.singletonList(new StockUnitTO(su)));
 			return null;
 		});
 	}
@@ -254,6 +274,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 				.add(AC.id(Action.LOCK).text("Lock"))
 				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
 				.add(AC.id(Action.CHANGE_AMOUNT).text("Change amount"))
+				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
 			.end()
 		.end();
 		QueryUtils.addFilter(table, StockUnitFilter.Available, () -> refresh(table, context));
@@ -268,6 +289,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 				.add(AC.id(Action.LOCK).text("Lock"))
 				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
 				.add(AC.id(Action.CHANGE_AMOUNT).text("Change amount"))
+				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
 			.end()
 		.end();
 		return editor;

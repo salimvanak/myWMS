@@ -21,12 +21,22 @@ import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
+import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.fxcommon.ObservableConstant;
+import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPickingOrder;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutHaltPickingOrder;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutReleasePickingOrder;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutRemovePickingOrder;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -38,6 +48,8 @@ import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 	)
 public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 
+	private enum Action { Release, Halt, Properties, Finish, Remove }
+	
 	public PickingOrdersPlugin() {
 		super(LOSPickingOrder.class);
 	}
@@ -93,8 +105,29 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 	}
 
 	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		Flow flow = super.createNewFlow(context);
+		flow.globalWithSelection()
+		.withMultiSelection(Flow.DELETE_ACTION, new GoodsOutRemovePickingOrder())
+		.withMultiSelection(Action.Finish, new GoodsOutFinishPickingOrder())
+		.withMultiSelection(Action.Halt, new GoodsOutHaltPickingOrder())
+		.withMultiSelection(Action.Release, new GoodsOutReleasePickingOrder())
+		.end();
+		return flow;
+	}
+	
+	@Override
 	protected BODTOTable<LOSPickingOrder> getTable(ViewContextBase context) {
 		BODTOTable<LOSPickingOrder> t = super.getTable(context);
+		t.getCommands()
+			.delete(ObservableConstant.TRUE, ObservableConstant.of(MyWMSUserPermissions.isAtLeastForeman()))
+			.menu(RootCommand.MENU)
+			.add(AC.id(Action.Release).text("Release for picking"))
+			.add(AC.id(Action.Halt).text("Halt picking"))
+			.add(AC.id(Action.Properties).text("Change properties"))
+			.add(AC.id(Action.Finish).text("Finish"))
+			.end()
+		.end();
 		GoodsOutUtils.addOpenFilter(t, () -> refresh(t, t.getContext()));
 		return t;
 	}

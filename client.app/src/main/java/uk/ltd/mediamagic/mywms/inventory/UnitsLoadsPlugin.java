@@ -2,11 +2,17 @@ package uk.ltd.mediamagic.mywms.inventory;
 
 import java.beans.PropertyDescriptor;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import de.linogistix.los.inventory.facade.ManageInventoryFacade;
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
+import de.linogistix.los.location.crud.LOSUnitLoadCRUDRemote;
+import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSUnitLoad;
+import de.linogistix.los.location.query.dto.StorageLocationTO;
+import de.linogistix.los.location.query.dto.UnitLoadTO;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
@@ -14,16 +20,30 @@ import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
+import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
+import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
+import uk.ltd.mediamagic.fx.MDialogs;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.data.TableKey;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
+import uk.ltd.mediamagic.fx.flow.FXErrors;
+import uk.ltd.mediamagic.fx.flow.Flow;
+import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
@@ -44,6 +64,10 @@ import uk.ltd.mediamagic.mywms.common.QueryUtils;
 public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 
 	enum UnitLoadFilter {All, Available, Empty, Carrier, Goods_out};
+
+	private enum Action {
+		LOCK, SEND_TO_NIRWANA, TRANSFER 
+	}
 	
 	public UnitsLoadsPlugin() {
 		super(LOSUnitLoad.class);
@@ -119,6 +143,105 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 		return super.getListData(context, detail, template);
 	}
 	
+	private void lock(Object source, Flow flow, ViewContext context, TableKey key) {
+		ComboBox<Integer> lockStateField = QueryUtils.lockStateCombo(LOSUnitLoadLockState.class);
+		TextArea causeField = new TextArea();
+		causeField.setPromptText("Reason");
+		
+		boolean ok = MDialogs.create(context.getRootNode(), "Lock Stock Unit")
+			.input("Lock State",lockStateField)
+			.input("Cause", causeField)
+			.showOkCancel();
+		
+		if (!ok) return;
+		
+		Integer lock = lockStateField.getValue();
+		String lockCause = causeField.getText();
+		if (lock == null) {
+			FXErrors.error(context.getRootNode(), "Lock state was empty.");
+			return;
+		}
+		
+		LOSUnitLoadCRUDRemote crud = context.getBean(LOSUnitLoadCRUDRemote.class);
+		long id = key.get("id");
+		context.getExecutor().run(() -> {
+			LOSUnitLoad ul = crud.retrieve(id);
+			crud.lock(ul, lock, lockCause);
+		})
+		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+	}
+	
+	private void transfer(Object source, Flow flow, ViewContext context, TableKey key) {
+		final long id = key.get("id");
+
+		BasicEntityEditor<LOSStorageLocation> location = new BasicEntityEditor<>();
+		location.configure(context, LOSStorageLocation.class);
+		CheckBox ignoreLocationLock = new CheckBox();
+		TextField infoField = new TextField();
+		
+		boolean ok = MDialogs.create(context.getRootNode(), "Transfer Stock Unit")
+			.input("To Unit Load", location)
+			.input("Ignore locked locations", ignoreLocationLock)
+			.input("Comment", infoField)
+			.showOkCancel();
+		if (!ok) return;
+		
+		LOSStorageLocation sl = location.getValue();
+		boolean ignoreLockedSl = ignoreLocationLock.isSelected();
+		String info = infoField.getText();
+		if (sl == null) return;
+		
+		LOSUnitLoadCRUDRemote ulCrud = context.getBean(LOSUnitLoadCRUDRemote.class);
+		ManageInventoryFacade manageInventory = context.getBean(ManageInventoryFacade.class);
+		context.getExecutor().call(() -> {
+			LOSUnitLoad ul = ulCrud.retrieve(id);
+			manageInventory.transferUnitLoad(new StorageLocationTO(sl), new UnitLoadTO(ul), 0, ignoreLockedSl, info);
+			return null;
+		});
+	}
+
+	private void sendToNirwana(Object source, Flow flow, ViewContext context, TableKey key) {
+		final long id = key.get("id");
+		
+		boolean ok = MDialogs.create(context.getRootNode())
+				.masthead("Send unit load " + id + " to Nirwana (DELETE)")
+				.showYesNo(MDialogs.Yes3);
+		
+		if (!ok) return;
+		
+		LOSUnitLoadCRUDRemote ulCrud = context.getBean(LOSUnitLoadCRUDRemote.class);
+		ManageInventoryFacade manageInventory = context.getBean(ManageInventoryFacade.class);
+		context.getExecutor().call(() -> {
+			LOSUnitLoad ul = ulCrud.retrieve(id);
+			manageInventory.sendStockUnitsToNirwanaFromUl(Collections.singletonList(new UnitLoadTO(ul)));
+			return null;
+		});
+	}
+
+	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		Flow flow = super.createNewFlow(context);
+		flow.globalWithSelection()
+			.withSelection(Action.LOCK, this::lock)
+			.withSelection(Action.TRANSFER, this::transfer)
+			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
+		.end();
+		return flow;
+	}
+	
+	@Override
+	protected MyWMSEditor<LOSUnitLoad> getEditor(ContextBase context, TableKey key) {
+		MyWMSEditor<LOSUnitLoad> editor = super.getEditor(context, key);
+		editor.getCommands()
+			.begin(RootCommand.MENU)
+				.add(AC.id(Action.LOCK).text("Lock"))
+				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
+				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
+			.end()
+		.end();
+		return editor;
+	}
+	
 	/**
 	 * Generate the table layout for table selectors.
 	 * The method should be overridden when the table layout needs to be customised.
@@ -129,6 +252,13 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 		BODTOTable<LOSUnitLoad> table = super.getTable(context);
 		Runnable refreshData = () -> refresh(table, context);
 		QueryUtils.addFilter(table, UnitLoadFilter.Available, refreshData);
+		table.getCommands()
+			.begin(RootCommand.MENU)
+				.add(AC.id(Action.LOCK).text("Lock"))
+				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
+				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
+				.end()
+		.end();
 		return table;
 	}
 

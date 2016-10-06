@@ -7,8 +7,16 @@ import uk.ltd.mediamagic.fxcommon.UserPermissions;
 import uk.ltd.mediamagic.mywms.MyWMS;
 
 public class MyWMSUserPermissions implements UserPermissions {
+
+	public static final boolean isAdmin() {
+		return MyWMS.hasRole("Admin");
+	}
+
+	public static final boolean isAtLeastForeman() {
+		return MyWMS.hasRole("Admin", "Foreman");
+	}
 	
-	BooleanBinding isAdmin = MyWMS.hasRole("Admin");
+	BooleanBinding isAdmin = MyWMS.roleBinding("Admin");
 	
 	public MyWMSUserPermissions() {
 	}
@@ -24,7 +32,7 @@ public class MyWMSUserPermissions implements UserPermissions {
 	}
 	 
 	public static class ForMasterData extends MyWMSUserPermissions {
-		BooleanBinding isAtleastForeman = MyWMS.hasRole("Foreman", "Admin");
+		BooleanBinding isAtleastForeman = MyWMS.roleBinding("Foreman", "Admin");
 
 		public ForMasterData() {
 		}

@@ -3,7 +3,9 @@ package uk.ltd.mediamagic.mywms.common;
 import java.util.ArrayList;
 
 import de.linogistix.los.entityservice.BusinessObjectLock;
+import de.linogistix.los.model.Prio;
 import de.linogistix.los.query.TemplateQuery;
+import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -13,7 +15,12 @@ import uk.ltd.mediamagic.fx.action.AC.NodeAction;
 import uk.ltd.mediamagic.fx.helpers.ComboBoxes;
 
 public class QueryUtils {
-
+	
+	public static TemplateQueryWhereToken or(TemplateQueryWhereToken t) {
+		t.setLogicalOperator("OR");
+		return t;
+	}
+	
 	public static TemplateQuery cloneFilters(TemplateQuery q) {
 		TemplateQuery nq = new TemplateQuery();
 		nq.getWhereFilter().addAll(q.getWhereFilter());
@@ -57,6 +64,22 @@ public class QueryUtils {
 		ComboBox<Integer> cb = new ComboBox<>();
 		cb.setItems(FXCollections.observableList(items));
 		cb.setConverter(new LockStateConverter<>(cls));
+		cb.setValue(defaultInt);
+		return cb;
+	}
+
+	public static ComboBox<Integer> priorityCombo() {
+		int defaultInt = Prio.NORMAL;
+		ArrayList<Integer> items = new ArrayList<>();
+		items.add(Prio.LOWEST);
+		items.add(Prio.LOW);
+		items.add(Prio.NORMAL);
+		items.add(Prio.HIGH);
+		items.add(Prio.HIGHEST);
+		
+		ComboBox<Integer> cb = new ComboBox<>();
+		cb.setItems(FXCollections.observableList(items));
+		cb.setConverter(new OrderPriorityConverter());
 		cb.setValue(defaultInt);
 		return cb;
 	}

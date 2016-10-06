@@ -1,6 +1,5 @@
 package uk.ltd.mediamagic.mywms;
 
-import org.jboss.util.Strings;
 import org.mywms.model.BasicEntity;
 
 import de.linogistix.los.query.BODTO;
@@ -11,6 +10,7 @@ import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
 import javafx.util.Pair;
 import javafx.util.StringConverter;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.fx.binding.AutoFill;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;

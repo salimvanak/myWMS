@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.jboss.logmanager.Level;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ListBinding;

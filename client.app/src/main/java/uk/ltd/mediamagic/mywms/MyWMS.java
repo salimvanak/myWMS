@@ -7,9 +7,9 @@ import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jboss.logmanager.Level;
 import org.mywms.ejb.BeanLocator;
 import org.mywms.facade.Authentication;
 import org.mywms.facade.AuthenticationInfoTO;
@@ -71,6 +71,7 @@ import uk.ltd.mediamagic.mywms.userlogin.LoginService;
 import uk.ltd.mediamagic.mywms.userlogin.LoginServiceImpl;
 import uk.ltd.mediamagic.plugin.AbstractPluginSet;
 import uk.ltd.mediamagic.plugin.PluginRegistry;
+import uk.ltd.mediamagic.util.Closures;
 
 @SuppressWarnings("restriction")
 public class MyWMS extends Application {
@@ -101,8 +102,12 @@ public class MyWMS extends Application {
  	public ObjectProperty<Throwable> loginErrorProperty() { return lastLoginError; }
  	
  	
-	public static final BooleanBinding hasRole(String... roles) {
+	public static final BooleanBinding roleBinding(String... roles) {
 		return MBindings.createBoolean(application.loginService, false, l -> l.checkRolesAllowed(roles));
+	}
+
+	public static final boolean hasRole(String... roles) {
+		return Closures.guarded(application.loginService, l -> l.checkRolesAllowed(roles), false);
 	}
 	
  	public static Consumer<ApplicationContext> onLoadComplete = null;
@@ -142,6 +147,7 @@ public class MyWMS extends Application {
 	public void init() throws Exception {
 		super.init();
 		application = this;
+		System.setSecurityManager(null);
 		lastLoginError.addListener((v,o,n)-> log.log(Level.SEVERE,"While logging in", n));
 		ThreadPool.startup();
 		registerPlugins(context.getBean(MExecutor.class), new String[] {"MasterDataModule"});
@@ -150,74 +156,78 @@ public class MyWMS extends Application {
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		this.primaryStage = primaryStage;
-		this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
-		MLogger.setLevel(Level.INFO);
-		serverAddress = getParameters().getNamed().get("server");
+		try {
+			this.primaryStage = primaryStage;
+			this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
+			MLogger.setLevel(Level.INFO);
+			serverAddress = getParameters().getNamed().get("server");
 
-		context.register(applicationService);
-		context.register(Stage.class, primaryStage);
-		context.register(Application.class, this);
-		context.register(ApplicationService.class, applicationService);
-		context.register(HostServices.class, getHostServices());
+			context.register(applicationService);
+			context.register(Stage.class, primaryStage);
+			context.register(Application.class, this);
+			context.register(ApplicationService.class, applicationService);
+			context.register(HostServices.class, getHostServices());
 
-		context.autoInjectBean(statusBar);
+			context.autoInjectBean(statusBar);
 
-		Robot robot = com.sun.glass.ui.Application.GetApplication().createRobot();
-		Screen screen = Utils.getScreenForPoint(robot.getMouseX(), robot.getMouseY());
-		robot.destroy();
-		
-		Rectangle2D screenBounds = screen.getBounds();
+			Robot robot = com.sun.glass.ui.Application.GetApplication().createRobot();
+			Screen screen = Utils.getScreenForPoint(robot.getMouseX(), robot.getMouseY());
+			robot.destroy();
+			
+			Rectangle2D screenBounds = screen.getBounds();
 
-  	MLogger.log(this).severe("Next Creating scene");
-		Scene scene = FxHacks.createSceneWithoutAccelerators(main);
+			MLogger.log(this).severe("Next Creating scene");
+			Scene scene = FxHacks.createSceneWithoutAccelerators(main);
 
-  	MLogger.log(this).severe("Setting style sheet.");
-		scene.getStylesheets().add(R.CSS_MAIN);
-		double scale = 1;
-		Units.setEx(Font.getDefault().getSize() * scale);
-		VBox.setVgrow(applicationPane, Priority.ALWAYS);
-		double prefSize = (960 * scale);
-		if (screenBounds.getWidth() / (prefSize) >= 1) {
-			applicationPane.splitMain(Side.RIGHT, prefSize/screenBounds.getWidth());
+			MLogger.log(this).severe("Setting style sheet.");
+			scene.getStylesheets().add(R.CSS_MAIN);
+			double scale = 1;
+			Units.setEx(Font.getDefault().getSize() * scale);
+			VBox.setVgrow(applicationPane, Priority.ALWAYS);
+			double prefSize = (960 * scale);
+			if (screenBounds.getWidth() / (prefSize) >= 1) {
+				applicationPane.splitMain(Side.RIGHT, prefSize/screenBounds.getWidth());
+			}
+			else if (screenBounds.getHeight() / prefSize >= 2) {
+				applicationPane.splitMain(Side.BOTTOM, 0.5d);
+			}
+
+			VBox.setVgrow(statusBar, Priority.NEVER);
+
+			MLogger.log(this).severe("Making menubar");
+			menuBox = makeMenuBar();
+
+			main.setId("main-pane");
+			main.styleProperty().bind(R.mainStyle.styleProperty());
+
+			main.getChildren().add(menuBox);
+			main.getChildren().add(applicationPane);
+			main.getChildren().add(statusBar);
+
+			MLogger.log(this).severe("Configuring primary stage");
+
+			loginService.addListener((v,o,n) -> {
+				if (n != null) primaryStage.toFront(); 
+			});
+			
+			scene.getRoot().disableProperty().bind(loginService.isNull());
+
+			primaryStage.setScene(scene);
+			primaryStage.setTitle("MyWMS");
+			primaryStage.setMaximized(true);
+			primaryStage.setMinWidth(800);
+			primaryStage.setMinHeight(600);
+			primaryStage.setX(0);
+			primaryStage.setY(0);
+			
+			primaryStage.setScene(scene);
+			primaryStage.show();
+			
+			LoginDialog login = new LoginDialog(this);
+			login.showLogin(primaryStage);
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
-		else if (screenBounds.getHeight() / prefSize >= 2) {
-			applicationPane.splitMain(Side.BOTTOM, 0.5d);
-		}
-
-		VBox.setVgrow(statusBar, Priority.NEVER);
-
-  	MLogger.log(this).severe("Making menubar");
-		menuBox = makeMenuBar();
-
-		main.setId("main-pane");
-		main.styleProperty().bind(R.mainStyle.styleProperty());
-
-		main.getChildren().add(menuBox);
-		main.getChildren().add(applicationPane);
-		main.getChildren().add(statusBar);
-
-		MLogger.log(this).severe("Configuring primary stage");
-
-		loginService.addListener((v,o,n) -> {
-			if (n != null) primaryStage.toFront(); 
-		});
-		
-		scene.getRoot().disableProperty().bind(loginService.isNull());
-
-		primaryStage.setScene(scene);
-		primaryStage.setTitle("MyWMS");
-		primaryStage.setMaximized(true);
-		primaryStage.setMinWidth(800);
-		primaryStage.setMinHeight(600);
-		primaryStage.setX(0);
-		primaryStage.setY(0);
-		
-		primaryStage.setScene(scene);
-		primaryStage.show();
-		
-		LoginDialog login = new LoginDialog(this);
-		login.showLogin(primaryStage);
 	
 		
 //		Platform.runLater(() ->  {
@@ -382,7 +392,12 @@ public class MyWMS extends Application {
 		Thread.setDefaultUncaughtExceptionHandler((t,e) -> {
 			Logger.getGlobal().log(Level.SEVERE, "Unhandeled Exception", e);
 		});
-		launch(args);
+		try {
+			launch(args); 
+		}
+		catch (Throwable e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public LoginService createLoginService(BeanLocator beanLocator) throws BusinessObjectNotFoundException {

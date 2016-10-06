@@ -15,13 +15,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.Column;
 import javax.persistence.OneToMany;
 import javax.persistence.Temporal;
 
-import org.jboss.logmanager.Level;
 import org.mywms.model.BasicEntity;
 import org.mywms.model.ItemMeasure;
 

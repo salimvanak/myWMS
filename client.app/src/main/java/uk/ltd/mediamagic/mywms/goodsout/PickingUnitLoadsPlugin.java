@@ -20,19 +20,31 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
+import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
+import uk.ltd.mediamagic.fx.data.TableKey;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
+import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutCreateShippingOrder;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPickingUnitLoad;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPrintPickingUnitLoad;
 
 @SubForm(
 		title="Main", columns=1, 
 		properties={"unitLoad", "customerOrderNumber", "pickingOrder", "state", "positionIndex"}
 	)
 public class PickingUnitLoadsPlugin  extends BODTOPlugin<LOSPickingUnitLoad> {
-
+ 
+	private enum Actions {Print, Finish, ShippingOrder}
+	
+	
 	public PickingUnitLoadsPlugin() {
 		super(LOSPickingUnitLoad.class);
 	}
@@ -84,14 +96,52 @@ public class PickingUnitLoadsPlugin  extends BODTOPlugin<LOSPickingUnitLoad> {
 			.thenAccept(source::setItems);			
 
 	}
-
+	
+	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		Flow flow = super.createNewFlow(context);
+		flow
+		.globalWithSelection()
+			.withMultiSelection(Actions.Finish, new GoodsOutFinishPickingUnitLoad())
+			.withMultiSelection(Actions.Print, new GoodsOutPrintPickingUnitLoad())
+			.withMultiSelection(Actions.ShippingOrder, new GoodsOutCreateShippingOrder())
+		.end();
+		
+		return flow;
+	}
+	
+	@Override
+	protected MyWMSEditor<LOSPickingUnitLoad> getEditor(ContextBase context, TableKey key) {
+		MyWMSEditor<LOSPickingUnitLoad> editor = super.getEditor(context, key);
+		editor.getCommands()
+			.menu(RootCommand.MENU_PRINT)
+				.add(AC.id(Actions.Print).text("Unit load label"))
+			.end()
+			.menu(RootCommand.MENU)
+				.add(AC.id(Actions.Finish).text("Finish unit load"))
+				.add(AC.id(Actions.ShippingOrder).text("Create shipping order"))
+			.end()
+		.end();
+		return editor;
+	}
+	
 	@Override
 	protected BODTOTable<LOSPickingUnitLoad> getTable(ViewContextBase context) {
 		BODTOTable<LOSPickingUnitLoad> t = super.getTable(context);
+		t.getCommands()
+			.menu(RootCommand.MENU_PRINT)
+				.add(AC.id(Actions.Print).text("Unit load label"))
+			.end()
+			.menu(RootCommand.MENU)
+				.add(AC.id(Actions.Finish).text("Finish unit load"))
+				.add(AC.id(Actions.ShippingOrder).text("Create shipping order"))
+			.end()
+		.end();
 		GoodsOutUtils.addOpenFilter(t, () -> refresh(t, t.getContext()));
 		return t;
 	}
 
+	
 	@Override
 	public List<String> getTableColumns() {
 		return Arrays.asList("id", 

@@ -94,6 +94,13 @@ subprojects {
   apply plugin: 'java'
   sourceCompatibility = 1.8
 
+  configurations {
+    remote {
+      extendsFrom runtime
+      transitive = false
+    }
+  }
+
   dependencies {
     compile group: 'org.wildfly', name: 'wildfly-server', version: '8.2.1.Final'
     compile group: 'javax', name: 'javaee-api', version: '7.0'
