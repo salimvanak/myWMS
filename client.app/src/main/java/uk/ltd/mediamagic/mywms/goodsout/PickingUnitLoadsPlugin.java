@@ -4,10 +4,13 @@ import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import de.linogistix.los.inventory.model.LOSPickingUnitLoad;
+import de.linogistix.los.inventory.query.dto.LOSPickingUnitLoadTO;
 import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
@@ -35,6 +38,7 @@ import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutCreateShippingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPickingUnitLoad;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPrintPickingUnitLoad;
+import uk.ltd.mediamagic.util.Closures;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -64,13 +68,23 @@ public class PickingUnitLoadsPlugin  extends BODTOPlugin<LOSPickingUnitLoad> {
 	public Callback<ListView<LOSPickingUnitLoad>, ListCell<LOSPickingUnitLoad>> createListCellFactory() {
 		return MaterialListItems.withID(s -> GoodsOutUtils.getIcon(s.getState()), 
 				s -> s.getUnitLoad().toUniqueString(), 
+				s -> String.format("%s (%s)", s.getPickingOrder().toUniqueString(), s.getClient()),
 				s -> String.format("%s", s.getCustomerOrderNumber()),
-				s -> String.format("%s", s.getPickingOrder().toUniqueString()),
 				s -> String.format("%s", s.getUnitLoad().getStorageLocation()));
 	}
 		
 	@Override
-	public CompletableFuture<List<BODTO<LOSPickingUnitLoad>>> 
+	public Callback<ListView<BODTO<LOSPickingUnitLoad>>, ListCell<BODTO<LOSPickingUnitLoad>>> createTOListCellFactory() {
+		Function<BODTO<LOSPickingUnitLoad>, LOSPickingUnitLoadTO> cast = Closures.cast(LOSPickingUnitLoadTO.class);
+		return MaterialListItems.withID(cast.andThen(s -> GoodsOutUtils.getIcon(s.getState())), 
+				cast.andThen(s -> s.getLabel()), 
+				cast.andThen(s -> String.format("%s (%s)", s.getPickingOrderNumber(), s.getClientNumber())),
+				cast.andThen(s -> String.format("%s", s.getCustomerOrderNumber())),
+				cast.andThen(s -> String.format("%s", s.getLocationName())));
+	}
+
+	@Override
+	public CompletableFuture<LOSResultList<BODTO<LOSPickingUnitLoad>>> 
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);

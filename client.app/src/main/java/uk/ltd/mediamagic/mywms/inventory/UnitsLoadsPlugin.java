@@ -14,6 +14,7 @@ import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.location.query.dto.StorageLocationTO;
 import de.linogistix.los.location.query.dto.UnitLoadTO;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
@@ -135,7 +136,7 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 	}
 	
 	@Override
-	public CompletableFuture<List<BODTO<LOSUnitLoad>>> 
+	public CompletableFuture<LOSResultList<BODTO<LOSUnitLoad>>> 
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);

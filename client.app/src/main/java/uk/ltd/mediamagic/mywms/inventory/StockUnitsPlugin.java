@@ -16,6 +16,7 @@ import de.linogistix.los.inventory.service.StockUnitLockState;
 import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.location.query.dto.UnitLoadTO;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
@@ -249,7 +250,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	}
 	
 	@Override
-	public CompletableFuture<List<BODTO<StockUnit>>>
+	public CompletableFuture<LOSResultList<BODTO<StockUnit>>>
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);

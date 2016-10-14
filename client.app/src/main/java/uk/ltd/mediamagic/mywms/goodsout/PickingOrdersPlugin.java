@@ -4,10 +4,13 @@ import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import de.linogistix.los.inventory.model.LOSPickingOrder;
+import de.linogistix.los.inventory.query.dto.LOSPickingOrderTO;
 import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
@@ -37,6 +40,7 @@ import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutHaltPickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutReleasePickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutRemovePickingOrder;
+import uk.ltd.mediamagic.util.Closures;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -77,6 +81,16 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 	}
 	
 	@Override
+	public Callback<ListView<BODTO<LOSPickingOrder>>, ListCell<BODTO<LOSPickingOrder>>> createTOListCellFactory() {
+		Function<BODTO<LOSPickingOrder>, LOSPickingOrderTO> cast = Closures.cast(LOSPickingOrderTO.class);
+		return MaterialListItems.withID(cast.andThen(s -> GoodsOutUtils.getIcon(s.getState())), 
+				cast.andThen(s -> s.getUserName()), 
+				cast.andThen(s -> String.format("%s, %s, %s", s.getName(), s.getCustomerOrderNumber(), s.getDestinationName())),
+				cast.andThen(s -> String.format("%s", GoodsOutTypes.state.getValue(s.getState()))),
+				null);			
+	}
+	
+	@Override
 	protected void refresh(BODTOTable<LOSPickingOrder> source, ViewContextBase context) {
 		OpenFilter filterValue = GoodsOutUtils.getFilter(source);
 
@@ -96,7 +110,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 	}
 	
 	@Override
-	public CompletableFuture<List<BODTO<LOSPickingOrder>>> 
+	public CompletableFuture<LOSResultList<BODTO<LOSPickingOrder>>> 
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);

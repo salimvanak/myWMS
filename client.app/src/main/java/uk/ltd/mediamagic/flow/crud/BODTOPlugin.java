@@ -18,6 +18,7 @@ import de.linogistix.los.crud.BusinessObjectCRUDRemote;
 import de.linogistix.los.entityservice.BusinessObjectLockState;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.BusinessObjectQueryRemote;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import javafx.application.Platform;
@@ -221,7 +222,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 	 * @param data the data to save
 	 * @throws Exception if an error occurs.
 	 */
-	public CompletableFuture<List<BODTO<T>>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
+	public CompletableFuture<LOSResultList<BODTO<T>>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
 		BusinessObjectQueryRemote<T> query = context.getBean(queryBean);
 		template.setBoClass(boClass);
 		return context.getBean(MExecutor.class).call(() -> query.queryByTemplateHandles(detail,template));

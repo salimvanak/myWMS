@@ -96,18 +96,6 @@ task generateJnlp(dependsOn: [signAll]) << {
   File jnlpTemplateFile = new File('template.jnlp')
   def root = new XmlParser().parse(jnlpTemplateFile)
   def jnlpFileName = jar.baseName + "-${version}.jnlp"
-//    root.@codebase = 'https://dl.dropbox.com/u/24028482/jnlp/gradle-webstart-example'
-  root.@href = jnlpFileName
-// Setting information values
-  def information = root.information[0]
-  def title = information.title[0]
-  def vendor = information.vendor[0]
-  title.setValue("MyWMS desktop client")
-  vendor.setValue("Media Magic Ltd")
-  def descriptionList = information.description
-  descriptionList.each {
-      it.setValue("Desktop client for MyWMS warehouse management system")
-  }
   // Setting resources
   def resource = root.resources[0]
   def j2se = resource.j2se[0]
@@ -121,10 +109,6 @@ task generateJnlp(dependsOn: [signAll]) << {
       }
       resource.appendNode('jar', resourceValues)
   }
-  // Setting the main class
-  def applicationDesc = root.'application-desc'[0]
-  applicationDesc.'@main-class' = "uk.ltd.mediamagic.mywms.MyWMS"
-  // Writing the jnlp file filled
   File jnlpFile = new File(webstartDir, jnlpFileName)
   new XmlNodePrinter(new PrintWriter(jnlpFile)).print(root)
 }

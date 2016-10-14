@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 import de.linogistix.los.inventory.model.LOSCustomerOrderPosition;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import javafx.scene.control.ListCell;
@@ -58,7 +59,7 @@ public class OrderPositionsPlugin  extends BODTOPlugin<LOSCustomerOrderPosition>
 	}
 		
 	@Override
-	public CompletableFuture<List<BODTO<LOSCustomerOrderPosition>>>
+	public CompletableFuture<LOSResultList<BODTO<LOSCustomerOrderPosition>>>
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);

@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import de.linogistix.los.inventory.model.LOSGoodsOutRequest;
 import de.linogistix.los.inventory.model.LOSGoodsOutRequestState;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
@@ -99,7 +100,7 @@ public class GoodsOutRequestPlugin  extends BODTOPlugin<LOSGoodsOutRequest> {
 
 	
 	@Override
-	public CompletableFuture<List<BODTO<LOSGoodsOutRequest>>> 
+	public CompletableFuture<LOSResultList<BODTO<LOSGoodsOutRequest>>> 
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);

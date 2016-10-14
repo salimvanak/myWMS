@@ -12,9 +12,11 @@ import de.linogistix.los.inventory.facade.LOSOrderFacade;
 import de.linogistix.los.inventory.facade.LOSPickingFacade;
 import de.linogistix.los.inventory.model.LOSCustomerOrder;
 import de.linogistix.los.inventory.query.LOSCustomerOrderQueryRemote;
+import de.linogistix.los.inventory.query.dto.LOSCustomerOrderTO;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
@@ -48,6 +50,7 @@ import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.fxcommon.ObservableConstant;
+import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
@@ -64,7 +67,7 @@ import uk.ltd.mediamagic.util.DateUtils;
 	)
 public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 
-	private enum Action {FinishOrder, FinishPicking, Remove, Start}
+	private enum Action {FinishOrder, FinishPicking, Remove, Start, Overview}
 	
 	
 	public OrdersPlugin() {
@@ -92,6 +95,15 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 				s -> String.format("%s, %s", GoodsOutTypes.state.getValue(s.getState()), s.getCustomerName()),
 				null);
 	}
+	
+	@Override
+	public Callback<ListView<BODTO<LOSCustomerOrder>>, ListCell<BODTO<LOSCustomerOrder>>> createTOListCellFactory() {
+		return MaterialListItems.withDate(s -> GoodsOutUtils.getIcon(((LOSCustomerOrderTO)s).getState()), 
+				s -> null, 
+				s -> String.format("%s, %s, %s", ((LOSCustomerOrderTO)s).getName(), ((LOSCustomerOrderTO)s).getExternalNumber(), ((LOSCustomerOrderTO)s).getDestinationName()),
+				s -> String.format("%s, %s", GoodsOutTypes.state.getValue(((LOSCustomerOrderTO)s).getState()), ((LOSCustomerOrderTO)s).getCustomerName()),
+				null);
+	}
 
 	@Override
 	protected void refresh(BODTOTable<LOSCustomerOrder> source, ViewContextBase context) {
@@ -112,7 +124,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 	}
 	
 	@Override
-	public CompletableFuture<List<BODTO<LOSCustomerOrder>>> getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
+	public CompletableFuture<LOSResultList<BODTO<LOSCustomerOrder>>> getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);
 		}
@@ -223,10 +235,19 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
 	}
 
+	private void overview(Object source, Flow flow, ViewContext context) {
+		OrderStatusPane pane = new OrderStatusPane();
+		context.autoInjectBean(pane);
+		FlowUtils.showNext(flow, context, OrderStatusPane.class, pane);
+	}
+
 	@Override
 	public Flow createNewFlow(ApplicationContext context) {
 		Flow flow = super.createNewFlow(context);
 		flow
+		.global()
+			.action(Action.Overview, this::overview)
+		.end()
 		.globalWithSelection()
 			.withSelection(Flow.DELETE_ACTION, this::removeOrder)
 			.withSelection(Action.FinishOrder, this::finishOrder)
@@ -247,6 +268,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 			.add(AC.id(Action.FinishPicking).text("Finish Picking"))
 			.add(AC.id(Action.FinishOrder).text("Finish Order"))
 			.end()
+			.add(AC.id(Action.Overview).text("Overview"))
 		.end();
 		GoodsOutUtils.addOpenFilter(t, () -> refresh(t, t.getContext()));
 		return t;

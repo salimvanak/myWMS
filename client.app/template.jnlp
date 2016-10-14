@@ -1,22 +1,9 @@
 <jnlp spec="1.0+" xmlns:jfx="http://javafx.com" href="">
-  <information>
-    <title>
-    </title>
-    <vendor>
-    </vendor>
-    <description kind="one-line">
-    </description>
-    <description kind="short">
-    </description>
-    <description kind="tooltip">
-    </description>
-  </information>
   <security>
     <all-permissions/>
   </security>
   <resources>
     <j2se version="" initial-heap-size="128m" max-heap-size="512m"/>
   </resources>
-  <application-desc main-class=""/>
   <component-desc/>
 </jnlp>

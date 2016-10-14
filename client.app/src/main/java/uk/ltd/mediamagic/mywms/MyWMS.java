@@ -158,7 +158,7 @@ public class MyWMS extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		try {
 			this.primaryStage = primaryStage;
-			this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
+			//this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
 			MLogger.setLevel(Level.INFO);
 			serverAddress = getParameters().getNamed().get("server");
 

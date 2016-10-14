@@ -1,0 +1,30 @@
+<jnlp spec="1.0+" xmlns:jfx="http://javafx.com" href="">
+  <information>
+    <title>
+	MyWMS Desktop Client
+    </title>
+    <vendor>
+	Media Magic Ltd
+    </vendor>
+    <description kind="one-line">
+	MyWMS warehouse management system, desktop client
+    </description>
+    <description kind="short">
+	MyWMS warehouse management system
+    </description>
+    <description kind="tooltip">
+	MyWMS warehouse management system, desktop client
+    </description>
+  </information>
+  <security>
+    <all-permissions/>
+  </security>
+  <resources>
+    <j2se version="" initial-heap-size="128m" max-heap-size="512m"/>
+    <extension href="MyWMS-client-comp.jnlp"/>
+  </resources>
+  <application-desc main-class="uk.ltd.mediamagic.mywms.MyWMS">
+    <argument>--server=wildfly.localdomain</argument>
+    <argument>--port=8080</argument>
+  </application-desc>  
+</jnlp>

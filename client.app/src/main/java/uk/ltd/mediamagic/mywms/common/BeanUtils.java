@@ -88,8 +88,8 @@ public class BeanUtils {
 		return Arrays.asList(info.getPropertyDescriptors());
 	}
 	
-	public static <D> Callback<CellDataFeatures<D,?>, ObservableValue<?>> 
-	getCellValueFactory(PropertyDescriptor pds) {
+	public static <D> 
+	Callback<CellDataFeatures<D,?>, ObservableValue<?>> getCellValueFactory(PropertyDescriptor pds) {
 		return a -> {
 			try {
 				return ObservableConstant.of(pds.getReadMethod().invoke(a.getValue()));
@@ -100,8 +100,8 @@ public class BeanUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T, D> Callback<D, ObservableValue<T>> 
-	getValueFactory(PropertyDescriptor pds) {
+	public static <T, D> 
+	Callback<D, ObservableValue<T>> getValueFactory(PropertyDescriptor pds) {
 		return a -> {
 			try {
 				return ObservableConstant.of((T)pds.getReadMethod().invoke(a));

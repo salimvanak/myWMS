@@ -4,10 +4,13 @@ import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import de.linogistix.los.inventory.model.LOSGoodsOutRequestPosition;
 import de.linogistix.los.inventory.model.LOSGoodsOutRequestPositionState;
+import de.linogistix.los.inventory.query.dto.LOSGoodsOutPositionTO;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import javafx.scene.Node;
@@ -50,8 +53,8 @@ public class GoodsOutPositionsPlugin  extends BODTOPlugin<LOSGoodsOutRequestPosi
 	}
 	
 	@Override
-	public Callback<ListView<LOSGoodsOutRequestPosition>, ListCell<LOSGoodsOutRequestPosition>> createListCellFactory() {
-		
+	public Callback<ListView<LOSGoodsOutRequestPosition>, ListCell<LOSGoodsOutRequestPosition>> 
+	createListCellFactory() {	
 		return MaterialListItems.withID(GoodsOutPositionsPlugin::getIcon, 
 				s -> s.toUniqueString(), 
 				s -> Strings.format("{0}, {1}", 
@@ -60,9 +63,20 @@ public class GoodsOutPositionsPlugin  extends BODTOPlugin<LOSGoodsOutRequestPosi
 				null,
 				null);
 	}
+	
+	@Override
+	public Callback<ListView<BODTO<LOSGoodsOutRequestPosition>>, ListCell<BODTO<LOSGoodsOutRequestPosition>>> 
+	createTOListCellFactory() {
+		Function<BODTO<LOSGoodsOutRequestPosition>, LOSGoodsOutPositionTO> cast = Closures.cast(LOSGoodsOutPositionTO.class);
+		return MaterialListItems.withID(cast.andThen(GoodsOutPositionsPlugin::getIcon), 
+				cast.andThen(s -> s.getName()), 
+				cast.andThen(s -> Strings.format("UL:{0}, Location: {1}", s.getUnitLoadLabel(), s.getLocationName())),
+				cast.andThen(s -> Strings.format("Goods Out: {0}", s.getGoodsOutNumber())),
+				null);
+	}
 		
 	@Override
-	public CompletableFuture<List<BODTO<LOSGoodsOutRequestPosition>>> 
+	public CompletableFuture<LOSResultList<BODTO<LOSGoodsOutRequestPosition>>> 
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (detail.getOrderBy().isEmpty()) {
 			detail.addOrderByToken("created", false);
@@ -75,6 +89,15 @@ public class GoodsOutPositionsPlugin  extends BODTOPlugin<LOSGoodsOutRequestPosi
 		switch (state) {
 		case RAW: return R.svgPaths.createIconFromFile("packages1.svg", IconSize.XLarge);
 		case FINISHED: return R.svgPaths.createIconFromFile("boxes1.svg", IconSize.XLarge);
+		default: return R.svgPaths.cancelled();
+		}
+	}
+
+	public static Node getIcon(LOSGoodsOutPositionTO gor) {
+		String state = gor.getOutState();
+		switch (state) {
+		case "RAW": return R.svgPaths.createIconFromFile("packages1.svg", IconSize.XLarge);
+		case "FINISHED": return R.svgPaths.createIconFromFile("boxes1.svg", IconSize.XLarge);
 		default: return R.svgPaths.cancelled();
 		}
 	}
