@@ -84,7 +84,7 @@ task signAll {
 		webstartDir.mkdirs()
 		def output = new ByteArrayOutputStream()
 		exec {
-			commandLine 'javapackager', '-signjar', '-keystore', '/home/slim/.keystore', '-storepass', 'mediamagic', '-alias', 'mediamagic'
+			commandLine 'javapackager', '-signjar', '-keystore', keyStoreFile, '-storepass', keyStorePassword, '-alias', keyAlias
 			args '-srcdir', libsDir
 			args '-outdir', webstartDir
 			standardOutput = output
