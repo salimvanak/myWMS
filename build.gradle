@@ -1,0 +1,61 @@
+apply plugin: 'docker'
+
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
+    }
+}
+
+group = 'mywms'
+def DOCKER_GROUP = 'Docker'
+
+task wildflyDocker (type: Docker) {
+  dependsOn ':server.app:ear'
+  group = DOCKER_GROUP
+
+  baseImage 'jboss/wildfly:9.0.2.Final'
+  maintainer 'Salim Vanak "s.vanak@mediamagic.ltd.uk"'
+  applicationName = 'wildfly'
+
+  setEnvironment('POSTGRES_URI','db')
+  setEnvironment('POSTGRES_DB','los_reference')
+  runCommand '$JBOSS_HOME/bin/add-user.sh admin ${JBOSS_SECRET:-admin} --silent'
+  runCommand('curl -o $JBOSS_HOME/standalone/deployments/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar')
+
+  addFile('config/start-wildfly.sh', '/')
+  runCommand('chmod +x /start-wildfly.sh')
+
+  addFile('config/standalone.xml', '${JBOSS_HOME}/standalone/configuration/')
+  addFile {
+      from project(':server.app').ear.outputs
+      into '/tmp/deployments/'
+  }
+  runCommand('cp -rf /tmp/deployments/* ${JBOSS_HOME}/standalone/deployments/')
+
+  exposePort(8080)
+  exposePort(9990)
+  defaultCommand(['/start-wildfly.sh'])
+}
+
+task postgresDocker (type: Docker) {
+  group = DOCKER_GROUP
+
+  baseImage 'postgres'
+  maintainer 'Salim Vanak "s.vanak@mediamagic.ltd.uk"'
+  applicationName = 'postgres'
+
+  setEnvironment('POSTGRES_DB','los_reference')
+  setEnvironment('POSTGRES_USER','jboss')
+  setEnvironment('POSTGRES_PASSWORD','jboss')
+
+  addFile('config/initdata-postgres.sql', '/docker-entrypoint-initdb.d/')
+
+  defaultCommand(['postgres'])
+}
+
+task buildDocker {
+  group = DOCKER_GROUP
+  dependsOn(wildflyDocker)
+  dependsOn(postgresDocker)
+};

@@ -1,0 +1,19 @@
+db:
+  container_name: "db"
+  image: postgres
+  ports:
+     - "8432:5432"
+  environment:
+    - POSTGRES_DB=los_reference
+    - POSTGRES_USER=jboss
+    - POSTGRES_PASSWORD=jboss
+wildfly:
+  image: mywms/wildfly
+  links:
+    - db
+  environment:
+    - POSTGRES_URI=db:5432
+    - POSTGRES_DB=los_reference
+  ports:
+    - "8080:8080"
+    - "9990:9990"
