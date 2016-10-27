@@ -11,6 +11,8 @@ wildfly:
   image: mywms/wildfly
   links:
     - db
+  depends_on:
+    - db
   environment:
     - POSTGRES_URI=db:5432
     - POSTGRES_DB=los_reference
