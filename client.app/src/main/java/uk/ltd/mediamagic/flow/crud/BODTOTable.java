@@ -52,7 +52,10 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	@Override
 	public TableKey getSelectedKey() {
 		BODTO<D> sel = getSelectedItem();
-		return new TableKey("id", sel.getId());
+		TableKey key = new TableKey();
+		key.put("id", sel.getId());
+		key.put("name", sel.getName());
+		return key;
 	}
 	
 	@Override
@@ -80,6 +83,9 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 		for (TableColumn<?,?> col : getTable().getSortOrder()) {
 			SortType type = col.getSortType();
 			q.addOrderByToken(col.getId(), type == SortType.ASCENDING);
+		}
+		if (q.getOrderBy().size() == 0) {
+			q.addOrderByToken("id", false);			
 		}
 		return q;
 	}

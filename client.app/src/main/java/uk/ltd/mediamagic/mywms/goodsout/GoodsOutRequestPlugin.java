@@ -62,7 +62,7 @@ public class GoodsOutRequestPlugin  extends BODTOPlugin<LOSGoodsOutRequest> {
 	
 	@Override
 	public Callback<ListView<LOSGoodsOutRequest>, ListCell<LOSGoodsOutRequest>> createListCellFactory() {
-		return MaterialListItems.withDate(GoodsOutRequestPlugin::getIcon, 
+		return MaterialListItems.withDateTime(GoodsOutRequestPlugin::getIcon, 
 				s -> DateUtils.toLocalDateTime(s.getShippingDate()), 
 				s -> Strings.format("{0}, {1}", s.getCustomerOrder().getNumber(), s.getCustomerOrder().getExternalNumber()),
 				s -> Strings.format("{0}", s.getOperator()),

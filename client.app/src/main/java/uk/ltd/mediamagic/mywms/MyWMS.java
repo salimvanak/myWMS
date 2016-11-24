@@ -69,6 +69,7 @@ import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.mywms.userlogin.LoginService;
 import uk.ltd.mediamagic.mywms.userlogin.LoginServiceImpl;
+import uk.ltd.mediamagic.mywms.userlogin.LoginState;
 import uk.ltd.mediamagic.plugin.AbstractPluginSet;
 import uk.ltd.mediamagic.plugin.PluginRegistry;
 import uk.ltd.mediamagic.util.Closures;
@@ -158,7 +159,7 @@ public class MyWMS extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		try {
 			this.primaryStage = primaryStage;
-			//this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
+			this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
 			MLogger.setLevel(Level.INFO);
 			serverAddress = getParameters().getNamed().get("server");
 
@@ -409,6 +410,7 @@ public class MyWMS extends Application {
 		User user = userQuery.queryByIdentity(auth.userName);
 		loginService.setAuthentification(auth);
 		loginService.processUser(user);
+		loginService.setState(LoginState.AUTENTICATED);
 		
 		return loginService;
 	}

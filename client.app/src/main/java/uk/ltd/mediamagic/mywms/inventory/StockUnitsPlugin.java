@@ -53,6 +53,7 @@ import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 
 @SubForm(
 		title="Main", columns=2, 
@@ -74,7 +75,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	
 	enum StockUnitFilter {All, Available, Quality_fault, Goods_out}
 	private enum Action {
-		LOCK, SEND_TO_NIRWANA, CHANGE_AMOUNT, TRANSFER 
+		LOCK, SEND_TO_NIRWANA, CHANGE_AMOUNT, TRANSFER, TRANSACTION_LOG 
 	}
 	
 	public StockUnitsPlugin() {
@@ -94,11 +95,11 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 			.withSelection(Action.TRANSFER, this::transfer)
 			.withSelection(Action.CHANGE_AMOUNT, this::changeAmount)
 			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
+			.withSelection(Action.TRANSACTION_LOG, StockUnitRecordAction.forStockUnit())
 		.end();
 		return flow;
 	}
-
-
+	
 	private void changeAmount(Object source, Flow flow, ViewContext context, TableKey key) {
 		final long id = key.get("id");
 		
@@ -276,6 +277,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
 				.add(AC.id(Action.CHANGE_AMOUNT).text("Change amount"))
 				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
+				.add(AC.id(Action.TRANSACTION_LOG).text("Transaction Log"))
 			.end()
 		.end();
 		QueryUtils.addFilter(table, StockUnitFilter.Available, () -> refresh(table, context));
@@ -291,6 +293,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
 				.add(AC.id(Action.CHANGE_AMOUNT).text("Change amount"))
 				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
+				.add(AC.id(Action.TRANSACTION_LOG).text("Transaction Log"))
 			.end()
 		.end();
 		return editor;

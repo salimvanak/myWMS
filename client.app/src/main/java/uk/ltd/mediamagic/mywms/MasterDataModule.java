@@ -8,6 +8,7 @@ import org.mywms.model.Zone;
 
 import de.linogistix.los.inventory.model.LOSBom;
 import de.linogistix.los.inventory.model.LOSOrderStrategy;
+import de.linogistix.los.inventory.model.LOSStockUnitRecord;
 import de.linogistix.los.inventory.model.LOSStorageStrategy;
 import de.linogistix.los.location.model.LOSArea;
 import de.linogistix.los.location.model.LOSFixedLocationAssignment;
@@ -33,6 +34,7 @@ import uk.ltd.mediamagic.mywms.master.UnitLoadTypesPlugin;
 import uk.ltd.mediamagic.mywms.master.WorkAreasPlugin;
 import uk.ltd.mediamagic.mywms.master.WorkAreasPositionsPlugin;
 import uk.ltd.mediamagic.mywms.master.ZonePlugin;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitLogPlugin;
 import uk.ltd.mediamagic.plugin.AbstractPluginSet;
 import uk.ltd.mediamagic.plugin.PluginRelation;
 
@@ -91,6 +93,9 @@ public class MasterDataModule extends AbstractPluginSet {
     
     m.put(FixedLocationsPlugin.class);
     m.put(LOSFixedLocationAssignment.class, FixedLocationsPlugin.class);
+        
+    m.put(StockUnitLogPlugin.class);
+    m.put(LOSStockUnitRecord.class, StockUnitLogPlugin.class);
         
     return m;
   }

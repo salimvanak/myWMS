@@ -1,23 +1,39 @@
 package uk.ltd.mediamagic.mywms.goodsin;
 
 import java.beans.PropertyDescriptor;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 
 import de.linogistix.los.inventory.model.LOSAdvice;
+import de.linogistix.los.inventory.model.LOSAdviceState;
 import de.linogistix.los.inventory.query.dto.LOSAdviceTO;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.QueryDetail;
+import de.linogistix.los.query.TemplateQuery;
+import de.linogistix.los.query.TemplateQueryFilter;
+import de.linogistix.los.query.TemplateQueryWhereToken;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.scene.Node;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
+import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
-import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
+import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.mywms.common.QueryUtils;
+import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils;
+import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.util.DateUtils;
 
 @SubForm(
@@ -34,6 +50,7 @@ import uk.ltd.mediamagic.util.DateUtils;
 	)
 
 public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
+	public enum AdviceFilter {Open, Overload, All};
 
 	public AdvicePlugin() {
 		super(LOSAdvice.class);
@@ -58,22 +75,65 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 		}));
 	}
 	
+	private static Node getIcon(LOSAdvice advice) {
+		BigDecimal notified = advice.getNotifiedAmount();
+		BigDecimal received = advice.getReceiptAmount();
+		if (notified.compareTo(BigDecimal.ZERO) <= 0) return new ProgressIndicator(1);
+		ProgressIndicator pi = new ProgressIndicator(received.setScale(3, RoundingMode.HALF_DOWN).divide(notified, RoundingMode.HALF_EVEN).doubleValue());
+		System.out.println("PI = " + pi.getProgress() + " " + received + " / " + notified);
+		return pi;
+	}
+	
 	@Override
 	public Callback<ListView<LOSAdvice>, ListCell<LOSAdvice>> createListCellFactory() {
-		return MaterialListItems.withDate(s -> (s.getLock() == 0) ? new AwesomeIcon(AwesomeIcon.unlock) : new AwesomeIcon(AwesomeIcon.lock), 
-				s -> DateUtils.toLocalDateTime(s.getExpectedDelivery()), 
+		return MaterialListItems.withDate(AdvicePlugin::getIcon, 
+				s -> DateUtils.toLocalDate(s.getExpectedDelivery()), 
 				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getItemData().getNumber(), s.getItemData().getName()),
 				s -> {
 					if (s.getLot() != null) {
-						return String.format("%s, %s -> %s", s.getLot().getName(), s.getLot().getUseNotBefore(), s.getLot().getBestBeforeEnd()); 						
+						return String.format("%s, %Td-%<Tb-%<Ty -> %Td-%<Tb-%<Ty", s.getLot().getName(), s.getLot().getUseNotBefore(), s.getLot().getBestBeforeEnd()); 						
 					}
 					else {						
 						return String.format("No lot information"); 						
 					}
 				},
-				s -> String.format("Expected %f, Receipt %f", s.getNotifiedAmount(), s.getReceiptAmount()));
+				s -> Strings.format("Expected {0}, Receipt {1}", s.getNotifiedAmount(), s.getReceiptAmount()));
 	}
-	
+
+	@Override
+	protected void refresh(BODTOTable<LOSAdvice> source, ViewContextBase context) {
+		AdviceFilter filterValue = QueryUtils.getFilter(source, AdviceFilter.Open);
+
+		TemplateQuery template = source.createQueryTemplate();
+		if (filterValue == AdviceFilter.Open) {
+			TemplateQueryFilter filter = template.addNewFilter();
+			filter.addWhereToken(new TemplateQueryWhereToken(
+					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "adviceState", LOSAdviceState.OVERLOAD));
+			filter.addWhereToken(new TemplateQueryWhereToken(
+					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "adviceState", LOSAdviceState.FINISHED));
+			filter.getWhereTokens().forEach(t -> t.setLogicalOperator(TemplateQueryWhereToken.OPERATOR_OR));
+		}
+		else if (filterValue == AdviceFilter.Overload) {
+			TemplateQueryFilter filter = template.addNewFilter();
+			filter.addWhereToken(new TemplateQueryWhereToken(
+					TemplateQueryWhereToken.OPERATOR_EQUAL, "adviceState", LOSAdviceState.OVERLOAD));			
+		}
+
+		QueryDetail detail = source.createQueryDetail();
+
+		source.setItems(null);
+		getListData(context, detail, template)
+			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
+			.thenAccept(source::setItems);			
+	}
+
+	@Override
+	protected BODTOTable<LOSAdvice> getTable(ViewContextBase context) {
+		BODTOTable<LOSAdvice> t = super.getTable(context);
+	  QueryUtils.addFilter(t, AdviceFilter.Open, () -> refresh(t, t.getContext()));
+		return t;
+	}
+
 	@Override
 	public List<String> getTableColumns() {
 		return Arrays.asList("id", 

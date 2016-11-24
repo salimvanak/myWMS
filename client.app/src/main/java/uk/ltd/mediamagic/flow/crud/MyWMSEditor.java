@@ -39,7 +39,11 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 
 	@Override
 	public TableKey getSelectedKey() {
-		return new TableKey("id", getData().getId());
+		T sel = getData();
+		TableKey key = new TableKey();
+		key.put("id", sel.getId());
+		key.put("name", sel.toUniqueString());
+		return key;
 	}
 
 	@Override

@@ -50,7 +50,7 @@ public class LoginServiceImpl implements LoginService {
    */
   public boolean validate(){
     if (getState() != LoginState.AUTENTICATED){
-      //log.warning("state is not AUTENTICATED");
+      log.warning("state is not AUTENTICATED");
       return false;
     }
     

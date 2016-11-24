@@ -16,9 +16,14 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
+import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -71,5 +76,22 @@ public class LotsPlugin extends BODTOPlugin<Lot> {
 	public List<String> getTableColumns() {
 		return Arrays.asList("name", "itemData", "useNotBefore", "bestBeforeEnd", "lock");
 	}
-
+	
+	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		return super.createNewFlow(context)
+				.globalWithSelection()
+					.withSelection("transaction_log", StockUnitRecordAction.forLot())
+				.end();
+	}
+	
+	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command
+		.begin(RootCommand.MENU) 
+			.add(AC.id("transaction_log").text("Stock Unit Log"))
+		.end();
+	}
+	
 }

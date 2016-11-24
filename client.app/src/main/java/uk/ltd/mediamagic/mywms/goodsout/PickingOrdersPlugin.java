@@ -40,6 +40,7 @@ import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutHaltPickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutReleasePickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutRemovePickingOrder;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 import uk.ltd.mediamagic.util.Closures;
 
 @SubForm(
@@ -52,7 +53,7 @@ import uk.ltd.mediamagic.util.Closures;
 	)
 public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 
-	private enum Action { Release, Halt, Properties, Finish, Remove }
+	private enum Action { Release, Halt, Properties, Finish, Remove, ViewLog }
 	
 	public PickingOrdersPlugin() {
 		super(LOSPickingOrder.class);
@@ -126,6 +127,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 		.withMultiSelection(Action.Finish, new GoodsOutFinishPickingOrder())
 		.withMultiSelection(Action.Halt, new GoodsOutHaltPickingOrder())
 		.withMultiSelection(Action.Release, new GoodsOutReleasePickingOrder())
+		.withSelection(Action.ViewLog, StockUnitRecordAction.forActivityCode("PICK"))
 		.end();
 		return flow;
 	}
@@ -136,6 +138,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 		t.getCommands()
 			.delete(ObservableConstant.TRUE, ObservableConstant.of(MyWMSUserPermissions.isAtLeastForeman()))
 			.menu(RootCommand.MENU)
+			.add(AC.id(Action.ViewLog).text("View Transaction Records"))
 			.add(AC.id(Action.Release).text("Release for picking"))
 			.add(AC.id(Action.Halt).text("Halt picking"))
 			.add(AC.id(Action.Properties).text("Change properties"))

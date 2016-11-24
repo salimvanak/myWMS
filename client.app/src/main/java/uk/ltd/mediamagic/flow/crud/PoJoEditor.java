@@ -79,6 +79,7 @@ public abstract class PoJoEditor<T> extends EditorBase {
 			try {
 				if (data.get() == null) return new SimpleObjectProperty<>(data, id);
 				PropertyDescriptor pds = getPropertyDescriptor(id);
+				if (pds == null) throw new IllegalArgumentException("Property " + id + " does not exist on " + beanInfo.getBeanDescriptor().getDisplayName());
 				if (List.class.isAssignableFrom(pds.getPropertyType())) {
 					@SuppressWarnings("unchecked")
 					Property<java.util.List<?>> p = JavaBeanObjectPropertyBuilder.create().bean(data.get()).name(id).build();

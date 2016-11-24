@@ -1,0 +1,77 @@
+package uk.ltd.mediamagic.mywms.goodsin
+
+import javafx.scene.layout.GridPane
+import javafx.scene.control.Label
+import javafx.scene.control.ComboBox
+import javafx.scene.control.TextField
+
+import uk.ltd.mediamagic.mywms.goodsin.CreateGoodsReceiptPosition
+import uk.ltd.mediamagic.flow.crud.BasicEntityEditor
+
+import de.linogistix.los.inventory.model.LOSGoodsReceiptType
+import de.linogistix.los.inventory.model.LOSAdvice
+
+import org.mywms.model.UnitLoadType
+import org.mywms.model.ItemData
+import org.mywms.model.Lot
+import javafx.scene.control.CheckBox
+import javafx.scene.control.DatePicker
+
+
+component CreateGoodsInPosition controlledby CreateGoodsReceiptPosition {
+	GridPane {
+		style: "form",
+		Label {text : "Receipt Type", static columnIndex : 0, static rowIndex : 0},
+		ComboBox<LOSGoodsReceiptType> id receiptType { static columnIndex : 1, static rowIndex : 0},
+		Label {text : "Unit Load ID", static columnIndex : 2, static rowIndex : 0},
+		TextField id unitLoadID { promptText : "Generate New ID", static columnIndex : 3, static rowIndex : 0},
+		Label {text : "Unit Load Type", static columnIndex : 4, static rowIndex : 0},
+		ComboBox<UnitLoadType> id unitloadType { static columnIndex : 5, static rowIndex : 0},
+		Label {text : "Advice", static columnIndex : 0, static rowIndex : 1},
+		BasicEntityEditor<LOSAdvice> id advice { static columnIndex : 1, static rowIndex : 1},
+		Label {text : "", static columnIndex : 2, static rowIndex : 1, static columnSpan : const GridPane#REMAINING},
+		Label {text : "Item Data", static columnIndex : 0, static rowIndex : 2},
+		BasicEntityEditor<ItemData> id itemData { static columnIndex : 1, static rowIndex : 2},
+		Label {text : "${itemData.value.description}", static columnIndex : 2, static rowIndex : 2, static columnSpan : const GridPane#REMAINING},
+ 	
+ 		CheckBox id useExistingLot {
+ 			text : "Use existing lot" , 
+ 			static columnIndex : 0, static rowIndex : 3, static columnSpan : const GridPane#REMAINING
+ 		},
+		Label {text : "Existing Lot", static columnIndex : 0, static rowIndex : 4},
+		BasicEntityEditor<Lot> id lot { 
+			disable : '${useExistingLot.selected}',
+			static columnIndex : 1, static rowIndex : 4
+		},
+		Label {text : "${lot.value.useNotBefore}", static columnIndex : 3, static rowIndex : 4, static columnSpan : const GridPane#REMAINING},
+
+		Label {text : "Lot", static columnIndex : 0, static rowIndex : 5},
+		TextField id lotName { 
+			disable : '${useExistingLot.selected}',
+			static columnIndex : 1, static rowIndex : 5
+		},
+		Label {text : "${lot.value.useNotBefore}", static columnIndex : 3, static rowIndex : 6, static columnSpan : const GridPane#REMAINING},
+		
+		Label {text : "Not use Before", static columnIndex : 0, static rowIndex : 7},
+		DatePicker id notUseBefore { 
+			disable : '${useExistingLot.selected}',
+			static columnIndex : 1, static rowIndex : 8
+		},
+		Label {text : "Best before end", static columnIndex : 2, static rowIndex : 7},
+		DatePicker id bestBeforeEnd { 
+			disable : '${useExistingLot.selected}',
+			static columnIndex : 3, static rowIndex : 8
+		},
+		
+
+		Label {text : "Amounts on each Unit Load", static columnIndex : 0, static rowIndex : 10, static columnSpan : 2},
+		TextField id unitLoadAmount { promptText : "U/L Amount", static columnIndex : 0, static rowIndex : 11},
+
+
+		Label {text : "No. identical of Unit Loads", static columnIndex : 2, static rowIndex : 10, static columnSpan : 2},
+		TextField id unitLoadQuantity { promptText : "Number of loads", static columnIndex : 2, static rowIndex : 11},
+		
+		Label {text : "Unit Load Type", static columnIndex : 4, static rowIndex : 4}
+			 
+	}
+}

@@ -48,6 +48,7 @@ import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -67,7 +68,7 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 	enum UnitLoadFilter {All, Available, Empty, Carrier, Goods_out};
 
 	private enum Action {
-		LOCK, SEND_TO_NIRWANA, TRANSFER 
+		LOCK, SEND_TO_NIRWANA, TRANSFER, STOCK_UNIT_LOG
 	}
 	
 	public UnitsLoadsPlugin() {
@@ -226,8 +227,18 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 			.withSelection(Action.LOCK, this::lock)
 			.withSelection(Action.TRANSFER, this::transfer)
 			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
+			.withSelection(Action.STOCK_UNIT_LOG, StockUnitRecordAction.forUnitLoad())
 		.end();
 		return flow;
+	}
+
+	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command
+		.begin(RootCommand.MENU)
+			.add(AC.id(Action.STOCK_UNIT_LOG).text("Stock Unit Log"))
+		.end();
 	}
 	
 	@Override

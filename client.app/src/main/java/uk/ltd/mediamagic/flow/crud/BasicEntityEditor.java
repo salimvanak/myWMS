@@ -48,7 +48,6 @@ import javafx.stage.PopupWindow;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
@@ -134,7 +133,9 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 			BusinessObjectQueryRemote<T> query = context.getBean(queryClass);
 			MExecutor exec = context.getBean(MExecutor.class);
 			setFetchCompleteions(s -> {
-				return exec.call(() -> query.autoCompletion(s, new QueryDetail(0, 100)));
+				QueryDetail qd = new QueryDetail(0, 100);
+				qd.addOrderByToken("modified", false);
+				return exec.call(() -> query.autoCompletion(s, qd));
 			});
 			setFetchValue(bto -> {
 				return exec.call(() -> query.queryById(bto.getId()));
@@ -254,7 +255,10 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 			}, control.converter, control.value));
 	
 			control.setOnKeyReleased(e -> {
-				if (e.getCode() == KeyCode.F7) {
+				if (e.getCode() == KeyCode.DOWN) {
+					showPopup();
+				}
+				else if (e.getCode() == KeyCode.F7) {
 					if (e.isControlDown()) {
 						hidePopup();
 						control.editValue();
@@ -314,6 +318,7 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 			Popup popup = new Popup();
 			control.showPopup.bind(popup.showingProperty());
 			popup.getContent().add(listView);
+			textInput.updateValue("");
 			return popup;
 		}
 	
@@ -335,18 +340,20 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 		}
 	
 		public void loadList(String s) {
-			if (!Strings.isEmpty(s)) {
+			//if (!Strings.isEmpty(s)) {
+			System.out.println("************ FETCHING " + s);
 				Function<String, CompletableFuture<List<BODTO<T>>>> get = control.getFetchCompleteions();
 				if (get != null) {
+					completionItems.clear();
 					get.apply(s).thenAcceptAsync(l -> completionItems.addAll(l), Platform::runLater);
 				}
 				else {
 					completionItems.clear();
 				}
-			}
-			else {
-				completionItems.clear();
-			}
+			//}
+			//else {
+			//	completionItems.clear();
+			//}
 		}
 	
 		public boolean isPopupShowing() {

@@ -90,7 +90,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 	@Override
 	public Callback<ListView<LOSCustomerOrder>, ListCell<LOSCustomerOrder>> createListCellFactory() {
 		return MaterialListItems.withDate(s -> GoodsOutUtils.getIcon(s.getState()), 
-				s -> DateUtils.toLocalDateTime(s.getDelivery()), 
+				s -> DateUtils.toLocalDate(s.getDelivery()), 
 				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getExternalNumber(), s.getDestination()),
 				s -> String.format("%s, %s", GoodsOutTypes.state.getValue(s.getState()), s.getCustomerName()),
 				null);

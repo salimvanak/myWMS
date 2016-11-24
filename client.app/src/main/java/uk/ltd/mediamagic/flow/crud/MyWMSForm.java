@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.mywms.model.BasicEntity;
+
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.TextFieldListCell;
@@ -38,21 +40,27 @@ public class MyWMSForm extends PojoForm {
 
 	@SuppressWarnings("unchecked")
 	public void addListFor(PropertyDescriptor pds) {
-		@SuppressWarnings("rawtypes")
-		ListView list = new ListView();
+		Class<? extends BasicEntity> elementType = (Class<? extends BasicEntity>) BeanUtils.getListElementType(pds);
 
-		Class<?> elementType = BeanUtils.getListElementType(pds);
-		Editor<?> editor = PluginRegistry.getPlugin(elementType, Editor.class);
+		ListView<?> list = createList(elementType);
+		String fieldName = pds.getName();
+
+		addRight(BeanUtils.getDisplayName(pds), list);
+		addToNamespace(fieldName, list);
+	}
+
+	public static <T extends BasicEntity> ListView<T> createList(Class<T> elementType) {
+		ListView<T> list = new ListView<>();
+
+		@SuppressWarnings("unchecked")
+		Editor<T> editor = PluginRegistry.getPlugin(elementType, Editor.class);
 		if (editor == null) {
 			list.setCellFactory(TextFieldListCell.forListView(ToStringConverter.of(Object::toString)));
 		}
 		else {
 			list.setCellFactory(editor.createListCellFactory());
 		}
-		String fieldName = pds.getName();
-
-		addRight(BeanUtils.getDisplayName(pds), list);
-		addToNamespace(fieldName, list);
+		return list;
 	}
 
 	@Override

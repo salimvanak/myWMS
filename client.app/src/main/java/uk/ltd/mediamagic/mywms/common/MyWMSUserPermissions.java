@@ -1,5 +1,7 @@
 package uk.ltd.mediamagic.mywms.common;
 
+import java.util.function.BooleanSupplier;
+
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 import uk.ltd.mediamagic.fxcommon.ObservableConstant;
@@ -23,10 +25,12 @@ public class MyWMSUserPermissions implements UserPermissions {
 
 	@Override
 	public ObservableBooleanValue isEditable(String colName) {
+		if ("created".equals(colName)) return ObservableConstant.FALSE;
+		if ("modified".equals(colName)) return ObservableConstant.FALSE;
 		return isAdmin;
 	}
 	 
-	 @Override
+	@Override
 	public ObservableBooleanValue isVisible(String colName) {
 		return ObservableConstant.TRUE;
 	}
@@ -44,4 +48,28 @@ public class MyWMSUserPermissions implements UserPermissions {
 			return isAtleastForeman;
 		}
 	}
+
+	public static class ForLockedWhen implements UserPermissions {
+		private final BooleanSupplier isLocked; 
+		private final UserPermissions permissions;
+		public ForLockedWhen(UserPermissions permissions, BooleanSupplier isLocked) {
+			super();
+			this.isLocked = isLocked;
+			this.permissions = permissions;
+		}
+		
+		@Override
+		public ObservableBooleanValue isVisible(String colName) {
+			return permissions.isVisible(colName);
+		}
+		
+		@Override
+		public ObservableBooleanValue isEditable(String colName) {
+			if ("created".equals(colName)) return ObservableConstant.FALSE;
+			if ("modified".equals(colName)) return ObservableConstant.FALSE;
+			if (isLocked.getAsBoolean()) return ObservableConstant.FALSE;
+			return permissions.isEditable(colName);
+		}
+	}
+
 }

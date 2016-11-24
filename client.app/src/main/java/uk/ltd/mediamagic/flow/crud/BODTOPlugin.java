@@ -44,6 +44,7 @@ import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
@@ -128,6 +129,9 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 
 	protected Class<? extends BusinessObjectCRUDRemote<T>> getCRUDClass() {
 		return crudBean;
+	}
+	
+	protected void configureCommands(RootCommand command) {
 	}
 
 	public UserPermissions getUserPermissions() {
@@ -336,6 +340,8 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		URL url = getClass().getResource(boClass.getSimpleName() + ".fxml");
 
 		MyWMSEditor<T> controller = new MyWMSEditor<>(getBeanInfo(), this::getConverter);
+		configureCommands(controller.getCommands());
+		controller.getCommands().end();
 		controller.setUserPermissions(getUserPermissions());
 		context.autoInjectBean(controller);
 		if (url == null) {
@@ -382,6 +388,8 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 	 */
 	protected BODTOTable<T> getTable(ViewContextBase context) {
 		BODTOTable<T> table = new BODTOTable<>();	
+		configureCommands(table.getCommands());
+		table.getCommands().end();
 		context.autoInjectBean(table);
 
 		UserPermissions userPermissions = getUserPermissions();
@@ -408,6 +416,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		if (queryBean == null) throw new NullPointerException("No query class for " + getBoClass().getName() + " could be found");
 		if (crudBean == null) throw new NullPointerException("No CRUD class for " + getBoClass().getName() + " could be found");
 		if (toClass == null) throw new NullPointerException("No BODTO class for " + getBoClass().getName() + " could be found");
+		
 		AnchorPane parent = new AnchorPane();
 		parent.getChildren().add(new Label("Waiting..."));
 		Flow flow = createNewFlow(context);

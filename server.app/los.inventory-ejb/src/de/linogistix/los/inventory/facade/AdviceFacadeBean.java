@@ -7,6 +7,7 @@
  */
 package de.linogistix.los.inventory.facade;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +17,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.apache.log4j.Logger;
+import org.mywms.model.Client;
+import org.mywms.model.ItemData;
+import org.mywms.model.Lot;
+import org.mywms.service.ClientService;
+import org.mywms.service.EntityNotFoundException;
+import org.mywms.service.ItemDataService;
+import org.mywms.service.LotService;
 
 import de.linogistix.los.inventory.businessservice.LOSAdviceBusiness;
 import de.linogistix.los.inventory.businessservice.LOSGoodsReceiptComponent;
@@ -40,6 +48,10 @@ public class AdviceFacadeBean implements AdviceFacade {
 	
 	@EJB
 	private LOSGoodsReceiptService grService;
+	
+	@EJB private ClientService clientService;
+	@EJB private ItemDataService itemDataService;
+	@EJB private LotService lotService;
 	
 	@PersistenceContext(unitName = "myWMS")
 	protected EntityManager manager;
@@ -70,6 +82,35 @@ public class AdviceFacadeBean implements AdviceFacade {
 		}
 		adv2.setAdviceState(LOSAdviceState.FINISHED);
 		adv2.setFinishDate(new Date());
+	}
+	
+	@Override
+	public LOSAdvice createAdvise(BODTO<Client> c, BODTO<ItemData> item, BODTO<Lot> lotTo, 
+			BigDecimal amount, boolean expireLot, Date expectedDelivery, String requestId) throws InventoryException {
+		Client client;
+		ItemData itemData;
+		Lot lot;
+		try {
+			client = clientService.get(c.getId());
+		} catch (EntityNotFoundException e) {
+			throw new InventoryException(InventoryExceptionKey.NO_SUCH_CLIENT, c.getName());
+		}
+		
+		try {
+			itemData = itemDataService.get(item.getId());
+		} catch (EntityNotFoundException e) {
+			throw new InventoryException(InventoryExceptionKey.NO_SUCH_ITEMDATA, item.getName());
+		}
+
+		try {
+			lot = (lotTo == null) ? null : lotService.get(lotTo.getId());
+		} catch (EntityNotFoundException e) {
+			throw new InventoryException(InventoryExceptionKey.NO_SUCH_ITEMDATA, item.getName());
+		}
+		
+		adviceBusiness.goodsAdvise(client, itemData, lot, amount, expireLot, expectedDelivery, requestId);
+
+		return null;
 	}
 	
 }

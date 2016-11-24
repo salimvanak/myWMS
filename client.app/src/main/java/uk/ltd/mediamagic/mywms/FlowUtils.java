@@ -76,7 +76,17 @@ public class FlowUtils {
 		Flow f = context.getBean(Flow.class);
 		f.executeCommand(action, key); 
 	}
-	
+
+	public static void executeCommand(ViewContextBase context, String action) {
+		Flow f = context.getBean(Flow.class);
+		f.executeCommand(action); 
+	}
+
+	public static void executeCommand(ViewContextBase context, Enum<?> action) {
+		Flow f = context.getBean(Flow.class);
+		f.executeCommand(action); 
+	}
+
 	public static <T> void showNext(Flow f, ViewContext newContext, Class<T> cls, T state) {
   	newContext.setActiveBean(cls, state);
   	f.next(newContext);

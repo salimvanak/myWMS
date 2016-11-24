@@ -31,6 +31,7 @@ import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.mywms.inventory.PrintGoodsReceiptLabel;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -42,7 +43,7 @@ import uk.ltd.mediamagic.mywms.inventory.PrintGoodsReceiptLabel;
 
 public class GoodsReceiptPositionsPlugin  extends BODTOPlugin<LOSGoodsReceiptPosition> {
 
-	private enum Action {PrintLabel}
+	private enum Action {PrintLabel, StockUnitLog}
 	
 	public GoodsReceiptPositionsPlugin() {
 		super(LOSGoodsReceiptPosition.class);
@@ -97,10 +98,19 @@ public class GoodsReceiptPositionsPlugin  extends BODTOPlugin<LOSGoodsReceiptPos
 	}
 	
 	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command.begin(RootCommand.MENU)
+			.add(AC.id(Action.StockUnitLog).text("Stock Unit Log"))
+		.end();
+	}
+	
+	@Override
 	public Flow createNewFlow(ApplicationContext context) {
 		Flow flow = super.createNewFlow(context);
 		flow.globalWithSelection()
 			.withMultiSelection(Action.PrintLabel, new PrintGoodsReceiptLabel())
+			.withSelection(Action.StockUnitLog, StockUnitRecordAction.forActivityCode())
 		.end();
 		return flow;
 	}
