@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import org.mywms.model.User;
 
@@ -25,22 +26,21 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleGroup;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
+import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
@@ -67,7 +67,7 @@ import uk.ltd.mediamagic.util.DateUtils;
 	)
 public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 
-	private enum Action {FinishOrder, FinishPicking, Remove, Start, Overview}
+	private enum Action {FinishOrder, FinishPicking, Remove, Start, Overview, TreatOrder}
 	
 	
 	public OrdersPlugin() {
@@ -88,8 +88,8 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 	}
 	
 	@Override
-	public Callback<ListView<LOSCustomerOrder>, ListCell<LOSCustomerOrder>> createListCellFactory() {
-		return MaterialListItems.withDate(s -> GoodsOutUtils.getIcon(s.getState()), 
+	public Supplier<CellRenderer<LOSCustomerOrder>> createCellFactory() {
+		return MaterialCells.withDate(s -> GoodsOutUtils.getIcon(s.getState()), 
 				s -> DateUtils.toLocalDate(s.getDelivery()), 
 				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getExternalNumber(), s.getDestination()),
 				s -> String.format("%s, %s", GoodsOutTypes.state.getValue(s.getState()), s.getCustomerName()),
@@ -97,8 +97,8 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 	}
 	
 	@Override
-	public Callback<ListView<BODTO<LOSCustomerOrder>>, ListCell<BODTO<LOSCustomerOrder>>> createTOListCellFactory() {
-		return MaterialListItems.withDate(s -> GoodsOutUtils.getIcon(((LOSCustomerOrderTO)s).getState()), 
+	public Supplier<CellRenderer<BODTO<LOSCustomerOrder>>> createTOCellFactory() {
+		return MaterialCells.withDate(s -> GoodsOutUtils.getIcon(((LOSCustomerOrderTO)s).getState()), 
 				s -> null, 
 				s -> String.format("%s, %s, %s", ((LOSCustomerOrderTO)s).getName(), ((LOSCustomerOrderTO)s).getExternalNumber(), ((LOSCustomerOrderTO)s).getDestinationName()),
 				s -> String.format("%s, %s", GoodsOutTypes.state.getValue(((LOSCustomerOrderTO)s).getState()), ((LOSCustomerOrderTO)s).getCustomerName()),
@@ -235,6 +235,16 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
 	}
 
+	private void treatOrder(Object source, Flow flow, ViewContext context, TableKey key) {
+		LOSCustomerOrderQueryRemote query = context.getBean(LOSCustomerOrderQueryRemote.class);
+		TreatOrderController c = new TreatOrderController(getBeanInfo(), this::getConverter);
+		context.autoInjectBean(c);
+		
+		c.getExecutor().apply(query::queryById, key.get("id")).thenSetUI(c.dataProperty());
+		
+		FlowUtils.showNext(flow, context, TreatOrderController.class, c);
+	}
+
 	private void overview(Object source, Flow flow, ViewContext context) {
 		OrderStatusPane pane = new OrderStatusPane();
 		context.autoInjectBean(pane);
@@ -253,11 +263,38 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 			.withSelection(Action.FinishOrder, this::finishOrder)
 			.withSelection(Action.FinishPicking, this::finishPicking)
 			.withSelection(Action.Start, this::startOrder)
+			.withSelection(Action.TreatOrder, this::treatOrder)
+		.end()
+		.with(OrderStatusPane.class)
+			.withSelection(Flow.EDIT_ACTION, this::getEditor)
+			.alias(Flow.TABLE_SELECT_ACTION, Flow.EDIT_ACTION)
 		.end();
 		return flow;
 	}
 	
+	/**
+	 * This is the flow action that is used to move to the editing state.
+	 * 
+	 * @param source the source state for this transation
+	 * @param flow the control flow
+	 * @param context the new context for the target state
+	 * @param key selected item from the previous state.
+	 */
+	public void getEditor(OrderStatusPane source, Flow flow, ViewContext context, TableKey key) {
+		MyWMSEditor<LOSCustomerOrder> controller = getEditor(context, key);
+		context.setActiveBean(MyWMSEditor.class, controller);
+		flow.next(context);
+	}
+
 	
+	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command.begin(RootCommand.MENU)
+			.add(AC.id(Action.TreatOrder).text("Treat Order"))
+		.end();
+	}
+		
 	@Override
 	protected BODTOTable<LOSCustomerOrder> getTable(ViewContextBase context) {
 		BODTOTable<LOSCustomerOrder> t = super.getTable(context);

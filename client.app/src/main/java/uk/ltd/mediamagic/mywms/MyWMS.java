@@ -58,6 +58,7 @@ import uk.ltd.mediamagic.fx.ApplicationService;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxHacks;
 import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
+import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.MenuUtils;
 import uk.ltd.mediamagic.fx.Units;
 import uk.ltd.mediamagic.fx.Utils;
@@ -143,13 +144,23 @@ public class MyWMS extends Application {
 			return serverAddress;
 		};
 	};
+	private LoginDialog login;
 	
 	@Override
 	public void init() throws Exception {
 		super.init();
 		application = this;
 		System.setSecurityManager(null);
-		lastLoginError.addListener((v,o,n)-> log.log(Level.SEVERE,"While logging in", n));
+		lastLoginError.addListener((v,o,n)-> {
+			log.log(Level.SEVERE,"While logging in", n);
+			boolean yes = MDialogs.create(this, "Login Error")
+					.masthead(n.getLocalizedMessage())
+					.message("Retry login").showYesNo();
+			
+			if (yes && login != null) {
+				login.showLogin(primaryStage);
+			}
+		});
 		ThreadPool.startup();
 		registerPlugins(context.getBean(MExecutor.class), new String[] {"MasterDataModule"});
 		//Thread.sleep(5000);
@@ -224,7 +235,7 @@ public class MyWMS extends Application {
 			primaryStage.setScene(scene);
 			primaryStage.show();
 			
-			LoginDialog login = new LoginDialog(this);
+			login = new LoginDialog(this);
 			login.showLogin(primaryStage);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -260,7 +271,11 @@ public class MyWMS extends Application {
 		System.exit(0);
 	}
 	
-  public static AbstractPluginSet[] getModules(String[] modules) {
+	public Stage getPrimaryStage() {
+		return primaryStage;
+	}
+
+	public static AbstractPluginSet[] getModules(String[] modules) {
     modules = MArrays.toSet(modules);
     ArrayList<AbstractPluginSet> plugins = new ArrayList<AbstractPluginSet>(modules.length);
 
@@ -377,7 +392,13 @@ public class MyWMS extends Application {
 	}
 	
 	private Integer getDefaultZoom() {
-		return 100;
+		String zoomStr = getParameters().getNamed().get("zoom");
+		if (zoomStr != null) {
+			return Integer.parseInt(zoomStr);
+		}
+		else {
+			return 100;
+		}
 	}
 
 	public MenuItem createZoomMenus() {

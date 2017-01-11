@@ -13,6 +13,7 @@ package uk.ltd.mediamagic.mywms.userlogin;
 //import de.linogistix.common.bobrowser.bo.BO;
 
 import java.beans.PropertyChangeListener;
+
 import org.mywms.facade.AuthenticationInfoTO;
 import org.mywms.model.Client;
 import org.mywms.model.User;

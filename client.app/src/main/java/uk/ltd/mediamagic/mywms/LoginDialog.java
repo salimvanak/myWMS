@@ -1,5 +1,6 @@
 package uk.ltd.mediamagic.mywms;
 
+import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -16,31 +17,38 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import res.R;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
+import uk.ltd.mediamagic.fx.Units;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 
 public class LoginDialog {
 
-	SimpleFormBuilder loginForm = new SimpleFormBuilder();
-	TextField usernameField = new TextField();
-	PasswordField passwordField = new PasswordField();
-	Button login = new Button("Login");
-	Button quit = new Button("Quit");
-	Map<String,String> parameters;
-	Stage loginStage = new Stage();
+	private SimpleFormBuilder loginForm = new SimpleFormBuilder();
+	private TextField usernameField = new TextField();
+	private PasswordField passwordField = new PasswordField();
+	private Button login = new Button("Login");
+	private Button quit = new Button("Quit");
+	private Map<String,String> parameters;
+	private Stage loginStage = new Stage();
+	
+	private AnchorPane main = new AnchorPane();
 	
 	final ObjectProperty<BeanLocator> beanLocator = new SimpleObjectProperty<>();
 	
   public LoginDialog(MyWMS app) {
 		super();
 		this.parameters = app.getParameters().getNamed();
+		loginStage.initOwner(app.getPrimaryStage());
 		
 		beanLocator.addListener((v,o,n) -> { 
 			if (n != null) {
@@ -54,7 +62,11 @@ public class LoginDialog {
 		
 		String osUserName = System.getProperty("user.name");
 		usernameField.setText(osUserName);
+		usernameField.setPromptText("Username");
 		usernameField.selectAll();
+
+		passwordField.setPromptText("Password");
+
 		Label errorField = new Label();
 		errorField.textProperty().bind(MBindings.asString(app.loginErrorProperty(), 
 				e -> Optional.ofNullable(e).map(s->"Login Failed").orElse("")));
@@ -79,7 +91,32 @@ public class LoginDialog {
 		loginForm.row()
 			.fieldNode(buttons, GridPane.REMAINING, 1)
 		.end();
+		//loginForm.setStyle("-fx-background-color: GREY");
+		
+		AnchorPane.setRightAnchor(loginForm, 5d);
+		AnchorPane.setBottomAnchor(loginForm, 5d);
+		AnchorPane.setTopAnchor(loginForm, 5d);
+		
+		URL splashURL = getClass().getResource("/splash.png");
+		if (splashURL != null) {
+			ImageView background = new ImageView(splashURL.toExternalForm());
+			AnchorPane.setRightAnchor(background, 0d);
+			AnchorPane.setBottomAnchor(background, 0d);
+			AnchorPane.setTopAnchor(background, 0d);
+			AnchorPane.setLeftAnchor(background, 0d);
+			main.getChildren().add(background);
+		}
+		Label versionLabel = new Label("MyWMS v1.8.1");
+		AnchorPane.setRightAnchor(versionLabel, Units.em(1));
+		AnchorPane.setBottomAnchor(versionLabel, Units.em(1));
+		
+		AnchorPane.clearConstraints(loginForm);
+		AnchorPane.setRightAnchor(loginForm, Units.em(1));
+		AnchorPane.setBottomAnchor(loginForm, Units.em(3));
 
+		main.getChildren().add(loginForm);
+		main.getChildren().add(versionLabel);
+		
 	}
 
   public void showLogin(Stage stage) {
@@ -89,8 +126,9 @@ public class LoginDialog {
   	if (!Strings.isEmpty(username) && !Strings.isEmpty(password)) {
   		checkLogin(username, password);
   	}
-  	else {
-  		loginStage.setScene(new Scene(loginForm));
+  	else if (!loginStage.isShowing()) {
+  		loginStage.setScene(new Scene(main));
+  		loginStage.initStyle(StageStyle.UNDECORATED);
   		loginStage.getScene().getStylesheets().addAll(R.getDefaultStyleSheets());
   		loginStage.show();
   		loginStage.centerOnScreen();

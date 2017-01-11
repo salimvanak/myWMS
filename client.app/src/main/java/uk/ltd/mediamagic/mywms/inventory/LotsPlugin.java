@@ -3,21 +3,20 @@ package uk.ltd.mediamagic.mywms.inventory;
 import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.mywms.model.Lot;
 
 import de.linogistix.los.inventory.query.dto.LotTO;
 import de.linogistix.los.inventory.service.LotLockState;
 import de.linogistix.los.query.BODTO;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.cell.TextFieldListCell;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -49,8 +48,8 @@ public class LotsPlugin extends BODTOPlugin<Lot> {
 	}
 	
 	@Override
-	public Callback<ListView<BODTO<Lot>>, ListCell<BODTO<Lot>>> createTOListCellFactory() {
-		return TextFieldListCell.forListView(ToStringConverter.of(i -> {
+	public Supplier<CellRenderer<BODTO<Lot>>> createTOCellFactory() {
+		return TextRenderer.of(ToStringConverter.of(i -> {
 			LotTO to = (LotTO) i;
 			return String.format("%s, %s -- %s", to.getName(), to.getUseNotBefore(), to.getBestBeforeEnd());
 		}));

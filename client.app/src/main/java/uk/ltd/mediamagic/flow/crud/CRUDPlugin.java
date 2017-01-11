@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.mywms.model.BasicEntity;
 
@@ -27,18 +28,16 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.annot.Worker;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -115,13 +114,13 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 	}
 
 	@Override
-	public Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> createTOListCellFactory() {
+	public Supplier<CellRenderer<BODTO<T>>> createTOCellFactory() {
 		return null;
 	}
 	
 	@Override
-	public Callback<ListView<T>, ListCell<T>> createListCellFactory() {
-		return TextFieldListCell.forListView(new ToStringConverter<>(BasicEntity::toUniqueString));
+	public Supplier<CellRenderer<T>> createCellFactory() {
+		return TextRenderer.of(new ToStringConverter<>(BasicEntity::toUniqueString));
 	}
 	
 	protected StringConverter<?> getConverter(PropertyDescriptor property) {

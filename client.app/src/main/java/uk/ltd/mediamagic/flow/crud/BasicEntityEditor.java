@@ -52,6 +52,7 @@ import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.control.DelayedChangeListener;
+import uk.ltd.mediamagic.fx.controller.list.CellWrappers;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.Flow;
@@ -153,7 +154,7 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 		@SuppressWarnings("unchecked")
 		Editor<T> editorPlugin = PluginRegistry.getPlugin(boClass, Editor.class);
 		if (editorPlugin != null) {
-			Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> cellFactory = editorPlugin.createTOListCellFactory();
+			Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> cellFactory = CellWrappers.forList(editorPlugin.createTOCellFactory());
 			if (cellFactory == null) cellFactory = TextFieldListCell.forListView(ToStringConverter.of(BODTO::getName));
 			setCellFactory(cellFactory);
 			setValueEditor(d -> editorPlugin.edit(context, boClass, d.getId()));

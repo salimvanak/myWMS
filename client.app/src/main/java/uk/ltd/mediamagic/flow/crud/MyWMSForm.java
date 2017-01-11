@@ -18,6 +18,7 @@ import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder.Row;
+import uk.ltd.mediamagic.fx.controller.list.CellWrappers;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.mywms.common.BeanUtils;
 import uk.ltd.mediamagic.mywms.common.Editor;
@@ -58,7 +59,7 @@ public class MyWMSForm extends PojoForm {
 			list.setCellFactory(TextFieldListCell.forListView(ToStringConverter.of(Object::toString)));
 		}
 		else {
-			list.setCellFactory(editor.createListCellFactory());
+			list.setCellFactory(CellWrappers.forList(editor.createCellFactory()));
 		}
 		return list;
 	}

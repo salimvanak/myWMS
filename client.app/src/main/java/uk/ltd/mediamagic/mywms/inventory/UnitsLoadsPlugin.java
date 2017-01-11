@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import de.linogistix.los.inventory.facade.ManageInventoryFacade;
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
@@ -23,11 +24,8 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
@@ -38,7 +36,8 @@ import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
@@ -81,8 +80,8 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 	}
 	
 	@Override
-	public Callback<ListView<LOSUnitLoad>, ListCell<LOSUnitLoad>> createListCellFactory() {
-		return MaterialListItems.withID(s -> (s.getLock() == 0) ? new AwesomeIcon(AwesomeIcon.unlock) : new AwesomeIcon(AwesomeIcon.lock), 
+	public Supplier<CellRenderer<LOSUnitLoad>> createCellFactory() {
+		return MaterialCells.withID(s -> (s.getLock() == 0) ? new AwesomeIcon(AwesomeIcon.unlock) : new AwesomeIcon(AwesomeIcon.lock), 
 				LOSUnitLoad::getLabelId, 
 				s -> String.format("%s, %s", s.getLabelId(), s.getType().getName()),
 				s -> String.format("%s", s.getStorageLocation().getName()),

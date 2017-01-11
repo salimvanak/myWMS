@@ -23,7 +23,7 @@ public class FixedLocationsPlugin extends BODTOPlugin<LOSFixedLocationAssignment
 
 	@Override
 	protected List<String> getTableColumns() {
-		return Arrays.asList("id", "name", "assignedLocation", "itemData", "desiredAmount");
+		return Arrays.asList("id", "name AS itemData.number", "storageLocation AS assignedLocation.name", "itemDataName AS itemData.name", "amount as desiredAmount");
 	}
 
 }

@@ -29,6 +29,7 @@ import uk.ltd.mediamagic.fx.binding.AutoFill;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.controller.editor.EditorBase;
 import uk.ltd.mediamagic.fx.controller.editor.EditorHelper;
+import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fxcommon.ObservableConstant;
 import uk.ltd.mediamagic.mywms.common.BeanUtils;
 
@@ -55,6 +56,11 @@ public abstract class PoJoEditor<T> extends EditorBase {
 		});
 	}
 	
+	@Override
+	public Collection<TableKey> getSelectedKeys() {
+		return Collections.singleton(getSelectedKey());
+	}
+
 	public class PojoEditorHelper implements EditorHelper {
 
 		private final BeanInfo beanInfo;

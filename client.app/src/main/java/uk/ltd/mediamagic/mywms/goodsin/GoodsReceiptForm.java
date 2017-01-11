@@ -113,7 +113,8 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			TextField newQuantityField = Filters.of(newQuantity, "Qty", 6);
 			TextField newDescription = new TextField();
 			newDescription.setEditable(false);
-			newDescription.setPrefColumnCount(30);
+			newDescription.setPrefColumnCount(20);
+			newDescription.setMaxWidth(Double.MAX_VALUE);
 			
 			positions.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 			

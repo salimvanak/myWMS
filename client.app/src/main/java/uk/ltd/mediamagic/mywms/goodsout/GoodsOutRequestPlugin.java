@@ -4,6 +4,7 @@ import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import de.linogistix.los.inventory.model.LOSGoodsOutRequest;
 import de.linogistix.los.inventory.model.LOSGoodsOutRequestState;
@@ -16,9 +17,6 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import res.R;
 import res.StandardIcons.IconSize;
@@ -26,12 +24,18 @@ import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
+import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
+import uk.ltd.mediamagic.mywms.transactions.UnitLoadRecordAction;
 import uk.ltd.mediamagic.util.DateUtils;
 
 @SubForm(
@@ -44,6 +48,8 @@ import uk.ltd.mediamagic.util.DateUtils;
 	)
 public class GoodsOutRequestPlugin  extends BODTOPlugin<LOSGoodsOutRequest> {
 
+	private enum Actions {UNIT_LOAD_LOG} 
+	
 	public GoodsOutRequestPlugin() {
 		super(LOSGoodsOutRequest.class);
 	}
@@ -61,8 +67,8 @@ public class GoodsOutRequestPlugin  extends BODTOPlugin<LOSGoodsOutRequest> {
 	}
 	
 	@Override
-	public Callback<ListView<LOSGoodsOutRequest>, ListCell<LOSGoodsOutRequest>> createListCellFactory() {
-		return MaterialListItems.withDateTime(GoodsOutRequestPlugin::getIcon, 
+	public Supplier<CellRenderer<LOSGoodsOutRequest>> createCellFactory() {
+		return MaterialCells.withDateTime(GoodsOutRequestPlugin::getIcon, 
 				s -> DateUtils.toLocalDateTime(s.getShippingDate()), 
 				s -> Strings.format("{0}, {1}", s.getCustomerOrder().getNumber(), s.getCustomerOrder().getExternalNumber()),
 				s -> Strings.format("{0}", s.getOperator()),
@@ -113,6 +119,22 @@ public class GoodsOutRequestPlugin  extends BODTOPlugin<LOSGoodsOutRequest> {
 		BODTOTable<LOSGoodsOutRequest> t = super.getTable(context);
 		GoodsOutUtils.addOpenFilter(t, () -> refresh(t, t.getContext()));
 		return t;
+	}
+	
+	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command.begin(RootCommand.MENU)
+			.add(AC.id(Actions.UNIT_LOAD_LOG).text("Unit load log"))
+		.end();
+	}
+	
+	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		return super.createNewFlow(context)
+				.globalWithSelection()
+					.withSelection(Actions.UNIT_LOAD_LOG, UnitLoadRecordAction.forActivityCode())
+				.end();
 	}
 
 	@Override

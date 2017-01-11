@@ -4,19 +4,18 @@ import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import de.linogistix.los.inventory.model.LOSPickingPosition;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
@@ -49,8 +48,8 @@ public class PickingPositionsPlugin  extends BODTOPlugin<LOSPickingPosition> {
 	}
 	
 	@Override
-	public Callback<ListView<LOSPickingPosition>, ListCell<LOSPickingPosition>> createListCellFactory() {
-		return MaterialListItems.withID(s -> GoodsOutUtils.getIcon(s.getState()), 
+	public Supplier<CellRenderer<LOSPickingPosition>> createCellFactory() {
+		return MaterialCells.withID(s -> GoodsOutUtils.getIcon(s.getState()), 
 				s -> s.toUniqueString(), 
 				s -> String.format("%s, %s", s.getItemData().getNumber(), s.getItemData().getName()),
 				s -> String.format("%s", GoodsOutTypes.state.getValue(s.getState())),

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 import org.mywms.model.StockUnit;
 
@@ -24,12 +25,9 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
@@ -41,7 +39,8 @@ import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
 import uk.ltd.mediamagic.fx.converters.Filters;
 import uk.ltd.mediamagic.fx.data.TableKey;
@@ -195,8 +194,8 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 
 	
 	@Override
-	public Callback<ListView<StockUnit>, ListCell<StockUnit>> createListCellFactory() {
-		return MaterialListItems.withID(s -> (s.getLock() == 0) ? new AwesomeIcon(AwesomeIcon.unlock) : new AwesomeIcon(AwesomeIcon.lock), 
+	public Supplier<CellRenderer<StockUnit>> createCellFactory() {
+		return MaterialCells.withID(s -> (s.getLock() == 0) ? new AwesomeIcon(AwesomeIcon.unlock) : new AwesomeIcon(AwesomeIcon.lock), 
 				StockUnit::getId, 
 				s -> Strings.format("{0}, {1}", s.getItemData().getNumber(), s.getItemData().getName()),
 				s -> {

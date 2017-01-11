@@ -3,20 +3,19 @@ package uk.ltd.mediamagic.mywms.master;
 import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.mywms.model.ItemData;
 
 import de.linogistix.los.inventory.query.dto.ItemDataTO;
 import de.linogistix.los.query.BODTO;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.cell.TextFieldListCell;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
+import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -54,16 +53,16 @@ public class ItemDataPlugin extends BODTOPlugin<ItemData> implements Editor<Item
 	}
 	
 	@Override
-	public Callback<ListView<BODTO<ItemData>>, ListCell<BODTO<ItemData>>> createTOListCellFactory() {
-		return TextFieldListCell.forListView(ToStringConverter.of(i -> {
+	public Supplier<CellRenderer<BODTO<ItemData>>> createTOCellFactory() {
+		return TextRenderer.of(ToStringConverter.of(i -> {
 			ItemDataTO to = (ItemDataTO) i;
 			return String.format("%s, %s", to.getNumber(), to.getNameX());
 		}));
 	}
 	
 	@Override
-	public Callback<ListView<ItemData>, ListCell<ItemData>> createListCellFactory() {
-		return MaterialListItems.withID(a -> new AwesomeIcon(AwesomeIcon.foursquare), 
+	public Supplier<CellRenderer<ItemData>> createCellFactory() {
+		return MaterialCells.withID(a -> new AwesomeIcon(AwesomeIcon.foursquare), 
 				ItemData::getClient, ItemData::toUniqueString,
 				ItemData::getDefaultUnitLoadType, ItemData::getDescription);
 	}

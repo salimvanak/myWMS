@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import de.linogistix.los.inventory.model.LOSAdvice;
 import de.linogistix.los.inventory.model.LOSAdviceState;
@@ -17,23 +18,19 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.cell.TextFieldListCell;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
+import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
-import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils;
-import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.util.DateUtils;
 
 @SubForm(
@@ -68,8 +65,8 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 	}
 	
 	@Override
-	public Callback<ListView<BODTO<LOSAdvice>>, ListCell<BODTO<LOSAdvice>>> createTOListCellFactory() {
-		return TextFieldListCell.forListView(ToStringConverter.of(i -> {
+	public Supplier<CellRenderer<BODTO<LOSAdvice>>> createTOCellFactory() {
+		return TextRenderer.of(ToStringConverter.of(i -> {
 			LOSAdviceTO to = (LOSAdviceTO) i;
 			return String.format("%s, %s x %f", to.getName(), to.getItemData(), to.getNotifiedAmount());
 		}));
@@ -80,13 +77,12 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 		BigDecimal received = advice.getReceiptAmount();
 		if (notified.compareTo(BigDecimal.ZERO) <= 0) return new ProgressIndicator(1);
 		ProgressIndicator pi = new ProgressIndicator(received.setScale(3, RoundingMode.HALF_DOWN).divide(notified, RoundingMode.HALF_EVEN).doubleValue());
-		System.out.println("PI = " + pi.getProgress() + " " + received + " / " + notified);
 		return pi;
 	}
 	
 	@Override
-	public Callback<ListView<LOSAdvice>, ListCell<LOSAdvice>> createListCellFactory() {
-		return MaterialListItems.withDate(AdvicePlugin::getIcon, 
+	public Supplier<CellRenderer<LOSAdvice>> createCellFactory() {
+		return MaterialCells.withDate(AdvicePlugin::getIcon, 
 				s -> DateUtils.toLocalDate(s.getExpectedDelivery()), 
 				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getItemData().getNumber(), s.getItemData().getName()),
 				s -> {

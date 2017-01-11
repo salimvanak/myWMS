@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import de.linogistix.los.inventory.model.LOSPickingOrder;
 import de.linogistix.los.inventory.query.dto.LOSPickingOrderTO;
@@ -17,16 +18,14 @@ import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -73,8 +72,8 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 	}
 	
 	@Override
-	public Callback<ListView<LOSPickingOrder>, ListCell<LOSPickingOrder>> createListCellFactory() {
-		return MaterialListItems.withID(s -> GoodsOutUtils.getIcon(s.getState()), 
+	public Supplier<CellRenderer<LOSPickingOrder>> createCellFactory() {
+		return MaterialCells.withID(s -> GoodsOutUtils.getIcon(s.getState()), 
 				s -> s.getOperator(), 
 				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getCustomerOrderNumber(), s.getDestination()),
 				s -> String.format("%s", GoodsOutTypes.state.getValue(s.getState())),
@@ -82,9 +81,9 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 	}
 	
 	@Override
-	public Callback<ListView<BODTO<LOSPickingOrder>>, ListCell<BODTO<LOSPickingOrder>>> createTOListCellFactory() {
+	public Supplier<CellRenderer<BODTO<LOSPickingOrder>>> createTOCellFactory() {
 		Function<BODTO<LOSPickingOrder>, LOSPickingOrderTO> cast = Closures.cast(LOSPickingOrderTO.class);
-		return MaterialListItems.withID(cast.andThen(s -> GoodsOutUtils.getIcon(s.getState())), 
+		return MaterialCells.withID(cast.andThen(s -> GoodsOutUtils.getIcon(s.getState())), 
 				cast.andThen(s -> s.getUserName()), 
 				cast.andThen(s -> String.format("%s, %s, %s", s.getName(), s.getCustomerOrderNumber(), s.getDestinationName())),
 				cast.andThen(s -> String.format("%s", GoodsOutTypes.state.getValue(s.getState()))),

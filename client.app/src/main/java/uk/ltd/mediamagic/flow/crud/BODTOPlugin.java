@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,12 +32,8 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.annot.Worker;
 import uk.ltd.mediamagic.debug.MLogger;
@@ -46,6 +43,8 @@ import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -111,14 +110,26 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		this.toClass = myToClass;
 	}
 	
+	/**
+	 * Gets the bean info object for this plugin
+	 * @return
+	 */
 	protected BeanInfo getBeanInfo() {
 		return beanInfo;
 	}
 
+	/**
+	 * Gets the class representing this plugins data type
+	 * @return
+	 */
 	protected Class<T> getBoClass() {
 		return boClass;
 	}
 
+	/**
+	 * Gets the transfer object class for this plugin
+	 * @return
+	 */
 	protected Class<? extends BODTO<T>> getTOClass() {
 		return toClass;
 	}
@@ -137,7 +148,13 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 	public UserPermissions getUserPermissions() {
 		return userPermissions;
 	}
-
+	
+	/**
+	 * Sets the permission object for this plugin.
+	 * The permissions object is used to determine editable and visible 
+	 * fields for this data type 
+	 * @param userPermissions
+	 */
 	protected void setUserPermissions(UserPermissions userPermissions) {
 		this.userPermissions = userPermissions;
 	}
@@ -159,14 +176,21 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		FlowUtils.showPopup(dataClass.getSimpleName(), context, editor);
 	}
 	
+	/**
+	 * Creates a list cell factory for displaying the Transfer object of this data type;
+	 */
 	@Override
-	public Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> createTOListCellFactory() {
-		return TextFieldListCell.forListView(ToStringConverter.of(BODTO::getName));
+	public Supplier<CellRenderer<BODTO<T>>> createTOCellFactory() {
+    return TextRenderer.of(new ToStringConverter<BODTO<T>>(BODTO::getName));
 	}
 
+	
+	/**
+	 * Creates a list cell factory for displaying this data type;
+	 */
 	@Override
-	public Callback<ListView<T>, ListCell<T>> createListCellFactory() {
-		return TextFieldListCell.forListView(new ToStringConverter<>(BasicEntity::toUniqueString));
+	public Supplier<CellRenderer<T>> createCellFactory() {
+    return TextRenderer.of(new ToStringConverter<>(BasicEntity::toUniqueString));
 	}
 
 	

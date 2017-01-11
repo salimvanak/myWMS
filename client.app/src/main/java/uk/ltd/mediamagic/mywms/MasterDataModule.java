@@ -16,10 +16,13 @@ import de.linogistix.los.location.model.LOSLocationCluster;
 import de.linogistix.los.location.model.LOSRack;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSStorageLocationType;
+import de.linogistix.los.location.model.LOSTypeCapacityConstraint;
+import de.linogistix.los.location.model.LOSUnitLoadRecord;
 import de.linogistix.los.location.model.LOSWorkingArea;
 import de.linogistix.los.location.model.LOSWorkingAreaPosition;
 import uk.ltd.mediamagic.mywms.master.BOMSPlugin;
 import uk.ltd.mediamagic.mywms.master.BarcodesPlugin;
+import uk.ltd.mediamagic.mywms.master.CapacitiesPlugin;
 import uk.ltd.mediamagic.mywms.master.FixedLocationsPlugin;
 import uk.ltd.mediamagic.mywms.master.FunctionalAreasPlugin;
 import uk.ltd.mediamagic.mywms.master.ItemDataPlugin;
@@ -35,6 +38,7 @@ import uk.ltd.mediamagic.mywms.master.WorkAreasPlugin;
 import uk.ltd.mediamagic.mywms.master.WorkAreasPositionsPlugin;
 import uk.ltd.mediamagic.mywms.master.ZonePlugin;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitLogPlugin;
+import uk.ltd.mediamagic.mywms.transactions.UnitLoadLogPlugin;
 import uk.ltd.mediamagic.plugin.AbstractPluginSet;
 import uk.ltd.mediamagic.plugin.PluginRelation;
 
@@ -85,6 +89,9 @@ public class MasterDataModule extends AbstractPluginSet {
     m.put(StorageLocationTypesPlugin.class);
     m.put(LOSStorageLocationType.class, StorageLocationTypesPlugin.class);
 
+    m.put(CapacitiesPlugin.class);
+    m.put(LOSTypeCapacityConstraint.class, CapacitiesPlugin.class);
+
     m.put(UnitLoadTypesPlugin.class);
     m.put(UnitLoadType.class, UnitLoadTypesPlugin.class);
 
@@ -96,6 +103,9 @@ public class MasterDataModule extends AbstractPluginSet {
         
     m.put(StockUnitLogPlugin.class);
     m.put(LOSStockUnitRecord.class, StockUnitLogPlugin.class);
+        
+    m.put(UnitLoadLogPlugin.class);
+    m.put(LOSUnitLoadRecord.class, UnitLoadLogPlugin.class);
         
     return m;
   }

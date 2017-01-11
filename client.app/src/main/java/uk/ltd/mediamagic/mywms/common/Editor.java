@@ -1,11 +1,11 @@
 package uk.ltd.mediamagic.mywms.common;
 
+import java.util.function.Supplier;
+
 import org.mywms.model.BasicEntity;
 
 import de.linogistix.los.query.BODTO;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.util.Callback;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.plugin.Plugin;
@@ -37,7 +37,16 @@ public interface Editor<T extends BasicEntity> extends Plugin<T> {
 	 * @param listView the list view on which this cell render will operate.
 	 * @return a list cell that will renderer the type.
 	 */
-	Callback<ListView<T>, ListCell<T>> createListCellFactory();
+//	default Callback<ListView<T>, ListCell<T>> createListCellFactory() {
+//		return CellWrappers.forList(createCellFactory());
+//	};
+
+	/**
+	 * A cell renderer factory suitable for rendering the type of this editor.
+	 * @param listView the list view on which this cell render will operate.
+	 * @return a list cell that will renderer the type.
+	 */
+	Supplier<CellRenderer<T>> createCellFactory();
 
 	/**
 	 * A list cell renderer factory suitable for rendering the 
@@ -45,5 +54,15 @@ public interface Editor<T extends BasicEntity> extends Plugin<T> {
 	 * @param listView the list view on which this cell render will operate.
 	 * @return a list cell that will renderer the type.
 	 */
-	Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> createTOListCellFactory();
+//	default Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> createTOListCellFactory() {
+//		return CellWrappers.forList(createTOCellFactory());
+//	};
+	
+	/**
+	 * A cell renderer factory suitable for rendering the type of this editor.
+	 * @param listView the list view on which this cell render will operate.
+	 * @return a list cell that will renderer the type.
+	 */
+	Supplier<CellRenderer<BODTO<T>>> createTOCellFactory();
+
 }

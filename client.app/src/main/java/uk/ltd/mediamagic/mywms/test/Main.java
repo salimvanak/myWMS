@@ -1,6 +1,5 @@
 package uk.ltd.mediamagic.mywms.test;
 
-import java.util.List;
 import java.util.Properties;
 
 import org.mywms.ejb.BeanLocator;
@@ -11,7 +10,6 @@ import org.mywms.service.StockUnitService;
 import de.linogistix.los.inventory.crud.ItemDataCRUDRemote;
 import de.linogistix.los.inventory.query.ItemDataQueryRemote;
 import de.linogistix.los.query.ClientQueryRemote;
-import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.user.query.UserQueryRemote;
 
 public class Main {

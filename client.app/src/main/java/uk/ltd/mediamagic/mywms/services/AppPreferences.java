@@ -6,7 +6,6 @@
  */
 package uk.ltd.mediamagic.mywms.services;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;

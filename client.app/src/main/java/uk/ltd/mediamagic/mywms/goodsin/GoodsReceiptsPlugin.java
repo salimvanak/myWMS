@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.mywms.model.Client;
 
@@ -22,9 +23,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import res.R;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
@@ -34,7 +32,8 @@ import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.controller.MapFormController;
-import uk.ltd.mediamagic.fx.controller.list.MaterialListItems;
+import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -157,8 +156,8 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 	}
 	
 	@Override
-	public Callback<ListView<LOSGoodsReceipt>, ListCell<LOSGoodsReceipt>> createListCellFactory() {
-		return MaterialListItems.withDate(GoodsReceiptsPlugin::getIcon, 
+	public Supplier<CellRenderer<LOSGoodsReceipt>> createCellFactory() {
+		return MaterialCells.withDate(GoodsReceiptsPlugin::getIcon, 
 				s -> DateUtils.toLocalDate(s.getReceiptDate()), 
 				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getReferenceNo(), s.getDeliveryNoteNumber()),
 				s -> String.format("%s, %s", s.getLicencePlate(), s.getDriverName()),

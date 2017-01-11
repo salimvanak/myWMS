@@ -52,6 +52,7 @@ import javafx.scene.layout.Priority;
 import javafx.util.converter.LocalDateStringConverter;
 import res.R;
 import uk.ltd.mediamagic.annot.Worker;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
@@ -61,10 +62,12 @@ import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.control.TableKeySelectable;
 import uk.ltd.mediamagic.fx.controller.ControllerCommandBase;
 import uk.ltd.mediamagic.fx.controller.SelectionComposite;
+import uk.ltd.mediamagic.fx.controller.list.CellWrappers;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
-import uk.ltd.mediamagic.fx.flow.Flow;
+import uk.ltd.mediamagic.fx.flow.FlowBase;
+import uk.ltd.mediamagic.fx.flow.actions.Command;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.common.LOSResultListProperty;
 import uk.ltd.mediamagic.mywms.common.ResultSetPager;
@@ -77,9 +80,9 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 	private final LOSResultListProperty<BODTO<LOSCustomerOrder>> data = new LOSResultListProperty<>();
 	private final SelectionComposite<BODTO<LOSCustomerOrder>> selection = new SelectionComposite<>();
 	
-	private final ListView<BODTO<LOSCustomerOrder>> processable = new ListView<>();
-	private final ListView<BODTO<LOSCustomerOrder>> picking = new ListView<>();
-	private final ListView<BODTO<LOSCustomerOrder>> picked = new ListView<>();
+	private final @Command ListView<BODTO<LOSCustomerOrder>> processable = new ListView<>();
+	private final @Command ListView<BODTO<LOSCustomerOrder>> picking = new ListView<>();
+	private final @Command ListView<BODTO<LOSCustomerOrder>> picked = new ListView<>();
 	private final DetailsPane detail = new DetailsPane();
 	
 	private final BorderPane view = new BorderPane();
@@ -93,7 +96,8 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		view.setBottom(detail);
 		
 		getCommands()
-			.add(AC.id(Flow.REFRESH_ACTION).icon(R.icons.refresh())
+			.back()
+			.add(AC.id(FlowBase.REFRESH_ACTION).icon(R.icons.refresh())
 					.description("Refresh data")
 					.action(s -> loadData()))
 			.add(AC.node(pager))
@@ -108,9 +112,9 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		@SuppressWarnings("unchecked")
 		Editor<LOSCustomerOrder> editor = PluginRegistry.getPlugin(LOSCustomerOrder.class, Editor.class);
 		
-		processable.setCellFactory(editor.createTOListCellFactory());
-		picking.setCellFactory(editor.createTOListCellFactory());
-		picked.setCellFactory(editor.createTOListCellFactory());
+		processable.setCellFactory(CellWrappers.forList(editor.createTOCellFactory()));
+		picking.setCellFactory(CellWrappers.forList(editor.createTOCellFactory()));
+		picked.setCellFactory(CellWrappers.forList(editor.createTOCellFactory()));
 		
 		Predicate<BODTO<LOSCustomerOrder>> processablePred = OrderStatusPane::isProcessable;
 		Predicate<BODTO<LOSCustomerOrder>> pickedPred = OrderStatusPane::isPicked;
@@ -122,7 +126,10 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		selection.add(processable);
 		selection.add(picked);
 		selection.add(picking);				
-		
+	
+		FlowBase.setCommand(processable, FlowBase.TABLE_SELECT_ACTION);
+		FlowBase.setCommand(picked, FlowBase.TABLE_SELECT_ACTION);
+		FlowBase.setCommand(picking, FlowBase.TABLE_SELECT_ACTION);
 	}
 	
 	@PostConstruct
@@ -240,41 +247,48 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 			goodsOutView.setItems(goodsOut);
 			
 			unitLoadsView.setCellFactory(
-					PluginRegistry.getPlugin(LOSPickingUnitLoad.class, Editor.class).createTOListCellFactory());
+					CellWrappers.forList(PluginRegistry.getPlugin(LOSPickingUnitLoad.class, Editor.class).createTOCellFactory()));
 			picksView.setCellFactory(
-					PluginRegistry.getPlugin(LOSPickingOrder.class, Editor.class).createTOListCellFactory());
+					CellWrappers.forList(PluginRegistry.getPlugin(LOSPickingOrder.class, Editor.class).createTOCellFactory()));
 			goodsOutView.setCellFactory(
-					PluginRegistry.getPlugin(LOSGoodsOutRequestPosition.class, Editor.class).createTOListCellFactory());
+					CellWrappers.forList(PluginRegistry.getPlugin(LOSGoodsOutRequestPosition.class, Editor.class).createTOCellFactory()));
+			
+			TitledPane picksTP = new TitledPane("Picks", picksView);
+			TitledPane unitloadsTP = new TitledPane("Unit loads", unitLoadsView);
+			TitledPane goodsOutTP = new TitledPane("Goods out positions", goodsOutView);
+
+			Bindings.bindBidirectional(picksTP.expandedProperty(), unitloadsTP.expandedProperty());
+			Bindings.bindBidirectional(picksTP.expandedProperty(), goodsOutTP.expandedProperty());
 			
 			SimpleFormBuilder form = new SimpleFormBuilder();
-			form.doubleRow()
+			form.row()
 			.label("Number")
 			.field(MBindings.get(order, LOSCustomerOrder::getNumber))
-			.label("External Number")
-			.field(MBindings.get(order, LOSCustomerOrder::getExternalNumber))
-			.label("Progress")
-			.fieldNode(progress)
-		.end();
-			form.doubleRow()
-			.label("Delivery")
-			.boundField(new LocalDateStringConverter(), MBindings.get(order, o -> DateUtils.toLocalDate(o.getDelivery())))
-			.label("Destination")
-			.field(Bindings.selectString(order, "destination", "name"))
+			.label("Pick Time")
+			.field(Bindings.createStringBinding(this::pickTimeFormat, pickTime, timeToGo))
 			.label("Last Pick")
 			.field(MBindings.get(lastPick, LOSPickingPosition::getPickFromLocationName))
 		.end();
-			form.doubleRow()
-			.label("Pick Time")
-			.field(Bindings.createStringBinding(this::pickTimeFormat, pickTime, timeToGo))
+			form.row()
+			.label("External Number")
+			.field(MBindings.get(order, LOSCustomerOrder::getExternalNumber))
 			.label("Mins/Pick")
 			.field(Bindings.createStringBinding(this::pickRateFormat, minsPerPick))
-			.label("Time to go")
-			.boundField(ToStringConverter.of(Duration::toString), timeToGo)
+			.label("Destination")
+			.field(Bindings.selectString(order, "destination", "name"))
+		.end();
+			form.row()
+			.label("Progress")
+			.fieldNode(progress)
+			.label("To pick")
+			.field(Bindings.createStringBinding(this::pickQtyFormat, pickedCount))
+			.label("Delivery")
+			.boundField(new LocalDateStringConverter(), MBindings.get(order, o -> DateUtils.toLocalDate(o.getDelivery())))
 		.end();
 		form.row()
-		.fieldNode(new TitledPane("Picks", picksView))
-		.fieldNode(new TitledPane("Unit loads", unitLoadsView))
-		.fieldNode(new TitledPane("Goods out positions", goodsOutView))
+		.fieldNode(picksTP).colSpan(2)
+		.fieldNode(unitloadsTP).colSpan(2)
+		.fieldNode(goodsOutTP).colSpan(2)
 		.end();
 			
 			setCenter(form);
@@ -303,6 +317,12 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 			if (pt == null) pt = Duration.ZERO;
 			return String.format("%02d:%02d", 
 					pt.toMinutes(), pt.minusMinutes(pt.toMinutes()).getSeconds()
+					);
+		}
+
+		public String pickQtyFormat() {
+			return Strings.format("{0} of {1}", 
+					pickedCount.get(), pickItems.size()
 					);
 		}
 		

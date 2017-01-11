@@ -52,17 +52,13 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	@Override
 	public TableKey getSelectedKey() {
 		BODTO<D> sel = getSelectedItem();
-		TableKey key = new TableKey();
-		key.put("id", sel.getId());
-		key.put("name", sel.getName());
-		return key;
+		return CRUDKeyUtils.createKey(sel);
 	}
 	
 	@Override
 	public Collection<TableKey> getSelectedKeys() {
 		return getSelectedItems().stream()
-				.map(BODTO::getId)
-				.map(id -> new TableKey("id", id))
+				.map(CRUDKeyUtils::createKey)
 				.collect(Collectors.toList());
 	}
 		

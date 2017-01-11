@@ -1,0 +1,58 @@
+package uk.ltd.mediamagic.mywms.goodsout
+
+import javafx.scene.layout.GridPane
+import javafx.scene.control.ComboBox
+import javafx.scene.control.Label
+import javafx.scene.control.ListView
+import javafx.scene.control.TextField
+import uk.ltd.mediamagic.flow.crud.BasicEntityEditor
+import javafx.scene.control.Button
+
+component TreadOrder {
+	GridPane id root {
+		styleClass : "form",
+		
+		Label { text : "Order number", static columnIndex : 0, static rowIndex : 0	},
+		TextField id field_number { promptText : "Order-000000", static columnIndex : 0, static rowIndex : 1	},
+		Label { text : "External number", static columnIndex : 0, static rowIndex : 2	},
+		TextField id field_externalNumber { promptText : "00000000", static columnIndex : 0, static rowIndex : 3	},
+		Label { text : "Target Location", static columnIndex : 1, static rowIndex : 0	},
+		BasicEntityEditor<?> id field_destination { static columnIndex : 1, static rowIndex : 1	},
+		Label { text : "Strategy", static columnIndex : 3, static rowIndex : 0	},
+		BasicEntityEditor<?> id field_strategy { static columnIndex : 3, static rowIndex : 1	},
+		Label { text : "Client", static columnIndex : 4, static rowIndex : 0	},
+		BasicEntityEditor<?> id field_client { static columnIndex : 4, static rowIndex : 1 },
+		
+		Label { text : "Order positions" , static columnIndex : 0, static rowIndex : 4},
+		ListView<?> id orderPositions { static columnIndex : 0, static rowIndex : 5, static columnSpan : 3, static rowSpan : 2},
+
+		Label { text : "Item data", static columnIndex : 0, static rowIndex : 7	},
+		BasicEntityEditor<?> id itemData { static columnIndex : 1, static rowIndex : 7 },
+		Label { text : "Lot", static columnIndex : 2, static rowIndex : 7	},
+		BasicEntityEditor<?> id lot { static columnIndex : 3, static rowIndex : 7},
+	
+		Label { text : "Picking order" , static columnIndex : 3, static rowIndex : 4},
+		ComboBox<?> id pickingOrders { static columnIndex : 3, static rowIndex : 5	},
+		Button id createNewPick { text : "New Pick", maxWidth : 1000, static columnIndex : 4, static rowIndex : 5 },
+		ListView<?> id pickingPositionsForPick { static columnIndex : 3, static rowIndex : 6, static columnSpan : 2 },
+
+		Label { text : "Available Stocks" , static columnIndex : 0, static rowIndex : 8, static columnSpan : 2},
+		ListView<?> id stockUnits { static columnIndex : 0, static rowIndex : 9, static columnSpan : 2, static rowSpan : 3},
+
+		Button id loadStocks { 
+			text : "Load stocks", maxWidth : 1000, 
+			static columnIndex : 2, static rowIndex : 9
+		},	
+		Button id assignPicks { 
+			text : "Assign", maxWidth : 1000, 
+			static columnIndex : 2, static rowIndex : 10
+		},	
+		Button id removePicks { 
+			text : "Remove", maxWidth : 1000, 
+			static columnIndex : 2, static rowIndex : 11
+		},	
+
+		Label { text : "Selected positions" , static columnIndex : 3, static rowIndex : 8, static columnSpan : 2},
+		ListView<?> id pickingPositionsForOrderPos { static columnIndex : 3, static rowIndex : 9, static columnSpan : 2, static rowSpan : 3}
+	}
+}

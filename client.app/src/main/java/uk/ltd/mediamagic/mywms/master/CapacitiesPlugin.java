@@ -1,11 +1,17 @@
 package uk.ltd.mediamagic.mywms.master;
 
+import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.List;
 
-import de.linogistix.los.location.model.LOSStorageLocationType;
+import javax.persistence.Column;
+
+import de.linogistix.los.location.model.LOSTypeCapacityConstraint;
+import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
+import uk.ltd.mediamagic.fx.converters.PercentConverter;
+import uk.ltd.mediamagic.mywms.common.BeanUtils;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
 @SubForm(
@@ -16,11 +22,23 @@ import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 		title="Measurment", columns=2, 
 		properties={"height", "width", "depth", "weight"}
 	)
-public class CapacitiesPlugin extends BODTOPlugin<LOSStorageLocationType> {
+public class CapacitiesPlugin extends BODTOPlugin<LOSTypeCapacityConstraint> {
 	
 	public CapacitiesPlugin() {
-		super(LOSStorageLocationType.class);
+		super(LOSTypeCapacityConstraint.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+	}
+
+	@Override
+	protected StringConverter<?> getConverter(PropertyDescriptor property) {
+		if ("allocation".equals(property.getName())) {
+			Column annot = BeanUtils.getAnnotation(property, Column.class);
+			if (annot == null) return PercentConverter.forScaledPercent();
+			else return PercentConverter.forScaledPercent(annot.precision(), annot.scale());
+		}
+		else {
+			return super.getConverter(property);			
+		}
 	}
 
 	@Override
