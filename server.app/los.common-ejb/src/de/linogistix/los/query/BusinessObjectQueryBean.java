@@ -120,7 +120,6 @@ public abstract class BusinessObjectQueryBean<T extends BasicEntity> implements
 			if (entity == null) {
 				throw new BusinessObjectNotFoundException(ID, tClass);
 			}
-
 			if (!getCallersUser().getClient().isSystemClient()) {
 				if (entity instanceof BasicClientAssignedEntity) {
 					Client entityClient = ((BasicClientAssignedEntity) entity).getClient();

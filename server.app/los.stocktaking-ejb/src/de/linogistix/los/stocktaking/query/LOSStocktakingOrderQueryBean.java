@@ -16,8 +16,16 @@ import java.util.List;
 
 import javax.ejb.Stateless;
 
+import org.apache.log4j.Logger;
+import org.mywms.model.BasicClientAssignedEntity;
+import org.mywms.model.BasicEntity;
+import org.mywms.model.Client;
+
 import de.linogistix.los.query.BusinessObjectQueryBean;
+import de.linogistix.los.query.BusinessObjectQueryRemote;
 import de.linogistix.los.query.TemplateQueryWhereToken;
+import de.linogistix.los.query.exception.BusinessObjectNotFoundException;
+import de.linogistix.los.runtime.BusinessObjectSecurityException;
 import de.linogistix.los.stocktaking.model.LOSStocktakingOrder;
 import de.linogistix.los.stocktaking.model.LOSStocktakingState;
 import de.linogistix.los.stocktaking.query.dto.StockTakingOrderTO;
@@ -29,6 +37,8 @@ import de.linogistix.los.stocktaking.query.dto.StockTakingOrderTO;
 @Stateless
 public class LOSStocktakingOrderQueryBean extends BusinessObjectQueryBean<LOSStocktakingOrder> implements LOSStocktakingOrderQueryRemote{
     
+	private static final Logger log = Logger.getLogger(BusinessObjectQueryRemote.class.getName());
+
 	private static final String[] dtoProps = new String[]{
 		"id",
 		"version",
@@ -52,6 +62,37 @@ public class LOSStocktakingOrderQueryBean extends BusinessObjectQueryBean<LOSSto
 	@Override
 	public Class<StockTakingOrderTO> getBODTOClass() {
 		return StockTakingOrderTO.class;
+	}
+	
+	public LOSStocktakingOrder queryById(Long ID) throws BusinessObjectNotFoundException,
+			BusinessObjectSecurityException {
+
+		BasicEntity entity;
+
+		try {
+			entity = (BasicEntity) manager.find(tClass, ID);
+
+			if (entity == null) {
+				throw new BusinessObjectNotFoundException(ID, tClass);
+			}
+//  TODO the current user should not be null but this seems to be a regression.			
+//			if (!getCallersUser().getClient().isSystemClient()) {
+			if (getCallersUser() != null && !getCallersUser().getClient().isSystemClient()) {
+				if (entity instanceof BasicClientAssignedEntity) {
+					Client entityClient = ((BasicClientAssignedEntity) entity).getClient();
+					if ( (!entityClient.isSystemClient()) && (!entityClient.equals(getCallersUser().getClient())) ) { 
+						throw new BusinessObjectSecurityException(getCallersUser());
+					}
+				}
+			}
+			return (LOSStocktakingOrder) eagerRead(entity);
+
+		} catch (Throwable t) {
+			log.error(t.getMessage(), t);
+			log.warn("Entity not found with id " + ID + " of class " + tClass);
+			throw new BusinessObjectNotFoundException(ID, tClass);
+		}
+
 	}
 	
 	@Override

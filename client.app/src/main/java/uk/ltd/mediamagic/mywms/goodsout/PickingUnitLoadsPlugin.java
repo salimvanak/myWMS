@@ -159,7 +159,7 @@ public class PickingUnitLoadsPlugin  extends BODTOPlugin<LOSPickingUnitLoad> {
 	public List<String> getTableColumns() {
 		return Arrays.asList("id", 
 				"name AS unitload.labelId",	"clientNumber AS client.number", 
-				"customerOrderNumber", "customerOrderNumber", "pickingOrderNumber AS pickingOrder.number", 
+				"customerOrderNumber", "pickingOrderNumber AS pickingOrder.number", 
 				"locationName AS unitLoad.storageLocation", "state");
 	}
 	

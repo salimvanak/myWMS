@@ -24,12 +24,6 @@ public class GoodsOutPrintPickingUnitLoad implements WithMultiSelection<Object> 
 	
 	@Override
 	public void execute(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
-		boolean ok = MDialogs.create(context.getRootNode(), "Finish Picking Unit Load")
-				.masthead("Finish the picking unit load.\n")
-			.showOkCancel();
-		
-		if (!ok) return; // user canceled
-
 		LOSOrderFacade facade = context.getBean(LOSOrderFacade.class);
 		LOSPickingUnitLoadQueryRemote query = context.getBean(LOSPickingUnitLoadQueryRemote.class);
 		List<Long> ids = key.stream().map(k -> (Long) k.get("id")).collect(Collectors.toList());
