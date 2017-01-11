@@ -7,7 +7,6 @@
 package org.mywms.ejb;
 
 import java.io.Externalizable;
-
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;

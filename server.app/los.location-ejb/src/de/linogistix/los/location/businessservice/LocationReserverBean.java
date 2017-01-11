@@ -225,6 +225,9 @@ public class LocationReserverBean implements LocationReserver {
 	public void recalculateAllocation(LOSStorageLocation location, LOSUnitLoad... knownAsRemoved) throws FacadeException {
 		String logStr = "recalculateAllocation ";
 
+		// added a zero so that it recalculates the correct allocation amount.
+		location.setAllocation(BigDecimal.ZERO);
+		
 		for( LOSUnitLoad unitLoad : location.getUnitLoads() ) {
 			boolean ignore = false;
 			
@@ -238,19 +241,25 @@ public class LocationReserverBean implements LocationReserver {
 				if( ignore ) {
 					continue;
 				}
+				
 			}
 			
 			LOSTypeCapacityConstraint tcc = capacityService.getByTypes(location.getType(), unitLoad.getType());
 			if( tcc == null ) {
 				log.warn(logStr+"No capacity constraint, no recalculate. location="+location.getName()+", type="+location.getType().getName()+", unitLoadType="+unitLoad.getType().getName());
 				continue;
-			}
+			}			
 			
 			if( location.getCurrentTypeCapacityConstraint() == null ) {
 				location.setCurrentTypeCapacityConstraint(tcc);
 			}
 			
 			location.setAllocation( location.getAllocation().add(tcc.getAllocation()));
+		}
+		
+		// if the allocation is zero clear the capacity constraint.
+		if (location.getAllocation().compareTo(BigDecimal.ZERO) == 0) {
+			location.setCurrentTypeCapacityConstraint(null);
 		}
 	}
 

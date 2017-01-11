@@ -15,6 +15,7 @@ import org.mywms.model.Client;
 
 import de.linogistix.los.inventory.model.LOSPickingOrder;
 import de.linogistix.los.query.BusinessObjectQueryRemote;
+import de.linogistix.los.query.exception.BusinessObjectQueryException;
 
 /**
  * @author krane
@@ -24,5 +25,11 @@ import de.linogistix.los.query.BusinessObjectQueryRemote;
 public interface LOSPickingOrderQueryRemote extends BusinessObjectQueryRemote<LOSPickingOrder> {
 
 	public List<LOSPickingOrder> queryAll( Client client );
-
+	
+	/**
+	 * Returns a list of picking orders associated with the given customerOrderNumber
+	 * @param customerOrderNumber the customer order number
+	 * @return a list of LOSPickingOrders
+	 */
+	public List<LOSPickingOrder> getByCustomerOrder(String customerOrderNumber) throws BusinessObjectQueryException;
 }

@@ -18,6 +18,7 @@ import org.mywms.model.Client;
 
 import de.linogistix.los.inventory.model.LOSPickingPosition;
 import de.linogistix.los.inventory.query.dto.LOSPickingPositionTO;
+import de.linogistix.los.inventory.service.LOSPickingPositionService;
 import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTOConstructorProperty;
 import de.linogistix.los.query.BusinessObjectQueryBean;
@@ -33,7 +34,8 @@ public class LOSPickingPositionQueryBean extends BusinessObjectQueryBean<LOSPick
 
 	@EJB
 	private ContextService ctxService;
-
+	@EJB
+	private LOSPickingPositionService pickingPositionService;
 	
 	
 	@Override
@@ -70,8 +72,22 @@ public class LOSPickingPositionQueryBean extends BusinessObjectQueryBean<LOSPick
 		
 		return propList;
 	}
-
-
+	
+	@SuppressWarnings("unchecked")
+	public List<LOSPickingPosition> getByCustomerOrder(String customerOrderNumber) {
+		StringBuffer b = new StringBuffer();
+		b.append(" SELECT pos FROM ");
+		b.append(LOSPickingPosition.class.getName()).append(" pos ");
+		b.append(" JOIN  FETCH pos.customerOrderPosition ");
+		b.append(" WHERE pos.customerOrderPosition.order.number=:orderNumber");
+		b.append(" ORDER BY pos.customerOrderPosition.index, pos.id ");
+		
+		Query query = manager.createQuery(new String(b));
+		query.setParameter("orderNumber", customerOrderNumber);
+		
+		return query.getResultList();
+//		return pickingPositionService.getByCustomerOrderNumber(customerOrderNumber);
+	}
 
 	@SuppressWarnings("unchecked")
 	public List<LOSPickingPosition> queryAll( Client client ) {

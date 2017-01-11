@@ -91,7 +91,7 @@ public class LOSCompatibilityFacadeBean implements LOSCompatibilityFacade {
 			}
 			
 			StockUnit su = manager.find(StockUnit.class, posTO.stock.getId());
-log.debug(logStr+" amountReserved="+su.getReservedAmount());
+			log.debug(logStr+" amountReserved="+su.getReservedAmount());
 			BigDecimal amount = posTO.amountToPick;
 			
 			if (su.getAvailableAmount().compareTo(BigDecimal.ZERO) < 0){

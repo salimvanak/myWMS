@@ -193,7 +193,6 @@ public class LOSPickingPosition extends BasicClientAssignedEntity{
 		return itemData == null ? null : itemData.getHandlingUnit().getUnitName();
 	}
 
-	@SuppressWarnings("unused")
 	@PrePersist
 	@PreUpdate
 	// For hibernate only. By annotation it is called before saving

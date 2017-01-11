@@ -41,6 +41,7 @@ public class LOSUnitLoadRecordTO extends BODTO<LOSUnitLoadRecord> {
 		this.toLocation = toLocation;
 		this.recordDate = recordDate;
 		this.type = type.name();
+		this.activityCode = activityCode;
 	}
 	
 	public LOSUnitLoadRecordTO(Long id, int version, String label, String fromLocation, String toLocation, Date recordDate, String activityCode, LOSUnitLoadRecordType type, String unitLoadType){
@@ -50,6 +51,7 @@ public class LOSUnitLoadRecordTO extends BODTO<LOSUnitLoadRecord> {
 		this.recordDate = recordDate;
 		this.type = type.name();
 		this.unitLoadType = unitLoadType;
+		this.activityCode = activityCode;
 	}
 
 	public String getLabel() {

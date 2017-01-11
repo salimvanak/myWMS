@@ -13,6 +13,9 @@ import javax.ejb.Remote;
 
 import org.mywms.facade.FacadeException;
 
+import de.linogistix.los.inventory.model.LOSPickingOrder;
+import de.linogistix.los.inventory.pick.facade.CreatePickRequestPositionTO;
+
 /**
  * General methods to handle picking order and positions.
  * Used by the rich-client.
@@ -66,8 +69,8 @@ public interface LOSPickingFacade {
 	
 	/**
 	 * Finishes a picking order in the current state.<br>
-	 * Not finished unit loads of the picking order are moved to the clearing location.<br> 
-	 * All not picked positions are moved back to the pool. 
+	 * unfinished unit loads from the picking order are moved to the clearing location.<br> 
+	 * All positions that have not been picked are moved back to the pool. 
 	 * 
 	 * @param orderId
 	 * @throws FacadeException
@@ -102,4 +105,31 @@ public interface LOSPickingFacade {
 	public void finishPickingUnitLoad( String label, String location ) throws FacadeException;
 
 	public void confirmOrder( long orderId ) throws FacadeException;
+
+	/**
+	 * Creates a new picking order with the state to RAW and the Client, strategy and orderNumber set from this 
+	 * Customer order.
+	 * @param orderNumber the customerOrder to attach this pick to.
+	 * @param sequenceNumber the sequence prefix to use, null implies the default sequence prefix is used.
+	 * @param isManual true if this picking order will be manually created, false otherwise
+	 * @throws FacadeException if an error occurs, mainly if the customer order does not exist
+	 */
+	LOSPickingOrder createNewPickingOrder(String orderNumber, String sequenceName, boolean isManual) throws FacadeException;
+
+	/**
+	 * Adds the picks to the picking order.  The order must be in the RAW state for picks to be added.
+	 * The picks are added to the end of the picking order.
+	 * @param picks the picks to be added
+	 * @throws FacadeException if an error occurs.
+	 */
+	public void createPickRequests(List<CreatePickRequestPositionTO> picks) throws FacadeException;
+	
+	/**
+	 * remove the picking positions with the matching ids.
+	 * Picks cannot be remove if the picking order has been released or if the picking position has already been picked.
+	 * @param pickPositionNumber ids of the positions to remove.
+	 * @throws FacadeException if there is an error.
+	 */
+	public void removePicks(List<Long> pickPositionNumber) throws FacadeException;
+
 }	

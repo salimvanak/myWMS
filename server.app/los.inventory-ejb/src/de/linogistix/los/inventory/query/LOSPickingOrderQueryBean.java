@@ -8,6 +8,7 @@
 package de.linogistix.los.inventory.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ejb.EJB;
@@ -18,10 +19,15 @@ import org.mywms.model.Client;
 
 import de.linogistix.los.inventory.model.LOSPickingOrder;
 import de.linogistix.los.inventory.query.dto.LOSPickingOrderTO;
+import de.linogistix.los.inventory.service.LOSCustomerOrderService;
 import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTOConstructorProperty;
 import de.linogistix.los.query.BusinessObjectQueryBean;
+import de.linogistix.los.query.QueryDetail;
+import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryWhereToken;
+import de.linogistix.los.query.exception.BusinessObjectNotFoundException;
+import de.linogistix.los.query.exception.BusinessObjectQueryException;
 import de.linogistix.los.util.businessservice.ContextService;
 
 /**
@@ -34,6 +40,8 @@ public class LOSPickingOrderQueryBean extends BusinessObjectQueryBean<LOSPicking
 	@EJB
 	private ContextService ctxService;
 
+	@EJB private LOSCustomerOrderService orderService;
+	
 	@Override
 	public String getUniqueNameProp() {
 		return "number";
@@ -67,7 +75,22 @@ public class LOSPickingOrderQueryBean extends BusinessObjectQueryBean<LOSPicking
 		return propList;
 	}
 	
-	
+	public List<LOSPickingOrder> getByCustomerOrder(String customerOrderNumber) throws BusinessObjectQueryException {
+		if (customerOrderNumber == null) return Collections.emptyList();
+		try {
+			TemplateQuery query = new TemplateQuery();
+			query.setBoClass(LOSPickingOrder.class);
+			query.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "customerOrderNumber", customerOrderNumber));
+			return queryByTemplate(new QueryDetail(0, 1000), query);
+		} catch (BusinessObjectNotFoundException e) {
+			return Collections.emptyList();
+		}
+//		Query query = manager.createNamedQuery("LOSPickingOrder.queryByCustomerOrder");
+//		query.setParameter("customerOrder", order);
+//		List<LOSPickingOrder> res = query.getResultList();
+//		return res;
+	}
+
 	@SuppressWarnings("unchecked")
 	public List<LOSPickingOrder> queryAll( Client client ) {
 		

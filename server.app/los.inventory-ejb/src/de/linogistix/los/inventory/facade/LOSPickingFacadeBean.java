@@ -7,8 +7,13 @@
  */
 package de.linogistix.los.inventory.facade;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -18,6 +23,7 @@ import javax.persistence.PersistenceContext;
 import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.model.Client;
+import org.mywms.model.StockUnit;
 import org.mywms.model.UnitLoadType;
 import org.mywms.model.User;
 import org.mywms.service.EntityNotFoundException;
@@ -31,11 +37,16 @@ import de.linogistix.los.inventory.customization.ManageOrderService;
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.model.LOSCustomerOrder;
+import de.linogistix.los.inventory.model.LOSCustomerOrderPosition;
 import de.linogistix.los.inventory.model.LOSOrderStrategy;
 import de.linogistix.los.inventory.model.LOSPickingOrder;
 import de.linogistix.los.inventory.model.LOSPickingPosition;
 import de.linogistix.los.inventory.model.LOSPickingUnitLoad;
+import de.linogistix.los.inventory.pick.facade.CreatePickRequestPositionTO;
 import de.linogistix.los.inventory.service.InventoryGeneratorService;
+import de.linogistix.los.inventory.service.LOSCustomerOrderService;
+import de.linogistix.los.inventory.service.LOSPickingOrderService;
+import de.linogistix.los.inventory.service.LOSPickingPositionService;
 import de.linogistix.los.inventory.service.LOSPickingUnitLoadService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
 import de.linogistix.los.location.entityservice.LOSUnitLoadService;
@@ -65,7 +76,13 @@ public class LOSPickingFacadeBean implements LOSPickingFacade {
 	@EJB
 	private ManageOrderService manageOrderService;
 	@EJB
+	private LOSCustomerOrderService orderService;
+	@EJB
 	private UserService userService;
+	@EJB
+	private LOSPickingOrderService pickingOrderService;
+	@EJB
+	private LOSPickingPositionService pickingPositionService;
 	@EJB
 	private LOSStorageLocationService locationService;
 	@EJB
@@ -502,4 +519,90 @@ public class LOSPickingFacadeBean implements LOSPickingFacade {
 		orderBusiness.finishPickingOrder(order);
 
 	}
+
+	@Override
+	public LOSPickingOrder createNewPickingOrder(String orderNumber, String sequenceName, boolean isManual) throws FacadeException {
+		LOSCustomerOrder order = orderService.getByNumber(orderNumber);
+		if (order == null) throw new InventoryException(InventoryExceptionKey.NO_SUCH_ORDERPOSITION, orderNumber);
+		
+		LOSPickingOrder po = pickingOrderService.create(order.getClient(), order.getStrategy(), sequenceName);
+		po.setCustomerOrderNumber(order.getNumber());
+		po.setDestination(order.getDestination());
+		po.setManualCreation(true);
+		po.setPrio(order.getPrio());
+		po.setManualCreation(isManual);
+	
+		return po;
+	}
+
+	
+	@Override
+	public void createPickRequests(List<CreatePickRequestPositionTO> picks) throws FacadeException {
+		String logStr = "createPickRequests ";
+		log.debug(logStr);
+		
+		// group by picking order number
+		Map<String, List<CreatePickRequestPositionTO>> createMap = picks.stream().collect(Collectors.groupingBy(p -> p.pickRequestNumber));
+		Map<LOSPickingOrder, List<LOSPickingPosition>> pickingOrderMap = new HashMap<>();
+		
+		for (String pickRequestNumber : createMap.keySet()) {
+			// Check each picking order exists and is in the correct state.
+			LOSPickingOrder req = pickingOrderService.getByNumber(pickRequestNumber);
+			if ( req == null ) {
+				throw new InventoryException(InventoryExceptionKey.NO_PICKREQUEST, pickRequestNumber);
+			}
+			else if ( req.getState() > State.RAW ) {
+				throw new InventoryException(InventoryExceptionKey.WRONG_STATE, ""+req.getState());
+			}
+			
+			List<LOSPickingPosition> pickList = new ArrayList<>();
+			for (CreatePickRequestPositionTO posTO : createMap.get(pickRequestNumber)) {
+				LOSCustomerOrderPosition orderPos = manager.find(LOSCustomerOrderPosition.class, posTO.orderPosition.getId());
+				LOSCustomerOrder order = orderPos.getOrder();
+			
+				StockUnit su = manager.find(StockUnit.class, posTO.stock.getId());
+				log.debug(logStr+" amountReserved="+su.getReservedAmount());
+				BigDecimal amount = posTO.amountToPick;
+				
+				if (su.getAvailableAmount().compareTo(BigDecimal.ZERO) < 0){
+					log.error("--- !!! Stock : amount = "+su.getAmount()+" Reserved = "+su.getReservedAmount());
+					throw new InventoryException(InventoryExceptionKey.UNSUFFICIENT_AMOUNT, 
+							new String[]{""+su.getAvailableAmount(), su.toUniqueString()});
+				}
+				
+				LOSPickingPosition pick = pickingPosGenerator.generatePick(amount, su, order.getStrategy(), orderPos);
+				
+				pickList.add(pick);
+			}
+			if (!pickList.isEmpty()) pickingOrderMap.put(req, pickList);
+		}
+				
+		if( !pickingOrderMap.isEmpty() ) {
+			for( Entry<LOSPickingOrder, List<LOSPickingPosition>> entry : pickingOrderMap.entrySet() ) {
+				List<LOSPickingPosition> pickList = entry.getValue();
+				LOSPickingOrder pickingOrder = entry.getKey();					
+				if( !pickList.isEmpty() ) pickingOrderGenerator.addToOrder(pickingOrder, pickList);
+			}			
+		}
+	}
+	
+	public void removePicks(List<Long> pickPositionNumber) throws FacadeException {
+		for (long id : pickPositionNumber) {
+			LOSPickingPosition pick = manager.find(LOSPickingPosition.class, id);
+			LOSPickingOrder pickingOrder = pick.getPickingOrder();
+			if( pickingOrder == null ) {
+				log.error("removePick Cannot cancel without order. Abort");
+				throw new InventoryException(InventoryExceptionKey.PICK_CONFIRM_MISSING_ORDER, "");
+			}
+			if (pickingOrder.getState() > State.RAW) {
+				throw new InventoryException(InventoryExceptionKey.WRONG_STATE, "" + pickingOrder.getState());
+			}
+			orderBusiness.cancelPick(pick);
+			if (pick.getState() != State.CANCELED) {				
+				throw new InventoryException(InventoryExceptionKey.WRONG_STATE, "" + pick.getPickingOrder().getState());
+			}
+			manager.remove(pick);
+		}
+	}
+
 }

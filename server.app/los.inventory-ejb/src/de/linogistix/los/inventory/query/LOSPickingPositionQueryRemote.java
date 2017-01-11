@@ -27,4 +27,18 @@ public interface LOSPickingPositionQueryRemote extends BusinessObjectQueryRemote
 
 	public List<LOSPickingPosition> queryAll( Client client );
 
+	/**
+	 * Returns a list of picking orders associated with the given customerOrderNumber
+	 * @param customerOrderNumber the customer order number
+	 * @return a list of LOSPickingOrders
+	 */
+	public List<LOSPickingPosition> getByCustomerOrder(String customerOrderNumber);
+
+	/**
+	 * Returns a list of picking orders associated with the given customerOrderNumberPositions
+	 * @param customerOrderNumber the unique identity of the customer order position.
+	 * @return a list of LOSPickingOrders
+	 */
+//	public List<LOSPickingPosition> getByCustomerOrderPos(String customerOrderNumberPos);
+
 }
