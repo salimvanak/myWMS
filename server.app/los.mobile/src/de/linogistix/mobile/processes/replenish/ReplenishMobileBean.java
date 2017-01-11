@@ -211,9 +211,11 @@ public class ReplenishMobileBean extends BasicDialogBean {
 				}
 			}
 			loadSelectedOrder();
+			log.info(logStr+"Found "+ orderSelectList.size() + " orders");
 		}
-		
-		log.info(logStr+"Found "+orderSelectList.size()+" orders");
+		else {
+			log.info(logStr+"Found zero orders");
+		}
 		return orderSelectList;
 	}
 
