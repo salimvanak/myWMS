@@ -77,6 +77,24 @@ public class ManageLocationFacadeBean implements ManageLocationFacade {
 		}
 	}
 
+	public void recalculateReservations(List<BODTO<LOSStorageLocation>> locations) 
+			throws FacadeException {
+
+		if (locations == null) {
+			return;
+		}
+
+		for (BODTO<LOSStorageLocation> storLoc : locations) {
+			LOSStorageLocation sl = manager.find(LOSStorageLocation.class, storLoc.getId());
+			if (sl == null) {
+				log.warn("Not found: " + storLoc.getName());
+			}
+			else {
+				locationReserver.recalculateAllocation(sl);
+			}
+		}
+	}
+
 	public void sendUnitLoadToNirwana(String labelId) throws FacadeException {
 
 		LOSUnitLoad u = uLoadQueryRemote.queryByIdentity(labelId);

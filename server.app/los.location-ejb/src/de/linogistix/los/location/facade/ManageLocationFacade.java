@@ -53,13 +53,21 @@ public interface ManageLocationFacade {
 	LOSTypeCapacityConstraint checkUnitLoadSuitable(BODTO<LOSStorageLocation> dest, BODTO<LOSUnitLoad> ul, boolean ignoreLock) throws FacadeException;
 	
 	/**
-	 * Relases any reservation on the given LOSStorageLocation.
+	 * Releases any reservation on the given LOSStorageLocation.
 	 * 
-	 * @param locations
-	 * @throws LOSLocationException
+	 * @param locations a list of locations.
+	 * @throws LOSLocationException if an error is detected.
 	 */
 	void releaseReservations(List<BODTO<LOSStorageLocation>> locations) throws FacadeException;
 	
+	
+	/**
+	 * Recalculates the reservations on the given LOSStorageLocations.
+	 * @param locations a list of locations
+	 * @throws FacadeException if an error is dectected.
+	 */
+	void recalculateReservations(List<BODTO<LOSStorageLocation>> locations) throws FacadeException;
+
 	/**
 	 * Removes unit load with given label id. Removing means the unit load is
 	 * stored an a special storage location called nirwana and locked with 
