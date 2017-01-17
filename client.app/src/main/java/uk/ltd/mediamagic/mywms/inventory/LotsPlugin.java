@@ -73,7 +73,7 @@ public class LotsPlugin extends BODTOPlugin<Lot> {
 
 	@Override
 	public List<String> getTableColumns() {
-		return Arrays.asList("name", "itemData", "useNotBefore", "bestBeforeEnd", "lock");
+		return Arrays.asList("name", "itemData AS itemData.number", "useNotBefore", "bestBeforeEnd", "lock");
 	}
 	
 	@Override
