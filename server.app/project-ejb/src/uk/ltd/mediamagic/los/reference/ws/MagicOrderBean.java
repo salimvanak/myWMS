@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.security.PermitAll;
 import javax.ejb.EJB;
@@ -24,12 +25,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.apache.log4j.Logger;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.api.annotation.WebContext;
 import org.mywms.facade.BasicFacadeBean;
 import org.mywms.facade.FacadeException;
+import org.mywms.model.Client;
+import org.mywms.model.ItemData;
+import org.mywms.model.Lot;
 import org.mywms.model.User;
 import org.mywms.service.ClientService;
 import org.mywms.service.EntityNotFoundException;
@@ -47,6 +52,7 @@ import de.linogistix.los.inventory.model.LOSCustomerOrder;
 import de.linogistix.los.inventory.model.LOSCustomerOrderPosition;
 import de.linogistix.los.inventory.model.LOSGoodsOutRequest;
 import de.linogistix.los.inventory.model.LOSPickingOrder;
+import de.linogistix.los.inventory.model.LOSPickingPosition;
 import de.linogistix.los.inventory.model.LOSPickingUnitLoad;
 import de.linogistix.los.inventory.service.LOSCustomerOrderService;
 import de.linogistix.los.inventory.service.LOSGoodsOutRequestService;
@@ -107,8 +113,37 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     protected EntityManager manager;
 
 
+  @WebMethod
+  @Deprecated
+  public String createAndStartOrder1 (
+          @WebParam(name = "clientRef") String clientRef,     
+          @WebParam(name = "orderRef") String orderRef,       
+          @WebParam(name = "positions") OrderPositionTO[] positions,  
+          @WebParam(name = "documentUrl") String documentUrl,
+          @WebParam(name = "labelUrl") String labelUrl,  
+          @WebParam(name = "destination") String destination) 
+  throws FacadeException {
+  	log.info("order");
+  	LOSCustomerOrder order = orderFacade.order(clientRef, orderRef, positions, documentUrl, labelUrl, destination, null, new Date(), LOSCustomerOrder.PRIO_DEFAULT, true, true, null);
+  	return (order != null) ? order.getNumber() : null;
+  }
 
-    
+  @Deprecated
+  @WebMethod
+  public String createOrder1 (
+          @WebParam(name = "clientRef") String clientRef,     
+          @WebParam(name = "orderRef") String orderRef,       
+          @WebParam(name = "positions") OrderPositionTO[] positions,  
+          @WebParam(name = "documentUrl") String documentUrl,
+          @WebParam(name = "labelUrl") String labelUrl,  
+          @WebParam(name = "destination") String destination) 
+  throws FacadeException {
+  	log.info("order");
+  	LOSCustomerOrder order = orderFacade.order(clientRef, orderRef, positions, documentUrl, labelUrl, destination, null, new Date(), LOSCustomerOrder.PRIO_DEFAULT, false, true, null);
+  	return (order != null) ? order.getNumber() : null;
+  }
+
+	
     /* (non-Javadoc)
      * @see de.linogistix.los.inventory.connector.OrderRemote#order(java.lang.String, java.lang.String, java.lang.String[], byte[], byte[])
      */
@@ -116,6 +151,8 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     public String createAndStartOrder (
             @WebParam(name = "clientRef") String clientRef,     
             @WebParam(name = "orderRef") String orderRef,       
+      			@WebParam(name = "customerNumber") String customerNumber,
+      			@WebParam(name = "customerName") String customerName,
             @WebParam(name = "positions") OrderPositionTO[] positions,  
             @WebParam(name = "documentUrl") String documentUrl,
             @WebParam(name = "labelUrl") String labelUrl,  
@@ -123,6 +160,8 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     throws FacadeException {
     	log.info("order");
     	LOSCustomerOrder order = orderFacade.order(clientRef, orderRef, positions, documentUrl, labelUrl, destination, null, new Date(), LOSCustomerOrder.PRIO_DEFAULT, true, true, null);
+    	order.setCustomerNumber(customerNumber);
+    	order.setCustomerName(customerName);
     	return (order != null) ? order.getNumber() : null;
     }
 
@@ -133,6 +172,8 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     public String createOrder (
             @WebParam(name = "clientRef") String clientRef,     
             @WebParam(name = "orderRef") String orderRef,       
+      			@WebParam(name = "customerNumber") String customerNumber,
+      			@WebParam(name = "customerName") String customerName,
             @WebParam(name = "positions") OrderPositionTO[] positions,  
             @WebParam(name = "documentUrl") String documentUrl,
             @WebParam(name = "labelUrl") String labelUrl,  
@@ -140,6 +181,8 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     throws FacadeException {
     	log.info("order");
     	LOSCustomerOrder order = orderFacade.order(clientRef, orderRef, positions, documentUrl, labelUrl, destination, null, new Date(), LOSCustomerOrder.PRIO_DEFAULT, false, true, null);
+    	order.setCustomerNumber(customerNumber);
+    	order.setCustomerName(customerName);
     	return (order != null) ? order.getNumber() : null;
     }
     
@@ -186,12 +229,13 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     private OrderInfo getOrderInfo(LOSCustomerOrder order, boolean full) throws FacadeException {
     	if (order == null) return null;;
     	int pickedCount = 0;
+    	
    		List<LOSCustomerOrderPosition> ps = order.getPositions();
    		for(LOSCustomerOrderPosition p : ps) {
    			if (p.getState() >= State.PICKED) {
    				pickedCount ++;
    			}
-    	}
+   		}
      	    	
     	OrderInfo oi = new OrderInfo(order.getNumber(), order.getPositions().size(), pickedCount);
     	oi.setPriority(order.getPrio());
@@ -230,9 +274,9 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     	
 		StringBuilder b = new StringBuilder();	
 		b.append("SELECT co FROM ");
-		b.append(LOSCustomerOrder.class.getSimpleName());
-		b.append(" co ");
-		b.append(" WHERE co.state < :statefinished " );
+		b.append(LOSCustomerOrder.class.getSimpleName()).append(" co ");
+		b.append(" JOIN co.positions");
+		b.append(" WHERE co.state < :statefinished ");
 	
 		Query query = manager.createQuery(b.toString());
 		query.setParameter("statefinished", State.FINISHED);
@@ -302,5 +346,39 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     @Override
     public List<String> getGoodsOutLocations() throws FacadeException {
     	return orderFacade.getGoodsOutLocations();
+    }
+    
+		public List<LotTraceTO> traceLot(String clientName, String itemNumber, String lotName) throws FacadeException, EntityNotFoundException {
+    	Client client;
+    	if (clientName == null || clientName.length() == 0) {
+    		client = getCallersClient();
+    	}
+    	else {
+    		client = clientService.getByName(clientName);
+    	}
+    	ItemData itemData = itemService.getByItemNumber(client, itemNumber);
+    	Lot lot = lotService.getByNameAndItemData(lotName, itemData);
+    	if (lot == null) throw new InventoryException(InventoryExceptionKey.NO_LOT_WITH_NAME, lotName);
+
+    	StringBuilder b = new StringBuilder();
+  		b.append("SELECT NEW ").append(LotTraceTO.class.getName()).append("(pp)")
+  			.append(" FROM ")
+  			.append(LOSPickingPosition.class.getSimpleName()).append(" pp")
+  			.append(" JOIN pp.customerOrderPosition")
+  			.append(" JOIN pp.customerOrderPosition.order")
+  			.append(" JOIN pp.pickingOrder")
+  			.append(" JOIN pp.lotPicked")
+  			.append(" JOIN pp.pickingOrder.operator")
+  			.append(" JOIN pp.pickToUnitLoad.unitLoad")
+  			.append(" WHERE pp.client = :client AND pp.lotPicked=:lot AND pp.itemData=:itemData");
+
+  		
+  		Objects.requireNonNull(manager);
+  		TypedQuery<LotTraceTO> q = manager.createQuery(new String(b), LotTraceTO.class);
+  		q.setParameter("client", client);
+  		q.setParameter("lot", lot);
+  		q.setParameter("itemData", itemData);
+  		
+ 			return (List<LotTraceTO>) q.getResultList();
     }
 }

@@ -16,6 +16,7 @@ import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
 import org.mywms.facade.FacadeException;
+import org.mywms.service.EntityNotFoundException;
 
 import de.linogistix.los.inventory.facade.OrderPositionTO;
 
@@ -40,9 +41,42 @@ public interface MagicOrder {
 	 * @return true if order has been created
 	 */
 	@WebMethod
+	@Deprecated
+	String createAndStartOrder1(
+			@WebParam( name="clientRef") String clientRef, 
+			@WebParam( name="orderRef") String orderRef,
+			@WebParam( name="positions") OrderPositionTO[] positions,
+			@WebParam( name="documentUrl") String documentUrl, 
+			@WebParam( name="labelUrl") String labelUrl,
+            @WebParam( name="destination") String destination) throws FacadeException;
+
+	@WebMethod
+	@Deprecated
+	String createOrder1(
+			@WebParam( name="clientRef") String clientRef, 
+			@WebParam( name="orderRef") String orderRef,
+			@WebParam( name="positions") OrderPositionTO[] positions,
+			@WebParam( name="documentUrl") String documentUrl, 
+			@WebParam( name="labelUrl") String labelUrl,
+            @WebParam( name="destination") String destination) throws FacadeException;
+
+	
+	/**
+	 * creates a new Order for retrieving items from stock.
+	 * 
+	 * @param clientRef a reference to the client
+	 * @param orderRef a reference to the order
+	 * @param articleRefs a list of article references
+	 * @param document an url to the document to be printed with the order
+	 * @param label an url to the label to be printed with the order
+	 * @return true if order has been created
+	 */
+	@WebMethod
 	String createAndStartOrder(
 			@WebParam( name="clientRef") String clientRef, 
 			@WebParam( name="orderRef") String orderRef,
+			@WebParam( name="customerNumber") String customerNumber,
+			@WebParam( name="customerName") String customerName,
 			@WebParam( name="positions") OrderPositionTO[] positions,
 			@WebParam( name="documentUrl") String documentUrl, 
 			@WebParam( name="labelUrl") String labelUrl,
@@ -52,6 +86,8 @@ public interface MagicOrder {
 	String createOrder(
 			@WebParam( name="clientRef") String clientRef, 
 			@WebParam( name="orderRef") String orderRef,
+			@WebParam( name="customerNumber") String customerNumber,
+			@WebParam( name="customerName") String customerName,
 			@WebParam( name="positions") OrderPositionTO[] positions,
 			@WebParam( name="documentUrl") String documentUrl, 
 			@WebParam( name="labelUrl") String labelUrl,
@@ -117,5 +153,18 @@ public interface MagicOrder {
      */
     @WebMethod
     public List<String> getGoodsOutLocations() throws FacadeException;    
+
+    /**
+     * Returns a list of LotTraceTO object that contain data about how picking order positions 
+     * for the given lot.
+     * @param clientName the client name
+     * @param itemNumber the item number
+     * @param lotName the lotName
+     * @return a list of LotTraceTO objects
+     * @throws FacadeException
+     * @throws EntityNotFoundException if the item number client or lot cannot be found.
+     */
+    @WebMethod
+		public List<LotTraceTO> traceLot(String clientName, String itemNumber, String lotName) throws FacadeException, EntityNotFoundException;
 
 }
