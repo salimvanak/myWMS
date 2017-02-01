@@ -160,7 +160,8 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 
 	public void reserveOrder(long orderId) throws FacadeException {
 		LOSPickingOrder order = getPickingOrder(orderId);
-		if( order != null && order.getState() < State.STARTED ) {
+		//if( order != null && order.getState() < State.STARTED ) {
+		if( order != null ) {
 			User user = contextService.getCallersUser();
 			pickingBusiness.reservePickingOrder(order, user, false);
 		}
