@@ -27,6 +27,7 @@ import org.mywms.model.ItemData;
 import org.mywms.model.Lot;
 import org.mywms.model.StockUnit;
 import org.mywms.service.ClientService;
+import org.mywms.service.EntityNotFoundException;
 import org.mywms.service.ItemDataService;
 
 import de.linogistix.los.common.exception.UnAuthorizedException;
@@ -52,6 +53,7 @@ import de.linogistix.los.inventory.model.OrderReceipt;
 import de.linogistix.los.inventory.pick.model.PickReceipt;
 import de.linogistix.los.inventory.report.LOSOrderReceiptReport;
 import de.linogistix.los.inventory.report.LOSUnitLoadReport;
+import de.linogistix.los.inventory.service.LOSCustomerOrderPositionService;
 import de.linogistix.los.inventory.service.LOSCustomerOrderService;
 import de.linogistix.los.inventory.service.LOSGoodsOutRequestPositionService;
 import de.linogistix.los.inventory.service.LOSGoodsOutRequestService;
@@ -92,6 +94,8 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 	private ClientService clientService;
 	@EJB
 	private LOSCustomerOrderService orderService;
+	@EJB
+	private LOSCustomerOrderPositionService orderPositionService;
 	@EJB
 	private LOSPickingPositionService pickingPositionService;
 	@EJB
@@ -242,8 +246,63 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 		
 		return order;
 	}
+	
+	private void addOrderPosition(LOSCustomerOrder order, OrderPositionTO[] positions) throws FacadeException {
+		String logStr = "addOrderPosition ";
+		log.debug(logStr);
+		Client client = order.getClient();
+		
+		for( OrderPositionTO posTO : positions ) {
+			ItemData item = itemService.getByItemNumber(client, posTO.articleRef);
+			if( item == null ) {
+				String msg = "Item data does not exist. number="+posTO.articleRef;
+				log.error(logStr+msg);
+				throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, msg);
+			}
+			Lot lot = null;
+			if( posTO.batchRef != null && posTO.batchRef.length()>0 ) {
+				lot = lotService.getByNameAndItemData(posTO.batchRef, item);
+				if( lot == null ) {
+					String msg = "Lot data does not exist. name="+posTO.batchRef+", item="+posTO.articleRef;
+					log.error(logStr+msg);
+					throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, msg);
+				}
+			}
+			BigDecimal amount = posTO.amount;
+			if( BigDecimal.ZERO.compareTo(amount)>=0 ) {
+				String msg = "Amount must not be <= 0. amount="+posTO.amount+", item="+posTO.articleRef;
+				log.error(logStr+msg);
+				throw new InventoryException(InventoryExceptionKey.CUSTOM_TEXT, msg);
+			}
+			
+			orderGenerator.addCustomerOrderPos(order, item, lot, null, amount);
+		}		
+	}
 
+	@Override
+	public void addOrderPosition(long id, OrderPositionTO[] positions) throws FacadeException {
+		try {
+			LOSCustomerOrder order = orderService.get(id);
+			addOrderPosition(order, positions);
+		} 
+		catch (EntityNotFoundException e) {
+			throw new FacadeException(e);
+		}
+	}
+	
+	@Override
+	public void deleteOrderPositions(long[] positionIds) throws FacadeException {
+		try {
+			for (long id : positionIds) {
+				LOSCustomerOrderPosition position = orderPositionService.get(id);
+				orderGenerator.deleteCustomerOrderPos(position);
+			}
+		} catch (EntityNotFoundException e) {
+			throw new FacadeException(e);
+		}
+	}
 
+	
 	public LOSCustomerOrder finishOrder(String orderNumber) throws FacadeException {
 		String logStr = "finishOrder ";
 		log.debug(logStr+"orderNumber="+orderNumber);
@@ -255,6 +314,7 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 		}
 		return finishOrder(order.getId());
 	}
+	
 	public LOSCustomerOrder finishOrder(Long orderId) throws FacadeException {
 		String logStr = "finishOrder ";
 		
@@ -496,6 +556,7 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 		}
 		return generateReceipt(order.getId(), save);
 	}
+	
 	public Document generateReceipt( Long orderId, boolean save ) throws FacadeException {
 		String logStr = "generateReceipt ";
 		LOSCustomerOrder order = manager.find(LOSCustomerOrder.class, orderId);
@@ -514,6 +575,7 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 		
 		return receipt;
 	}
+	
 	public Document generateUnitLoadLabel( String label, boolean save ) throws FacadeException {
 		String logStr = "generateUnitLoadLabel ";
 		log.debug(logStr+"label="+label);

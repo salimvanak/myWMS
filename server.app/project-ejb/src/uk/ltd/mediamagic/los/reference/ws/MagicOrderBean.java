@@ -275,7 +275,7 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
 		StringBuilder b = new StringBuilder();	
 		b.append("SELECT co FROM ");
 		b.append(LOSCustomerOrder.class.getSimpleName()).append(" co ");
-		b.append(" JOIN co.positions");
+//		b.append(" JOIN FETCH co.positions");
 		b.append(" WHERE co.state < :statefinished ");
 	
 		Query query = manager.createQuery(b.toString());

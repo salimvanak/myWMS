@@ -6,6 +6,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -29,6 +30,9 @@ import de.linogistix.los.inventory.query.dto.ItemDataTO;
 import de.linogistix.los.inventory.query.dto.LOSAdviceTO;
 import de.linogistix.los.query.BODTO;
 import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
@@ -36,9 +40,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
 import javafx.util.StringConverter;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
 import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.MyWMSForm;
+import uk.ltd.mediamagic.flow.crud.PoJoEditor;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.binding.MBindings;
@@ -52,6 +58,7 @@ import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.FileOutputPane;
 import uk.ltd.mediamagic.mywms.common.PDFConcat;
+import uk.ltd.mediamagic.mywms.common.PositionComparator;
 import uk.ltd.mediamagic.util.Files;
 
 public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
@@ -76,6 +83,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		
 		public GoodsReceiptForm(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConveryer) {
 			super(beanInfo, getConveryer);
+			setEditorHelper(new MyEditorHelper(this, beanInfo));
 			
 			getCommands()
 				.add(AC.idText("Finish Receipt").action(s -> finishGoodsReceipt())
@@ -166,7 +174,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			
 			form.bindController(this);
 		}
-		
+				
 		@PostConstruct
 		public void post() {
 			newAdvice.configure(getContext(), LOSAdvice.class);
@@ -313,4 +321,26 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			}
 		}
 
+		
+		private static class MyEditorHelper extends PojoEditorHelper<LOSGoodsReceipt> {
+
+			public MyEditorHelper(PoJoEditor<LOSGoodsReceipt> editor, BeanInfo beanInfo) {
+				super(editor, beanInfo);
+			}
+			
+			public ObservableValue<?> getValueProperty(String id) {
+				if (Strings.equals(id, "positionList")) {
+					Comparator<LOSGoodsReceiptPosition> comparator = Comparator.comparing(
+							LOSGoodsReceiptPosition::getPositionNumber,  
+							new PositionComparator());
+					
+					return MBindings.get(dataProperty(), d -> new SortedList<LOSGoodsReceiptPosition>(
+							FXCollections.observableList(d.getPositionList()), comparator)); 
+				}
+				else {
+					return super.getValueProperty(id);
+				}
+			}
+			
+		}
 	}

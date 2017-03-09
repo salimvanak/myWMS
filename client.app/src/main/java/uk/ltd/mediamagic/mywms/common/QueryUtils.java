@@ -9,9 +9,9 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.AC.NodeAction;
+import uk.ltd.mediamagic.fx.flow.actions.CommandProvider;
 import uk.ltd.mediamagic.fx.helpers.ComboBoxes;
 
 public class QueryUtils {
@@ -27,15 +27,14 @@ public class QueryUtils {
 		return nq;
 	}
 	
-	
-	public static <T extends Enum<T>> void addFilter(BODTOTable<?> t, T defaultValue, Runnable refreshData) {
+	public static <T extends Enum<T>> void addFilter(CommandProvider t, T defaultValue, Runnable refreshData) {
 		ComboBox<T> filterCB = ComboBoxes.createComboForEnum(defaultValue);
 		filterCB.valueProperty().addListener(o -> refreshData.run());
 		t.getCommands().add(AC.node("Filter",filterCB)).end();
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public static <T extends Enum<T>> T getFilter(BODTOTable<?> t, T defaultValue) {
+	public static <T extends Enum<T>> T getFilter(CommandProvider t, T defaultValue) {
 		AC<?,?> n = t.getCommands().find("Filter");
 		if (n == null) return defaultValue;
 		Label l = (Label) ((NodeAction)n).get();

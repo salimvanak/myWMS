@@ -319,6 +319,7 @@ public class MyWMS extends Application {
     plugins.add(new InventoryModule());
     plugins.add(new GoodsInModule());
     plugins.add(new GoodsOutModule());
+    plugins.add(new StockTakingModule());
 
     return plugins.toArray(new AbstractPluginSet[plugins.size()]);
   }

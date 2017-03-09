@@ -36,7 +36,6 @@ import uk.ltd.mediamagic.mywms.common.BeanUtils;
 public abstract class PoJoEditor<T> extends EditorBase {
 
 	private ObjectProperty<T> data = new SimpleObjectProperty<>(); 
-	private Logger log = MLogger.log(this);
 	
 	public PoJoEditor(BeanInfo beanInfo) {
 		super();
@@ -44,7 +43,7 @@ public abstract class PoJoEditor<T> extends EditorBase {
 			.back()
 		  .saveAndRefresh()
 		.end();
-		setEditorHelper(new PojoEditorHelper(beanInfo));
+		setEditorHelper(new PojoEditorHelper<>(this, beanInfo));
 		data.addListener((v,o,n) -> rebind());
 	} 
 	
@@ -60,16 +59,39 @@ public abstract class PoJoEditor<T> extends EditorBase {
 	public Collection<TableKey> getSelectedKeys() {
 		return Collections.singleton(getSelectedKey());
 	}
+	
+	public final ObjectProperty<T> dataProperty() {
+		return this.data;
+	}
+	
+	public final T getData() {
+		return this.dataProperty().get();
+	}
 
-	public class PojoEditorHelper implements EditorHelper {
+	public final void setData(final T data) {
+		this.dataProperty().set(data);
+	}
 
+	public static class PojoEditorHelper<T> implements EditorHelper {
+
+		private final Logger log = MLogger.log(this);
 		private final BeanInfo beanInfo;
+		protected final PoJoEditor<T> editor;
 		
-		public PojoEditorHelper(BeanInfo beanInfo) {
+		public PojoEditorHelper(PoJoEditor<T> editor, BeanInfo beanInfo) {
 			super();
 			this.beanInfo = beanInfo;
+			this.editor = editor;
 		}
 		
+		public T getData() {
+			return editor.getData();
+		}
+
+		public ObjectProperty<T> dataProperty() {
+			return editor.dataProperty();
+		}
+
 		@Override
 		public AutoFill<?> getAutoFill(String id, ObservableValue<?> property) {
 			return null;
@@ -83,19 +105,19 @@ public abstract class PoJoEditor<T> extends EditorBase {
 		
 		public ObservableValue<?> getValueProperty(String id) {
 			try {
-				if (data.get() == null) return new SimpleObjectProperty<>(data, id);
+				if (getData() == null) return new SimpleObjectProperty<>(getData(), id);
 				PropertyDescriptor pds = getPropertyDescriptor(id);
 				if (pds == null) throw new IllegalArgumentException("Property " + id + " does not exist on " + beanInfo.getBeanDescriptor().getDisplayName());
 				if (List.class.isAssignableFrom(pds.getPropertyType())) {
 					@SuppressWarnings("unchecked")
-					Property<java.util.List<?>> p = JavaBeanObjectPropertyBuilder.create().bean(data.get()).name(id).build();
+					Property<java.util.List<?>> p = JavaBeanObjectPropertyBuilder.create().bean(getData()).name(id).build();
 					return MBindings.get(p, FXCollections::observableList); 
 				}
 				if (pds.getWriteMethod() == null) {					
-					return ReadOnlyJavaBeanObjectPropertyBuilder.create().bean(data.get()).name(id).build();
+					return ReadOnlyJavaBeanObjectPropertyBuilder.create().bean(getData()).name(id).build();
 				}
 				else {
-					return JavaBeanObjectPropertyBuilder.create().bean(data.get()).name(id).build();
+					return JavaBeanObjectPropertyBuilder.create().bean(getData()).name(id).build();
 				}
 			}
 			catch (NoSuchMethodException e) {
@@ -129,12 +151,12 @@ public abstract class PoJoEditor<T> extends EditorBase {
 			else if (pds.getReadMethod().isAnnotationPresent(Id.class)) {				
 				return ObservableConstant.FALSE;
 			}
-			ObservableBooleanValue up = getUserPermissions().isEditable(id);
+			ObservableBooleanValue up = editor.getUserPermissions().isEditable(id);
 			return up;
 		}
 
 		public ObservableBooleanValue getVisibleProperty(String id, ObservableValue<?> property) {
-			ObservableBooleanValue up = getUserPermissions().isVisible(id);
+			ObservableBooleanValue up = editor.getUserPermissions().isVisible(id);
 			return up;
 		}
 		
@@ -160,7 +182,7 @@ public abstract class PoJoEditor<T> extends EditorBase {
 		public AutoFill<?> getAutoFill(String id, Property<?> property) {
 			PropertyDescriptor pds = getPropertyDescriptor(id);
 			Class<?> type = pds.getPropertyType();
-			return getAutoFillFactory().createAutoFill(type, id);
+			return editor.getAutoFillFactory().createAutoFill(type, id);
 		}
 		
 		public void onBind(String id, ObservableValue<?> property, Node n) {
@@ -172,20 +194,5 @@ public abstract class PoJoEditor<T> extends EditorBase {
 		public BeanInfo getBeanInfo() {
 			return beanInfo;
 		}
-	}
-
-
-	public final ObjectProperty<T> dataProperty() {
-		return this.data;
-	}
-	
-
-	public final T getData() {
-		return this.dataProperty().get();
-	}
-	
-
-	public final void setData(final T data) {
-		this.dataProperty().set(data);
 	}
 }

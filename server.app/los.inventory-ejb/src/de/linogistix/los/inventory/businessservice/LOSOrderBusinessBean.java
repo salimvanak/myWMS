@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -292,16 +293,27 @@ public class LOSOrderBusinessBean implements LOSOrderBusiness {
 			log.error(logStr+"missing parameter order");
 			return null;
 		}
-		
-		int stateOld = pickingOrder.getState();
 
+		if( user == null ) {
+			user = contextService.getCallersUser();
+		}
+
+		final int stateOld = pickingOrder.getState();
+		final User operator = pickingOrder.getOperator();
+
+		// check if the order already assigned to this user
+		if (stateOld >= State.RESERVED && operator != null && operator.equals(user) ) {
+			log.info(logStr+"Order is already assigned to the current user. => reservation complete");
+			return pickingOrder;
+		}
+		
+		// if the order is already picked it cannot be reassigned.
 		if( stateOld>=State.PICKED ) {
 			log.error(logStr+"Order is already picked. => Cannot reserve.");
 			throw new InventoryException(InventoryExceptionKey.PICK_ALREADY_STARTED, pickingOrder.getNumber());
 		}
-		if( user == null ) {
-			user = contextService.getCallersUser();
-		}
+
+		// if the order is reserved to a different user.
 		if( !ignoreReservationGap && (stateOld>=State.RESERVED) && (pickingOrder.getOperator() != null) && (!pickingOrder.getOperator().equals(user)) ) {
 			log.error(logStr+"Order is already assigned to a different user. => Cannot reserve.");
 			throw new InventoryException(InventoryExceptionKey.ORDER_RESERVED, "");

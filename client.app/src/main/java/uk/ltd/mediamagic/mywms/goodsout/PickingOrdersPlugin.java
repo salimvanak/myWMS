@@ -37,6 +37,7 @@ import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutHaltPickingOrder;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPickingOrderProperties;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutReleasePickingOrder;
 import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutRemovePickingOrder;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
@@ -126,6 +127,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 		.withMultiSelection(Action.Finish, new GoodsOutFinishPickingOrder())
 		.withMultiSelection(Action.Halt, new GoodsOutHaltPickingOrder())
 		.withMultiSelection(Action.Release, new GoodsOutReleasePickingOrder())
+		.withSelection(Action.Properties, new GoodsOutPickingOrderProperties())
 		.withSelection(Action.ViewLog, StockUnitRecordAction.forActivityCode("PICK"))
 		.end();
 		return flow;

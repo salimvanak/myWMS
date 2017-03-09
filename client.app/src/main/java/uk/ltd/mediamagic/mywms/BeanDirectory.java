@@ -26,8 +26,8 @@ public class BeanDirectory {
 	private static final Logger log = MLogger.log(BeanDirectory.class);
 	private static final String CRUD_SUFFIX = "CRUDRemote";
 	private static final String QUERY_SUFFIX = "QueryRemote";
-	private static final String[] curdPackages = {"de.linogistix.los.crud", "de.linogistix.los.inventory.crud", "de.linogistix.los.location.crud"};
-	private static final String[] queryPackages = {"de.linogistix.los.query","de.linogistix.los.inventory.query", "de.linogistix.los.location.query"};  
+	private static final String[] curdPackages = {"de.linogistix.los.crud", "de.linogistix.los.inventory.crud", "de.linogistix.los.location.crud", "de.linogistix.los.stocktaking.crud"};
+	private static final String[] queryPackages = {"de.linogistix.los.query","de.linogistix.los.inventory.query", "de.linogistix.los.location.query", "de.linogistix.los.stocktaking.query"};  
 	
 	private static final ClassLookup<Class<? extends BusinessObjectCRUDRemote<? extends BasicEntity>>> 
 		crudLookup = new ClassLookup<>(BeanDirectory::findCRUD);

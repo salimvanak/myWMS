@@ -24,6 +24,7 @@ import de.linogistix.los.inventory.query.LOSPickingPositionQueryRemote;
 import de.linogistix.los.inventory.query.dto.LOSCustomerOrderPositionTO;
 import de.linogistix.los.inventory.query.dto.LOSOrderStockUnitTO;
 import de.linogistix.los.inventory.query.dto.LotTO;
+import de.linogistix.los.model.State;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.ListBinding;
@@ -37,6 +38,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
+import javafx.scene.Node;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.fx.binding.BigDecimalBinding;
 import uk.ltd.mediamagic.fx.binding.FxCollectors;
@@ -73,6 +75,21 @@ public class TreatOrderModel {
 		order.addListener(this::onOrderChanged);
 	}
 	
+	public void startPicking(Node anchor) {
+		List<Long> pickIds = pickingOrders.stream()
+				.filter(p -> p.getState() < State.STARTED)
+				.map(LOSPickingOrder::getId).collect(Collectors.toList());
+
+		exec.executeAndWait(anchor, p ->  {
+			p.setSteps(pickIds.size());
+			for (long id : pickIds) {
+				pickingFacade.releaseOrder(id);
+				p.step();
+			}
+			return null;
+		});
+	}
+	
 	public final ObservableBooleanValue readonlyProperty() {
 		return readonly;
 	}
@@ -107,8 +124,14 @@ public class TreatOrderModel {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public CompletableFuture<ObservableList<LOSOrderStockUnitTO>> getStocks(LOSCustomerOrderPosition pos) {
-		LotTO lotTo = (pos.getLot() == null) ? null : new LotTO(pos.getLot());
+	public CompletableFuture<ObservableList<LOSOrderStockUnitTO>> getStocks(LOSCustomerOrderPosition pos, Lot lot) {
+		LotTO lotTo;
+		if (lot == null) {
+			lotTo = (pos.getLot() == null) ? null : new LotTO(pos.getLot());
+		}
+		else {
+			lotTo = new LotTO(lot);
+		}
 		return exec
 				.call(() -> pickManager.querySuitableStocksByOrderPosition(new LOSCustomerOrderPositionTO(pos), lotTo, null))
 				.thenApply(FXCollections::observableList);

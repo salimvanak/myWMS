@@ -75,6 +75,9 @@ public class MyWMSForm extends PojoForm {
 		else if (Strings.equals("lock", pds.getName())) {
 			row.label(BeanUtils.getDisplayName(pds)).comboBox("lock");
 		}
+		else if (Strings.equals("state", pds.getName())) {
+			row.label(BeanUtils.getDisplayName(pds)).comboBox("state");
+		}
 		else {
 			super.addFieldFor(row, pds);
 		}

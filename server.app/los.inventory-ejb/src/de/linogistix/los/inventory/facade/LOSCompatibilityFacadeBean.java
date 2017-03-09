@@ -163,6 +163,7 @@ public class LOSCompatibilityFacadeBean implements LOSCompatibilityFacade {
 		List<LOSOrderStockUnitTO> toList = new ArrayList<LOSOrderStockUnitTO>();
 		
 		for( StockUnit su : stockList ) {
+			
 			LOSOrderStockUnitTO suto = new LOSOrderStockUnitTO(su.getId(), su.getVersion(), su.getLot(), su.getUnitLoad().getLabelId(), ((LOSUnitLoad)su.getUnitLoad()).getStorageLocation().getName(), su.getAmount(), su.getReservedAmount());
 			toList.add(suto);
 		}

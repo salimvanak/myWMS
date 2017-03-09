@@ -68,7 +68,7 @@ public class PickingPositionsPlugin  extends BODTOPlugin<LOSPickingPosition> {
 	@Override
 	public List<String> getTableColumns() {
 		return Arrays.asList("id", 
-				"name AS number",	"pickingOrderNumber", 
+				"pickingOrderNumber", 
 				"itemDataNumber AS itemData.number", "itemDataName AS itemData.name", 
 				"amount", "pickFromLocationName", "state");
 	}

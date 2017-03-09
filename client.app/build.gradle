@@ -38,7 +38,7 @@ dependencies {
   compile project(path: ':server.app:los.common-ejb')
   compile project(path: ':server.app:los.location-ejb')
   compile project(path: ':server.app:los.inventory-ejb')
-//  compile project(path: ':server.app:los.stocktaking-ejb').artifacts
+  compile project(path: ':server.app:los.stocktaking-ejb')
 }
 
 task collect(type: Copy) {

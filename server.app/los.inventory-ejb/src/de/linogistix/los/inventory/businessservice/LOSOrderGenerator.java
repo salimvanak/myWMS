@@ -17,6 +17,7 @@ import org.mywms.model.ItemData;
 import org.mywms.model.Lot;
 
 import de.linogistix.los.inventory.model.LOSCustomerOrder;
+import de.linogistix.los.inventory.model.LOSCustomerOrderPosition;
 import de.linogistix.los.inventory.model.LOSOrderStrategy;
 
 /**
@@ -29,6 +30,8 @@ public interface LOSOrderGenerator {
 	public LOSCustomerOrder createCustomerOrder(Client client, LOSOrderStrategy strat) throws FacadeException;
 
 	public LOSCustomerOrder addCustomerOrderPos(LOSCustomerOrder order, ItemData item, Lot lot, String serialNumber, BigDecimal amount) throws FacadeException;
+
+	public void deleteCustomerOrderPos(LOSCustomerOrderPosition position) throws FacadeException;
 
 
 }

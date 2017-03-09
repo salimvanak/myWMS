@@ -133,14 +133,16 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 			Class<? extends BusinessObjectQueryRemote<T>> queryClass = BeanDirectory.getQuery(boClass);
 			BusinessObjectQueryRemote<T> query = context.getBean(queryClass);
 			MExecutor exec = context.getBean(MExecutor.class);
-			setFetchCompleteions(s -> {
-				QueryDetail qd = new QueryDetail(0, 100);
-				qd.addOrderByToken("modified", false);
-				return exec.call(() -> query.autoCompletion(s, qd));
-			});
-			setFetchValue(bto -> {
-				return exec.call(() -> query.queryById(bto.getId()));
-			});
+			if (getFetchCompleteions() == null) {
+				setFetchCompleteions(s -> {
+					QueryDetail qd = new QueryDetail(0, 100);
+					qd.addOrderByToken("modified", false);
+					return exec.call(() -> query.autoCompletion(s, qd));
+				});
+			}
+			if (getFetchValue() == null) {
+				setFetchValue(bto -> exec.call(() -> query.queryById(bto.getId())));
+			}
 		}
 		catch (UndeclaredThrowableException e) {
 			if (e.getUndeclaredThrowable() instanceof ClassNotFoundException) {

@@ -9,8 +9,11 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
 <?import uk.ltd.mediamagic.flow.crud.BasicEntityEditor?>
+<?import uk.ltd.mediamagic.fx.table.MTableViewBase?>
 
 <GridPane xmlns:fx="http://javafx.com/fxml" fx:id="root" styleClass="form">
 
@@ -20,25 +23,35 @@
 	<TextField fx:id="field_externalNumber" promptText="00000000" GridPane.columnIndex="0" GridPane.rowIndex="3"/> 
 	<Label text="Target Location" GridPane.columnIndex="1" GridPane.rowIndex="0"/> 
 	<BasicEntityEditor fx:id="field_destination" GridPane.columnIndex="1" GridPane.rowIndex="1"/> 
-	<Label text="Strategy" GridPane.columnIndex="3" GridPane.rowIndex="0"/> 
-	<BasicEntityEditor fx:id="field_strategy" GridPane.columnIndex="3" GridPane.rowIndex="1"/> 
+	<Label text="Strategy" GridPane.columnIndex="2" GridPane.rowIndex="0"/> 
+	<BasicEntityEditor fx:id="field_strategy" GridPane.columnIndex="2" GridPane.rowIndex="1"/> 
 	<Label text="Client" GridPane.columnIndex="4" GridPane.rowIndex="0"/> 
 	<BasicEntityEditor fx:id="field_client" GridPane.columnIndex="4" GridPane.rowIndex="1"/> 
 	<Label text="Order positions" GridPane.columnIndex="0" GridPane.rowIndex="4"/> 
 	<ListView fx:id="orderPositions" GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="3" GridPane.rowSpan="2"/> 
 	<Label text="Item data" GridPane.columnIndex="0" GridPane.rowIndex="7"/> 
-	<BasicEntityEditor fx:id="itemData" GridPane.columnIndex="1" GridPane.rowIndex="7"/> 
-	<Label text="Lot" GridPane.columnIndex="2" GridPane.rowIndex="7"/> 
-	<BasicEntityEditor fx:id="lot" GridPane.columnIndex="3" GridPane.rowIndex="7"/> 
+	<BasicEntityEditor fx:id="itemData" GridPane.columnIndex="0" GridPane.rowIndex="8"/> 
+	<Label text="Lot" GridPane.columnIndex="1" GridPane.rowIndex="7"/> 
+	<BasicEntityEditor fx:id="lot" GridPane.columnIndex="1" GridPane.rowIndex="8"/> 
 	<Label text="Picking order" GridPane.columnIndex="3" GridPane.rowIndex="4"/> 
 	<ComboBox fx:id="pickingOrders" GridPane.columnIndex="3" GridPane.rowIndex="5"/> 
 	<Button fx:id="createNewPick" text="New Pick" maxWidth="1000" GridPane.columnIndex="4" GridPane.rowIndex="5"/> 
 	<ListView fx:id="pickingPositionsForPick" GridPane.columnIndex="3" GridPane.rowIndex="6" GridPane.columnSpan="2"/> 
-	<Label text="Available Stocks" GridPane.columnIndex="0" GridPane.rowIndex="8" GridPane.columnSpan="2"/> 
-	<ListView fx:id="stockUnits" GridPane.columnIndex="0" GridPane.rowIndex="9" GridPane.columnSpan="2" GridPane.rowSpan="3"/> 
-	<Button fx:id="loadStocks" text="Load stocks" maxWidth="1000" GridPane.columnIndex="2" GridPane.rowIndex="9"/> 
-	<Button fx:id="assignPicks" text="Assign" maxWidth="1000" GridPane.columnIndex="2" GridPane.rowIndex="10"/> 
-	<Button fx:id="removePicks" text="Remove" maxWidth="1000" GridPane.columnIndex="2" GridPane.rowIndex="11"/> 
-	<Label text="Selected positions" GridPane.columnIndex="3" GridPane.rowIndex="8" GridPane.columnSpan="2"/> 
-	<ListView fx:id="pickingPositionsForOrderPos" GridPane.columnIndex="3" GridPane.rowIndex="9" GridPane.columnSpan="2" GridPane.rowSpan="3"/> 
+	<Label text="Selected positions" GridPane.columnIndex="0" GridPane.rowIndex="11" GridPane.columnSpan="1"/> 
+	<ListView fx:id="pickingPositionsForOrderPos" GridPane.columnIndex="0" GridPane.rowIndex="12" GridPane.columnSpan="2"/> 
+	<VBox spacing="20" GridPane.columnIndex="2" GridPane.rowIndex="12"> 
+		<Button fx:id="loadStocks" text="Load stocks" maxWidth="1000"/> 
+		<Button fx:id="assignPicks" text="Assign" maxWidth="1000"/> 
+		<Button fx:id="assignPartialPicks" text="Assign Partial" maxWidth="1000"/> 
+		<Button fx:id="removePicks" text="Remove" maxWidth="1000"/> 
+	</VBox>
+	<Label text="Available Stocks" GridPane.columnIndex="2" GridPane.rowIndex="11" GridPane.columnSpan="2"/> 
+	<MTableViewBase fx:id="stockUnits" GridPane.columnIndex="3" GridPane.rowIndex="12" GridPane.columnSpan="2"/> 
+	<columnConstraints>
+		<ColumnConstraints/> 
+		<ColumnConstraints/> 
+		<ColumnConstraints/> 
+		<ColumnConstraints fillWidth="true" hgrow="ALWAYS"/> 
+		<ColumnConstraints/> 
+	</columnConstraints>
 </GridPane>

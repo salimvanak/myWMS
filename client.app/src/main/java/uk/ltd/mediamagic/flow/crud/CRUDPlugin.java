@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -18,6 +19,7 @@ import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.BusinessObjectQueryRemote;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
@@ -36,6 +38,7 @@ import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
+import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
@@ -140,10 +143,12 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		return Bindings.createBooleanBinding(() -> true);
 	}
 	
-	@Worker void save(ContextBase context, T data) throws Exception {
-		System.out.println("SAVE 2");
+	CompletableFuture<Void> save(ContextBase context, T data) {
 		BusinessObjectCRUDRemote<T> query = context.getBean(crudBean);
-		query.update(data);
+		return context.getBean(MExecutor.class).call(() -> {
+			query.update(data);
+			return null;
+		});
 	}
 
 	@Worker void delete(ContextBase context, T data) throws Exception {
@@ -151,29 +156,23 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		query.delete(data);
 	}
 
-	@Worker
-	public List<T> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) throws Exception {
+	public CompletableFuture<List<T>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
 		BusinessObjectQueryRemote<T> query = context.getBean(queryBean);
 		template.setBoClass(boClass);
-		List<T> list = query.queryByTemplate(detail,template);
-		return list;
+		return context.getBean(MExecutor.class).call(() -> query.queryByTemplate(detail,template));
 	}
 	
-	@Worker 
-	public T getData(ContextBase context, long id) throws Exception {
+	public CompletableFuture<T> getData(ContextBase context, long id) {
 		BusinessObjectQueryRemote<T> query = context.getBean(queryBean);
-		T obj = query.queryById(id);
-		return obj;
+		return context.getBean(MExecutor.class).call(() -> query.queryById(id));
 	}
 	
 	protected	void save(PoJoEditor<T> source, Flow flow, ViewContext context) {
 		T data = source.getData();
 		source.setData(null);
-		context.getExecutor().call(() -> {
-			save(context, data);
-			return getData(context, data.getId());
-		})
-		.whenCompleteUI((d,e) -> {
+		save(context, data)
+		.thenCompose(x ->  getData(context, data.getId()))
+		.whenCompleteAsync((d,e) -> {
 			if (e != null) {
 				source.setData(data);
 				FxExceptions.exceptionThrown(e);
@@ -184,16 +183,14 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 			else {
 				FXErrors.error("Data load error", "Count not refresh data after save. ID:" + data.getId());
 			}
-		});
+		}, Platform::runLater);
 	}
 
 	protected void refresh(PoJoEditor<T> source, Flow flow, ViewContext context) {
 		T data = source.getData();
 		source.setData(null);
-		context.getExecutor().call(() -> {
-			return getData(context, data.getId());
-		})
-		.whenCompleteUI((d,e) -> {
+		getData(context, data.getId())
+		.whenCompleteAsync((d,e) -> {
 			if (e != null) {
 				FxExceptions.exceptionThrown(e);
 			}
@@ -203,13 +200,13 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 			else {
 				FXErrors.error("Data load error", "Count not refresh data after save. ID:" + data.getId());
 			}
-		});
+		}, Platform::runLater);
 	}
 
 	protected	void refresh(CrudTable<T> source, ViewContextBase context) {
 		source.setItems(null);
-		source.getExecutor().call(() -> getListData(context, source.queryDetailProperty().get(), source.queryTemplateProperty().get()))
-		.thenApplyUI(FXCollections::observableList)
+		getListData(context, source.createQueryDetail(), source.createQueryTemplate())
+		.thenApplyAsync(FXCollections::observableList, Platform::runLater)
 		.thenAccept(source::setItems);			
 	}
 
@@ -258,8 +255,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		else {
 			MFXMLLoader.loadFX(url, controller);
 		}
-		controller.getExecutor().call(() -> getData(context, id))
-		.thenSetUI(controller.dataProperty());
+		getData(context, id).thenAcceptAsync(controller::setData, Platform::runLater);
 		return controller;
 	}
 	
@@ -305,9 +301,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		
 		refreshData.run();
 		
-		table.queryDetailProperty().addListener(o -> refreshData.run());
-		table.queryTemplateProperty().addListener(o -> refreshData.run());
-		
+		table.addQueryListener(o -> refreshData.run());		
 		return table;
 	}
 		

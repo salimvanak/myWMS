@@ -20,6 +20,7 @@ import org.mywms.facade.FacadeException;
 import org.mywms.model.Client;
 import org.mywms.model.ItemData;
 import org.mywms.model.Lot;
+import org.mywms.service.ConstraintViolatedException;
 
 import de.linogistix.los.customization.EntityGenerator;
 import de.linogistix.los.inventory.exception.InventoryException;
@@ -53,8 +54,9 @@ public class LOSOrderGeneratorBean implements LOSOrderGenerator {
 	private ContextService contextService;
 	@EJB
 	private LOSCustomerOrderService orderService;
-    @PersistenceContext(unitName = "myWMS")
-    private  EntityManager manager;
+	
+	@PersistenceContext(unitName = "myWMS")
+  private  EntityManager manager;
     
 	public LOSCustomerOrder createCustomerOrder(Client client, LOSOrderStrategy strat) throws FacadeException {
 		String logStr = "createCustomerOrder ";
@@ -100,6 +102,10 @@ public class LOSOrderGeneratorBean implements LOSOrderGenerator {
 		String logStr = "addCustomerOrderPos ";
 		log.debug(logStr+" order="+order.getNumber()+", item="+item.getNumber());
 		
+		if (order.getState() > State.RESERVED) {
+			throw new InventoryException(InventoryExceptionKey.ORDER_ALREADY_STARTED, new Object[] {order.getNumber(), order.getState()});
+		}
+		
 		String numberOrder = order.getNumber();
 		String number = null;
 		int idx = order.getPositions().size();
@@ -138,5 +144,15 @@ public class LOSOrderGeneratorBean implements LOSOrderGenerator {
 		return order;
 	}
 
+	@Override
+	public void deleteCustomerOrderPos(LOSCustomerOrderPosition position) throws FacadeException {
+		if (position.getState() > State.RAW) throw new InventoryException(InventoryExceptionKey.POSITION_CANNOT_BE_REMOVED, new Object[] {position.getNumber(), position.getOrder()});
+		try {
+			positionService.delete(position);
+		} 
+		catch (ConstraintViolatedException e) {
+			throw new FacadeException(e);
+		}
+	}
 
 }

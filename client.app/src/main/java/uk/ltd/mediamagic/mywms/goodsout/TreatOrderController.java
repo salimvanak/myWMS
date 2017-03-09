@@ -3,6 +3,7 @@ package uk.ltd.mediamagic.mywms.goodsout;
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +49,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextFormatter;
 import javafx.util.StringConverter;
 import res.R;
 import uk.ltd.mediamagic.common.utils.Strings;
@@ -55,17 +57,21 @@ import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
 import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.fx.MDialogs;
+import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.binding.BigDecimalBinding;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.control.CommandLink;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.CellWrappers;
 import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
+import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
+import uk.ltd.mediamagic.fx.converters.Filters;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.FXMLController;
+import uk.ltd.mediamagic.fx.table.MTableViewBase;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.goodsout.TreatOrderModel.TreatOrderPosition;
 import uk.ltd.mediamagic.plugin.PluginRegistry;
@@ -83,7 +89,7 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 	private @FXML ListView<LOSPickingPosition> pickingPositionsForOrderPos;
 	private @FXML ListView<LOSPickingPosition> pickingPositionsForPick;
 	
-	private @FXML ListView<LOSOrderStockUnitTO> stockUnits;
+	private @FXML MTableViewBase<LOSOrderStockUnitTO> stockUnits;
 
 	private @FXML BasicEntityEditor<ItemData> itemData;
 	private @FXML BasicEntityEditor<Lot> lot;
@@ -92,21 +98,38 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 	private @FXML Button loadStocks;
 	private @FXML Button createNewPick;
 	private @FXML Button assignPicks;
+	private @FXML Button assignPartialPicks;
 	private @FXML Button removePicks;
+	
 	
 	private BooleanProperty stockUnitsLoading = new SimpleBooleanProperty();
 	
 	public TreatOrderController(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConveryer) {
 		super(beanInfo, getConveryer);
+		
+		getCommands()
+			.add(AC.idText("Start Picking").action(e -> {
+				if (model != null) model.startPicking(getView());
+			}))
+		.end();
 	}
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		itemData.configure(getContext(), ItemData.class);
+		lot.configure(getContext(), Lot.class);
+
 		orderPositions.setCellFactory(CellWrappers.forList(this.createCellFactory()));
 		orderPositions.setItems(model.orderPositionsProperty());
 		
-		stockUnits.setCellFactory(CellWrappers.forList(this.createStockUnitCellFactory()));
 		stockUnits.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		stockUnits.setColumns(
+				stockUnits.column().title("Stock Unit").valueFactory(LOSOrderStockUnitTO::getName).show(),
+				stockUnits.column().title("Lot").valueFactory(LOSOrderStockUnitTO::getLot).show(),
+				stockUnits.column().title("Unit Load").valueFactory(LOSOrderStockUnitTO::getUnitLoad).show(),
+				stockUnits.column().title("Location").valueFactory(LOSOrderStockUnitTO::getStorageLocation).show(),
+				stockUnits.column(new BigDecimalConverter()).title("Amount Available").valueFactory(LOSOrderStockUnitTO::getAvailableAmount).show()
+				);
 		
 		pickingOrders.setConverter(ToStringConverter.of(LOSPickingOrder::getNumber));
 		pickingOrders.setItems(model.pickingOrdersProperty());
@@ -123,6 +146,8 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 
 		assignPicks.setOnAction(this::assignStockUnits);
 		assignPicks.disableProperty().bind(model.readonlyProperty());
+		assignPartialPicks.setOnAction(this::assignPartialStockUnits);
+		assignPartialPicks.disableProperty().bind(model.readonlyProperty());
 
 		removePicks.setOnAction(this::removePickPositions);
 		removePicks.disableProperty().bind(model.readonlyProperty());
@@ -146,9 +171,9 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 		});
 		
 		lot.valueProperty().addListener(o -> onItemDataChanged());
-		lot.valueProperty().bind(MBindings.get(
-				orderPositions.getSelectionModel().selectedItemProperty(), 
-				TreatOrderPosition::getLot));
+//		lot.valueProperty().bind(MBindings.get(
+//				orderPositions.getSelectionModel().selectedItemProperty(), 
+//				TreatOrderPosition::getLot));
 		
 		stockUnits.placeholderProperty().bind(Bindings.when(stockUnitsLoading)
 				.then((Node) new ProgressIndicator())
@@ -158,8 +183,6 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 	@PostConstruct
 	public void post() {		
 		getContext().autoInjectBean(model);
-		itemData.configure(getContext(), ItemData.class);
-		lot.configure(getContext(), Lot.class);
 		destination.configure(getContext(), LOSStorageLocation.class);
 		destination.setFetchCompleteions(s -> this.getStorageLocations(s));
 	}
@@ -176,14 +199,27 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 	public void loadStocks(Event e) {
 		loadStocks.setDisable(true);
 		TreatOrderPosition p = orderPositions.getSelectionModel().getSelectedItem();
+		Lot lot = this.lot.getValue();
 		if (p == null) return;
 		stockUnitsLoading.set(true);
-		model.getStocks(p.getCustomerOrderPosition())
+		model.getStocks(p.getCustomerOrderPosition(), lot)
 			.thenAcceptAsync(stockUnits.itemsProperty()::set, Platform::runLater)
 			.whenComplete((v,ex) -> stockUnitsLoading.set(false));
 	}
-
+	
 	public void assignStockUnits(Event e) {
+		assignStockUnits(e, null);
+	}
+
+	BigDecimal lastMax = BigDecimal.ZERO;
+	public void assignPartialStockUnits(Event e) {
+		MDialogs.showFormattedInput(getView(), "Maximum pick amount", "Max Pick Qty", 
+				new TextFormatter<BigDecimal>(new BigDecimalConverter(), lastMax, Filters.numeric()))
+		.filter(max -> max.compareTo(BigDecimal.ZERO) > 0)
+		.ifPresent(max -> assignStockUnits(e, max));
+	}
+
+	public void assignStockUnits(Event e, BigDecimal maxAssignment) {
 		LOSPickingOrder pickingOrder = pickingOrders.getValue();
 		TreatOrderPosition orderPosition = orderPositions.getSelectionModel().getSelectedItem();
 		if (pickingOrder == null) {
@@ -198,18 +234,29 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 
 		List<LOSOrderStockUnitTO> selection = stockUnits.getSelectionModel().getSelectedItems();
 		BigDecimal total = selection.stream().map(LOSOrderStockUnitTO::getAvailableAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-		BigDecimal amountRemaining = orderPosition.getAmountRemaining();
+		BigDecimal amountRemaining;
+		if (maxAssignment == null) { 
+			amountRemaining = orderPosition.getAmountRemaining() ;
+		}
+		else {
+			amountRemaining = maxAssignment.min(orderPosition.getAmountRemaining()) ;			
+		}
+		
 		boolean breakStockUnit;
 		if (total.compareTo(amountRemaining) >= 0) {
     	List<CommandLink<Boolean>> links = new ArrayList<>();
     	links.add(new CommandLink<>(true, "Break stock unit", 
-    			Strings.format("Pick only {0} and leave an opened stock unit.", orderPosition.getAmountRemaining()), 
+    			Strings.format("Pick only {0} and leave an opened stock unit.", amountRemaining), 
     			R.svgPaths.openBox()));
     	
     	links.add(new CommandLink<>(false, "Use the full stock unit", 
-    			Strings.format("Use the full stock unit an pick {0}", total), 
+    			Strings.format("Use the full stock unit and pick {0}", total), 
     			R.svgPaths.box()));			
-    	
+
+    	links.add(new CommandLink<>(false, "Cancel", 
+    			Strings.format("Do not pick any stock units"), 
+    			R.svgPaths.box()));			
+
 			Optional<Boolean> l = MDialogs.create(getView(), "Assign picks")
 				.masthead("Would you to break the stock unit?")
 				.showLinks(links);
@@ -281,15 +328,15 @@ public class TreatOrderController extends MyWMSEditor<LOSCustomerOrder> implemen
 		BigDecimalBinding picked = pos.amountAssignedProperty(); 
 		BigDecimal amount = (pos.getAmount() == null) ? BigDecimal.ZERO : pos.getAmount();
 			
-		pi.progressProperty().bind(MBindings.get(picked, v -> v.divide(amount).doubleValue()));
-		pi.styleProperty().bind(Bindings.when(picked.isEqualTo(amount)).then("").otherwise("-fx-accent: RED"));
+		pi.progressProperty().bind(MBindings.get(picked, v -> v.doubleValue() / amount.doubleValue()));
+		pi.styleProperty().bind(Bindings.when(picked.compareTo(amount).lessThanOrEqualTo(0)).then("").otherwise("-fx-accent: RED"));
 		return pi;
 	}
 	
 	public CompletableFuture<List<BODTO<LOSStorageLocation>>> getStorageLocations(String searchString) {
 		if (searchString == null) return CompletableFuture.completedFuture(Collections.emptyList());
 		Client client = getData().getClient();
-		TemplateQueryWhereToken token = new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "area.useForGoodsOut", "true");
+		TemplateQueryWhereToken token = new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "area.useForGoodsOut", true);
 		return getExecutor().call(() -> locationQuery.autoCompletion(searchString, client, new TemplateQueryWhereToken[] {token}));
 	}
 	

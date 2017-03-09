@@ -57,6 +57,23 @@ public interface LOSOrderFacade {
 
 
 	/**
+	 * adds a order position to the specified order id.
+	 * positions can only be added to orders that are not yet released for picking.
+	 * @param orderId the order id to add to.
+	 * @param positions the positions to add
+	 * @throws FacadeException if the positions cannot be added.
+	 */
+	public void addOrderPosition(long orderId, OrderPositionTO[] positions) throws FacadeException;
+
+	/**
+	 * deletes the order position with the specified ids.
+	 * this method will not all deletions if the order is being picked.
+	 * @param positionIds the list of ids
+	 * @throws FacadeException if the position cannot be deleted
+	 */
+	public void deleteOrderPositions(long[] positionIds) throws FacadeException;
+
+	/**
 	 * Finishes a customer order.<br>
 	 * The order is finished in the current state. No further processing is done.
 	 * 

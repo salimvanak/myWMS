@@ -2,6 +2,7 @@ package uk.ltd.mediamagic.los.reference.ws;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -269,6 +270,11 @@ public class MagicStockQueryBean implements MagicStockQuery {
 			result.add(r);
 		}
 		return result;
+	}
+
+	//@Override
+	public List<QueryInventoryTO> getStockInventroy(String clientNumber, boolean consolidateLot) throws FacadeException {
+		return Arrays.asList(queryInventory.getInventoryList(clientNumber, consolidateLot, true));
 	}
 
 

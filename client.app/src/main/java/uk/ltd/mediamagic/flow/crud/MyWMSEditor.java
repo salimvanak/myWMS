@@ -32,9 +32,9 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 
 	//final private Logger log = MLogger.log(this);
 
-	public MyWMSEditor(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConveryer) {
+	public MyWMSEditor(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConverter) {
 		super(beanInfo);
-		setEditorHelper(new MyWMSEditorHelper(beanInfo, getConveryer));
+		setEditorHelper(new MyWMSEditorHelper<>(this, beanInfo, getConverter));
 	}
 
 	@Override
@@ -61,12 +61,12 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 		}
 	}
 
-	public class MyWMSEditorHelper extends PojoEditorHelper {
+	public static class MyWMSEditorHelper<T> extends PojoEditorHelper<T> {
 
 		private final Function<PropertyDescriptor, StringConverter<?>> getConverter;
 		
-		public MyWMSEditorHelper(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConverter) {
-			super(beanInfo);
+		public MyWMSEditorHelper(PoJoEditor<T> editor, BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConverter) {
+			super(editor, beanInfo);
 			this.getConverter = getConverter; 
 		}
 		
@@ -110,7 +110,7 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 		public void bind(EditorHelper e, String id, ListView node) {
 			super.bind(e, id, node);
 			if (e instanceof PoJoEditor.PojoEditorHelper) {
-				PropertyDescriptor pd = ((PoJoEditor<?>.PojoEditorHelper)e).getPropertyDescriptor(id); 
+				PropertyDescriptor pd = ((PojoEditorHelper<?>)e).getPropertyDescriptor(id); 
 				
 				Class<?> elementType = BeanUtils.getListElementType(pd);
 				if (BasicEntity.class.isAssignableFrom(elementType) && !node.getProperties().containsKey("BASIC-ENTITY-MENU-SET")) {
@@ -142,7 +142,7 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 			}
 		}		
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	class BEEditorHelper extends ControlHelperBase<BasicEntityEditor> {
 		public BEEditorHelper() {

@@ -6,15 +6,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 import org.mywms.model.User;
 
 import de.linogistix.los.inventory.facade.LOSOrderFacade;
 import de.linogistix.los.inventory.facade.LOSPickingFacade;
+import de.linogistix.los.inventory.facade.OrderPositionTO;
 import de.linogistix.los.inventory.model.LOSCustomerOrder;
+import de.linogistix.los.inventory.model.LOSCustomerOrderPosition;
 import de.linogistix.los.inventory.query.LOSCustomerOrderQueryRemote;
 import de.linogistix.los.inventory.query.dto.LOSCustomerOrderTO;
 import de.linogistix.los.location.model.LOSStorageLocation;
+import de.linogistix.los.model.Prio;
 import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.LOSResultList;
@@ -34,14 +38,16 @@ import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
+import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
-import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
+import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
+import uk.ltd.mediamagic.fx.converters.DateTimeConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -49,6 +55,7 @@ import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.fx.table.MTableViewBase;
 import uk.ltd.mediamagic.fxcommon.ObservableConstant;
 import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -57,14 +64,14 @@ import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.util.Closures;
 import uk.ltd.mediamagic.util.DateUtils;
 
-@SubForm(
-		title="Main", columns=1, 
-		properties={"number", "externalNumber", "externalId", "state", "strategy", "destination", "prio"}
-	)
-@SubForm(
-		title="Delivery", columns=2, 
-		properties={"customerNumber", "customerName", "delivery", "documentUrl", "labelUrl", "dtype"}
-	)
+//@SubForm(
+//		title="Main", columns=1, 
+//		properties={"number", "externalNumber", "externalId", "state", "strategy", "destination", "prio"}
+//	)
+//@SubForm(
+//		title="Delivery", columns=2, 
+//		properties={"customerNumber", "customerName", "delivery", "documentUrl", "labelUrl", "dtype"}
+//	)
 public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 
 	private enum Action {FinishOrder, FinishPicking, Remove, Start, Overview, TreatOrder}
@@ -251,12 +258,38 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		FlowUtils.showNext(flow, context, OrderStatusPane.class, pane);
 	}
 
+	private void createOrder(Object source, Flow flow, ViewContext context) {
+		LOSOrderFacade facade = context.getBean(LOSOrderFacade.class);
+		LOSCustomerOrder order = context.getExecutor().executeAndWait(context.getRootNode(), p -> {
+			return facade.order(null, null, new OrderPositionTO[0], null, null, null, null, null, Prio.NORMAL, false, false, null);
+		});
+		
+		MyWMSEditor<?> editor = getEditor(context, CRUDKeyUtils.createKey(order));
+		FlowUtils.showNext(flow, context, MyWMSEditor.class, editor);
+	}
+	
+	@Override
+	protected MyWMSEditor<LOSCustomerOrder> getEditor(ContextBase context, TableKey key) {
+		Long id = key.get("id");
+		if (id == null) {
+			log.log(Level.INFO, "id is null so cannot generate controller");
+			return null;
+		}
+
+		CustomerOrderController editor = new CustomerOrderController(getBeanInfo(), this::getConverter);
+		context.autoInjectBean(editor);
+		initialiseEditController(context, key, editor);
+			
+		return editor;
+	}
+	
 	@Override
 	public Flow createNewFlow(ApplicationContext context) {
 		Flow flow = super.createNewFlow(context);
 		flow
 		.global()
 			.action(Action.Overview, this::overview)
+			.action(Flow.CREATE_ACTION, this::createOrder)
 		.end()
 		.globalWithSelection()
 			.withSelection(Flow.DELETE_ACTION, this::removeOrder)

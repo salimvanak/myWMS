@@ -77,7 +77,7 @@ import uk.ltd.mediamagic.mywms.common.TableColumnBinding;
  */
 public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugin implements Editor<T> {
 	
-	private final Logger log = MLogger.log(this);
+	protected final Logger log = MLogger.log(this);
 	private final Class<T> boClass;
 	private final Class<? extends BusinessObjectQueryRemote<T>> queryBean;
 	private final Class<? extends BusinessObjectCRUDRemote<T>> crudBean;
@@ -359,15 +359,30 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 	 */
 	protected MyWMSEditor<T> getEditor(ContextBase context, TableKey key) {
 		Long id = key.get("id");
-		if (id == null) return null;
-
-		URL url = getClass().getResource(boClass.getSimpleName() + ".fxml");
+		if (id == null) {
+			log.log(Level.INFO, "id is null so cannot generate controller");
+			return null;
+		}
 
 		MyWMSEditor<T> controller = new MyWMSEditor<>(getBeanInfo(), this::getConverter);
+		context.autoInjectBean(controller);
+		initialiseEditController(context, key, controller);
+		return controller;
+	}
+	
+	
+	protected void initialiseEditController(ContextBase context, TableKey key, MyWMSEditor<T> controller) {		
+		Long id = key.get("id");
+		if (id == null) {
+			log.log(Level.INFO, "id is null so cannot generate controller");
+			throw new IllegalStateException("ID cannot be null");
+		}
+		
+		URL url = getClass().getResource(boClass.getSimpleName() + ".fxml");
+
 		configureCommands(controller.getCommands());
 		controller.getCommands().end();
 		controller.setUserPermissions(getUserPermissions());
-		context.autoInjectBean(controller);
 		if (url == null) {
 			SubForm[] subForms = getClass().getAnnotationsByType(SubForm.class);
 			List<SubForm> subFormsList = (subForms == null) ? Collections.emptyList() : Arrays.asList(subForms);
@@ -378,9 +393,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 			MFXMLLoader.loadFX(url, controller);
 		}
 		getData(context, id).thenAcceptAsync(controller::setData, Platform::runLater);
-		return controller;
 	}
-	
 	
 	
 	/**
