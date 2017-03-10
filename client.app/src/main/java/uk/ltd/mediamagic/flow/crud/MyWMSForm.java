@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.Lob;
+
 import org.mywms.model.BasicEntity;
 
 import javafx.scene.control.ListView;
@@ -116,7 +118,7 @@ public class MyWMSForm extends PojoForm {
 		descriptors.removeIf(p -> MArrays.contains(p.getName(), "version"));
 		super.buildForm(form, descriptors);
 	}
-
+	
 	public void doFields(SimpleFormBuilder form, int colCount, String[] names) {
 		int col = 0;
 		Row row = null;
@@ -126,11 +128,14 @@ public class MyWMSForm extends PojoForm {
 				log.log(Level.WARNING, "Unable to find property {0}", name);
 				continue;
 			}
-			//				if (Class.class == p.getPropertyType()) {
-			//					continue;
-			//				}
 			else if (List.class.isAssignableFrom(p.getPropertyType())) {
 				addListFor(p);
+			}
+			else if (p.getReadMethod().isAnnotationPresent(Lob.class)) {
+				TextArea area = new TextArea();
+				area.setPrefRowCount(10);
+				addRight(BeanUtils.getDisplayName(p), area);
+				addToNamespace(p.getName(), area);				
 			}
 			else {
 				if (row == null) {

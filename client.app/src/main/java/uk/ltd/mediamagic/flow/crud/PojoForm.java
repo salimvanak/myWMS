@@ -12,11 +12,14 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.persistence.Lob;
+
 import org.mywms.model.BasicEntity;
 
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -86,6 +89,12 @@ public class PojoForm extends SplitPane {
 			if ("class".equals(pds.getName())) continue; // skip the class property
 			else if (Collection.class.isAssignableFrom(pds.getPropertyType())) {
 				addListFor(pds);
+			}
+			else if (pds.getReadMethod().isAnnotationPresent(Lob.class)) {
+				TextArea area = new TextArea();
+				area.setPrefRowCount(10);
+				addRight(BeanUtils.getDisplayName(pds), area);
+				addToNamespace(pds.getName(), area);				
 			}
 			else {
 				Row row = form.row();

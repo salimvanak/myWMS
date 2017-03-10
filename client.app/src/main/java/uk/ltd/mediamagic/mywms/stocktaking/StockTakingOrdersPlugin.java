@@ -1,25 +1,37 @@
 package uk.ltd.mediamagic.mywms.stocktaking;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
+import de.linogistix.los.stocktaking.facade.LOSStocktakingFacade;
 import de.linogistix.los.stocktaking.model.LOSStocktakingOrder;
 import de.linogistix.los.stocktaking.model.LOSStocktakingState;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.CrudTable;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
+import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
+import uk.ltd.mediamagic.fx.data.TableKey;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
+import uk.ltd.mediamagic.fx.flow.Flow;
+import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 
+	private enum Action {Recount, AcceptCount};
 	enum StockTakingFilter {All, Open, Waiting, Processing, Finished}
 	
 	public StockTakingOrdersPlugin() {
@@ -74,11 +86,57 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 			.thenAccept(source::setItems);					
 	}
 	
+	public void recount(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		List<Long> sel = key.stream().map(CRUDKeyUtils::getID).collect(Collectors.toList());
+		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
+		context.getBean(MExecutor.class).execute(p -> {
+			p.setSteps(sel.size());
+			for (Long id : sel) {
+				if (id == null) continue;
+				service.recountOrder(id);
+				p.step();
+			}
+			return null;
+		});
+	}
+
+	public void acceptCount(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		List<Long> sel = key.stream().map(CRUDKeyUtils::getID).collect(Collectors.toList());
+		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
+		context.getBean(MExecutor.class).execute(p -> {
+			p.setSteps(sel.size());
+			for (Long id : sel) {
+				if (id == null) continue;
+				service.acceptOrder(id);
+				p.step();
+			}
+			return null;
+		});
+	}
+
 	@Override
 	protected CrudTable<LOSStocktakingOrder> getTable(ViewContextBase context) {
 		CrudTable<LOSStocktakingOrder> table = super.getTable(context);
 		QueryUtils.addFilter(table, StockTakingFilter.Open, () -> refresh(table, context));
 		return table;
+	}
+	
+	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		return super.createNewFlow(context)
+				.globalWithSelection()
+					.withMultiSelection(Action.Recount, this::recount)
+					.withMultiSelection(Action.AcceptCount, this::acceptCount)
+				.end();
+	}
+	
+	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command.begin("actions")
+			.add(AC.id(Action.AcceptCount).text("Accept Count").description("Accept the stock count and adjust unit loads."))			
+			.add(AC.id(Action.Recount).text("Recount").description("Order a recount on this location."))
+		.end();
 	}
 		
 }

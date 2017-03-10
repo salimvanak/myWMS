@@ -316,6 +316,8 @@ public class MyWMS extends Application {
       	FxExceptions.exceptionThrown(e);
       }
     }
+
+    plugins.add(new SystemModule());
     plugins.add(new InventoryModule());
     plugins.add(new GoodsInModule());
     plugins.add(new GoodsOutModule());

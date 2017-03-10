@@ -1,5 +1,6 @@
 package uk.ltd.mediamagic.mywms;
 
+import de.linogistix.los.stocktaking.model.LOSStocktakingRecord;
 import uk.ltd.mediamagic.mywms.stocktaking.StockTakingOrdersPlugin;
 import uk.ltd.mediamagic.mywms.stocktaking.StockTakingRecordsPlugin;
 import uk.ltd.mediamagic.plugin.AbstractPluginSet;
@@ -15,6 +16,7 @@ public class StockTakingModule extends AbstractPluginSet {
   public PluginRelation getPlugins() {
     PluginRelation m = new PluginRelation();
 
+    m.put(LOSStocktakingRecord.class, StockTakingRecordsPlugin.class);
     m.put(StockTakingRecordsPlugin.class);
     m.put(StockTakingOrdersPlugin.class);
 

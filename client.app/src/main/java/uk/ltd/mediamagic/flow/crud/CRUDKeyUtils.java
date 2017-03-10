@@ -30,7 +30,7 @@ public class CRUDKeyUtils {
 		return (key == null) ? null : key.get("bodto");
 	}
 
-	public static Integer getID(TableKey key) {
+	public static Long getID(TableKey key) {
 		return (key == null) ? null : key.get("id");
 	}
 

@@ -38,6 +38,7 @@ import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
@@ -246,6 +247,10 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 
 		MyWMSEditor<T> controller = new MyWMSEditor<>(getBeanInfo(), this::getConverter);
 		context.autoInjectBean(controller);
+
+		configureCommands(controller.getCommands());
+		controller.getCommands().end();
+
 		if (url == null) {
 			SubForm[] subForms = getClass().getAnnotationsByType(SubForm.class);
 			List<SubForm> subFormsList = (subForms == null) ? Collections.emptyList() : Arrays.asList(subForms);
@@ -275,6 +280,9 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 	 */
 	protected abstract List<String> getTableColumns();
 
+	protected void configureCommands(RootCommand command) {
+	}
+
 	/**
 	 * Generate the table layout for table selectors.
 	 * The method should be overridden when the table layout needs to be customised.
@@ -284,6 +292,8 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 	protected CrudTable<T> getTable(ViewContextBase context) {
 		CrudTable<T> table = new CrudTable<>();	
 		
+		configureCommands(table.getCommands());
+		table.getCommands().end();
 		UserPermissions userPermissions = getUserPermissions();
 		Iterable<String> columns = getTableColumns().stream()
 				.filter(s -> Optional.ofNullable(userPermissions.isVisible(s)).map(ObservableBooleanValue::get).orElse(true))

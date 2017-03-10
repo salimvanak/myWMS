@@ -33,31 +33,12 @@ public interface Editor<T extends BasicEntity> extends Plugin<T> {
 	void view(ContextBase context, Flow flow, Class<T> dataClass, long id);
 
 	/**
-	 * A list cell renderer factory suitable for rendering the type of this editor.
-	 * @param listView the list view on which this cell render will operate.
-	 * @return a list cell that will renderer the type.
-	 */
-//	default Callback<ListView<T>, ListCell<T>> createListCellFactory() {
-//		return CellWrappers.forList(createCellFactory());
-//	};
-
-	/**
 	 * A cell renderer factory suitable for rendering the type of this editor.
 	 * @param listView the list view on which this cell render will operate.
 	 * @return a list cell that will renderer the type.
 	 */
 	Supplier<CellRenderer<T>> createCellFactory();
 
-	/**
-	 * A list cell renderer factory suitable for rendering the 
-	 * transfer objects for this type of this editor.
-	 * @param listView the list view on which this cell render will operate.
-	 * @return a list cell that will renderer the type.
-	 */
-//	default Callback<ListView<BODTO<T>>, ListCell<BODTO<T>>> createTOListCellFactory() {
-//		return CellWrappers.forList(createTOCellFactory());
-//	};
-	
 	/**
 	 * A cell renderer factory suitable for rendering the type of this editor.
 	 * @param listView the list view on which this cell render will operate.
