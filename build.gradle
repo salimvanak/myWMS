@@ -20,12 +20,12 @@ task wildflyDocker (type: Docker) {
 
   setEnvironment('POSTGRES_URI','db')
   setEnvironment('POSTGRES_DB','los_reference')
+
   runCommand '$JBOSS_HOME/bin/add-user.sh admin ${JBOSS_SECRET:-admin} --silent'
   runCommand('curl -o $JBOSS_HOME/standalone/deployments/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar')
 
-  addFile('config/start-wildfly.sh', '$JBOSS_HOME/start-wildfly.sh')
-  runCommand('touch $JBOSS_HOME/start-wildfly.sh')
-  runCommand('chmod +x $JBOSS_HOME/start-wildfly.sh')
+  addFile('config/start-wildfly.sh', '/start-wildfly.sh')
+  runCommand('chmod +x /start-wildfly.sh')
 
   addFile('config/standalone.xml', '${JBOSS_HOME}/standalone/configuration/')
   addFile {

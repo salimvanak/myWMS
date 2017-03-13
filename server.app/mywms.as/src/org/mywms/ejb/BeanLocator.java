@@ -51,7 +51,7 @@ public class BeanLocator implements Externalizable {
 	private transient QueueConnectionFactory connectionFactory;
 
 	private Properties initialContextProperties;
-	
+
 	private Properties appServerProperties;
 
 	private String applicationName;
@@ -99,7 +99,7 @@ public class BeanLocator implements Externalizable {
 		if (jndiProps != null) {
 			initialContextProperties = jndiProps;
 		}
-		
+
 		if(appServerProps !=null) {
 			appServerProperties = appServerProps;
 		}
@@ -107,10 +107,10 @@ public class BeanLocator implements Externalizable {
 		mappingHash = propertiesToMapForModules(appServerProperties);
 
 		applicationName = appServerProperties.getProperty("org.mywms.env.applicationName");
-		
+
 		String defaultUser = initialContextProperties.getProperty("org.mywms.env.defaultUser");
 		String defaultPassword = initialContextProperties.getProperty("org.mywms.env.defaultPassword");
-		
+
 		// with default user
 		if (defaultUser != null && defaultPassword != null && !defaultUser.isEmpty() && !defaultPassword.isEmpty()) {
 			authentification(defaultUser, defaultPassword);
@@ -138,13 +138,13 @@ public class BeanLocator implements Externalizable {
 		}
 		initialContextProperties = new Properties();
 		applicationName = this.appServerProperties.getProperty("org.mywms.env.applicationName");
-		
-//		appServerProperties.put(Context.INITIAL_CONTEXT_FACTORY,
-//				"org.jboss.naming.remote.client.InitialContextFactory");
+
+		//		appServerProperties.put(Context.INITIAL_CONTEXT_FACTORY,
+		//				"org.jboss.naming.remote.client.InitialContextFactory");
 
 		mappingHash = propertiesToMapForModules(appServerProperties);
-//		logger.debug("initialize mappingHash: " + mappingHash);
-		
+		//		logger.debug("initialize mappingHash: " + mappingHash);
+
 	}
 
 	private static Map<String, String> propertiesToMapForModules(Properties props) {
@@ -159,7 +159,7 @@ public class BeanLocator implements Externalizable {
 
 				for (String p : packages) {
 					hm.put(p, s.replaceFirst(SEARCH_KEY, ""));
-//					logger.info("Mapping : key = " + p + " : value = " + s.replaceFirst(SEARCH_KEY, ""));
+					//					logger.info("Mapping : key = " + p + " : value = " + s.replaceFirst(SEARCH_KEY, ""));
 				}
 			}
 		}
@@ -168,7 +168,7 @@ public class BeanLocator implements Externalizable {
 
 	private void authentification(String username, String password) {
 
-//		logger.info("authentification with username: " + username + " and password: " + password);
+		//		logger.info("authentification with username: " + username + " and password: " + password);
 
 		initialContextProperties.put("remote.connections", "default");
 
@@ -183,15 +183,15 @@ public class BeanLocator implements Externalizable {
 		initialContextProperties.put(
 				"remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOANONYMOUS",
 				initialContextProperties
-						.get("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOANONYMOUS"));
+				.get("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOANONYMOUS"));
 		initialContextProperties.put(
 				"remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOPLAINTEXT",
 				initialContextProperties
-						.get("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOPLAINTEXT"));
+				.get("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOPLAINTEXT"));
 		initialContextProperties.put(
 				"remote.connection.default.connect.options.org.xnio.Options.SASL_DISALLOWED_MECHANISMS",
 				initialContextProperties
-						.get("remote.connection.default.connect.options.org.xnio.Options.SASL_DISALLOWED_MECHANISMS"));
+				.get("remote.connection.default.connect.options.org.xnio.Options.SASL_DISALLOWED_MECHANISMS"));
 		initialContextProperties.put("remote.initialContextProperties.create.options.org.xnio.Options.SSL_ENABLED",
 				initialContextProperties.get("remote.connectionprovider.create.options.org.xnio.Options.SSL_ENABLED"));
 
@@ -236,7 +236,7 @@ public class BeanLocator implements Externalizable {
 			initialContextProperties.put("jboss.naming.client.ejb.context", "true");
 		}
 	}
-    
+
 	public <T> T getStateless(Class<T> interfaceClazz) {
 		String logStr = "getStateless ";
 
@@ -245,17 +245,17 @@ public class BeanLocator implements Externalizable {
 			return null;
 		}
 
-		
+
 		String interfacePackage = interfaceClazz.getPackage().getName();
 		String interfaceName = interfaceClazz.getName();
-		
+
 		String moduleName = null;
 		// Try to resolve complete interface name
 		for (Iterator<String> it = mappingHash.keySet().iterator(); it.hasNext();) {
 			String s = it.next();
 			if (interfaceName.equals(s)) {
 				moduleName = mappingHash.get(s);
-//				logger.info(logStr + "moduleName: " + moduleName + ", key: " + s);
+				//				logger.info(logStr + "moduleName: " + moduleName + ", key: " + s);
 				break;
 			}
 		}
@@ -265,7 +265,7 @@ public class BeanLocator implements Externalizable {
 				String s = it.next();
 				if (interfacePackage.contains(s)) {
 					moduleName = mappingHash.get(s);
-//					logger.info(logStr + "moduleName: " + moduleName + ", key: " + s);
+					//					logger.info(logStr + "moduleName: " + moduleName + ", key: " + s);
 					break;
 				}
 			}
@@ -290,23 +290,23 @@ public class BeanLocator implements Externalizable {
 			return null;
 		}
 
-//		logger.info(logStr + "---- get Stateless Session Bean " + lookUpString);
+		//		logger.info(logStr + "---- get Stateless Session Bean " + lookUpString);
 		//Properties jndiProperties = new Properties();
 		//jndiProperties.put(Context.URL_PKG_PREFIXES, "org.jboss.ejb.client.naming");
 		//jndiProperties.put("jboss.naming.client.ejb.context", "true");
-	
+
 		try {			
-	        //(T) statelessCache.get(lookUpString);
-	        //if (stateless == null) {
-	        T stateless = (T) getInitialContext().lookup(lookUpString);
-	        //statelessCache.put(lookUpString, stateless);
-	        //}
-	        return stateless;
+			//(T) statelessCache.get(lookUpString);
+			//if (stateless == null) {
+			T stateless = (T) getInitialContext().lookup(lookUpString);
+			//statelessCache.put(lookUpString, stateless);
+			//}
+			return stateless;
 		} catch (NamingException ne) {
 			logger.error(logStr + "Error when trying lookup: " + ne.getLocalizedMessage());
 			throw new BeanLocatorException(ne);
 		}
-		
+
 	}
 
 	public <T> T getStateful(Class<T> interfaceClazz) {
@@ -370,19 +370,55 @@ public class BeanLocator implements Externalizable {
 
 	public void writeExternal(ObjectOutput out) throws IOException {
 	}
-	
 
-    private String resolve(Class<?> interfaceClazz, String applicationName, String moduleName) {
-    	String logStr="resolve ";
-        String beanName;
-        String jndiName;
-        beanName = interfaceClazz.getSimpleName().replaceFirst("Remote","");
-       jndiName ="ejb:" + applicationName
-                + "/"+ moduleName + "//"
-                + beanName + "Bean!" + interfaceClazz.getName();
-       logger.debug(logStr+ "jndiName: "+jndiName);
-       System.out.println(logStr+ "jndiName: "+jndiName);
-       return  jndiName;
-    }
+
+	private String resolve(Class<?> interfaceClazz, String applicationName, String moduleName) {
+		String logStr="resolve ";
+		String beanName;
+		String jndiName;
+		beanName = interfaceClazz.getSimpleName().replaceFirst("Remote","");
+		jndiName ="ejb:" + applicationName
+				+ "/"+ moduleName + "//"
+				+ beanName + "Bean!" + interfaceClazz.getName();
+		logger.debug(logStr+ "jndiName: "+jndiName);
+		System.out.println(logStr+ "jndiName: "+jndiName);
+		return  jndiName;
+	}
+
+
+	public static BeanLocator lookupBeanLocator(String server, int port, String username, String password) {
+		// if you want to load the config from a file. 
+		//Properties jndi = AppPreferences.loadFromClasspath("/config/wf8-context.properties");
+		//Properties appserver = AppPreferences.loadFromClasspath("/config/appserver.properties");
+
+		Properties jndi = new Properties();
+		jndi.setProperty("org.mywms.env.as.vendor", "jboss");
+		jndi.setProperty("org.mywms.env.as.version", "8.2");
+
+		jndi.setProperty("remote.connections", "default");
+		jndi.setProperty("remote.connection.default.port", Integer.toString(port));
+		jndi.setProperty("remote.connection.default.host", server);
+		jndi.setProperty("remote.connection.default.connect.timeout","1500");
+
+		jndi.setProperty("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOANONYMOUS", "true");
+		jndi.setProperty("remote.connection.default.connect.options.org.xnio.Options.SASL_POLICY_NOPLAINTEXT", "false");
+		jndi.setProperty("remote.connection.default.connect.options.org.xnio.Options.SASL_DISALLOWED_MECHANISMS", "JBOSS-LOCAL-USER");
+		jndi.setProperty("remote.connectionprovider.create.options.org.xnio.Options.SSL_ENABLED", "false");
+
+		Properties appserver = new Properties();
+		appserver.setProperty("org.mywms.env.applicationName", "los.reference");
+		appserver.setProperty("org.mywms.env.mapping.project-ejb3", "de.linogistix.los.reference,de.linogistix.los.common.facade.VersionFacade");
+		appserver.setProperty("org.mywms.env.mapping.myWMS-comp", "org.mywms");
+		appserver.setProperty("org.mywms.env.mapping.los.stocktaking-comp", "de.linogistix.los.stocktaking");
+		appserver.setProperty("org.mywms.env.mapping.los.mobile-comp", "de.linogistix.mobileserver");
+		appserver.setProperty("org.mywms.env.mapping.los.mobile","de.linogistix.mobile.common, de.linogistix.mobile.processes");
+		appserver.setProperty("org.mywms.env.mapping.los.location-comp", "de.linogistix.los.location");
+		appserver.setProperty("org.mywms.env.mapping.los.inventory-ws", "de.linogistix.los.inventory.ws");
+		appserver.setProperty("org.mywms.env.mapping.los.inventory-comp", "de.linogistix.los.inventory");
+		appserver.setProperty("org.mywms.env.mapping.los.common-comp", "de.linogistix.los.common,de.linogistix.los.crud,de.linogistix.los.customization,de.linogistix.los.entityservice,de.linogistix.los.query,de.linogistix.los.report,de.linogistix.los.runtime,de.linogistix.los.user,de.linogistix.los.util");
+
+		BeanLocator b = new BeanLocator(username, password, jndi, appserver);
+		return b;
+	}
 
 }

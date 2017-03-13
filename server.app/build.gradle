@@ -3,8 +3,10 @@ plugins {
 }
 
 apply plugin: 'ear'
+apply plugin: 'groovy'
 
 version = '1.8.0'
+def DB_GROUP = 'DataBase Utililities'
 
 configurations {
     hibtools
@@ -36,7 +38,9 @@ dependencies {
   hibtools group: 'org.postgresql', name: 'postgresql', version: '9.4.1208'
 }
 
-task createSQLScript(dependsOn: ['build']) << {
+task createSQLScript(dependsOn: ['build']) {
+  group = DB_GROUP
+  doLast {
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
@@ -44,9 +48,12 @@ task createSQLScript(dependsOn: ['build']) << {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
         ant.hbm2ddl(drop: 'false', export: 'false', outputfilename: 'mydb.sql')
     }
+  }
 }
 
-task dropSchema(dependsOn: ['build']) << {
+task dropSchema(dependsOn: ['build']) {
+  group = DB_GROUP
+  doLast {
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
@@ -54,9 +61,12 @@ task dropSchema(dependsOn: ['build']) << {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
         ant.hbm2ddl(export: 'true', create: 'false', update:'false', drop:'true')
     }
+  }
 }
 
-task createSchema(dependsOn: ['build']) << {
+task createSchema(dependsOn: ['build']) {
+  group = DB_GROUP
+  doLast {
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
@@ -64,9 +74,12 @@ task createSchema(dependsOn: ['build']) << {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
         ant.hbm2ddl(create: 'true', export: 'true')
     }
+  }
 }
 
-task updateSchema(dependsOn: ['build']) << {
+task updateSchema(dependsOn: ['build']) {
+  group = DB_GROUP
+  doLast {
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
@@ -74,9 +87,8 @@ task updateSchema(dependsOn: ['build']) << {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
         ant.hbm2ddl(export: 'true', create: 'false', update:'true', drop:'false')
     }
+  }
 }
-
-
 
 ear {
   archiveName 'los.reference.ear'
@@ -110,11 +122,31 @@ subprojects {
     compile 'org.hibernate:hibernate-core:4.3.7.Final'
     compile 'log4j:log4j:1.2.17'
     compile group: 'org.jboss', name: 'jboss-ejb-client', version: '2.1.6.Final'
+
+    // The production code uses the SLF4J logging API at compile time
+    compile 'org.slf4j:slf4j-api:1.7.14'
+
+      // We use the latest groovy 2.x version for Spock testing
+    compile 'org.codehaus.groovy:groovy-all:2.4.5'
+
+    // Use the awesome Spock testing and specification framework even with Java
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testCompile 'junit:junit:4.12'
+
+  }
+
+  sourceSets {
+    test {
+      java.srcDir 'test'
+      resources.srcDir 'src'
+    }
   }
 }
 
 allprojects {
-	repositories {
+  apply plugin: 'eclipse'
+
+  repositories {
 		jcenter()
     mavenCentral()
 

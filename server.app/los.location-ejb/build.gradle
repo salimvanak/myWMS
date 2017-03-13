@@ -8,6 +8,9 @@ sourceSets {
 dependencies {
   compile project(':server.app:los.common-ejb')
   compile 'org.apache.commons:commons-lang3:3.4'
+
+  testCompile project(':server.app:mywms.as').sourceSets.test.output
+  testCompile project(':server.app:los.common-ejb').sourceSets.test.output
 }
 
 jar {
