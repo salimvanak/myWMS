@@ -15,7 +15,8 @@ webAppDirName = 'WebContent'
 
 dependencies {
   serverCompile project(':server.app:los.stocktaking-ejb')
-
+	serverCompile group: 'javax.faces', name: 'jsf-api', version: '2.1'
+	
   providedCompile sourceSets.server.output
   providedCompile project(':server.app:los.stocktaking-ejb')
 }

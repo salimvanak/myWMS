@@ -3,6 +3,11 @@ sourceSets {
     java.srcDir 'src'
     resources.srcDir 'src'
   }
+  test {
+    java.srcDir 'test/java'
+    groovy.srcDir 'test/groovy'
+    resources.srcDir 'src'
+  }
 }
 
 jar {

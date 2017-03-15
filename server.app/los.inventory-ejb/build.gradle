@@ -3,6 +3,15 @@ sourceSets {
     java.srcDir 'src'
     resources.srcDir 'src'
   }
+  test {
+    java.srcDir 'test/java'
+    resources.srcDir 'test/java'
+    groovy.srcDir 'test/groovy'
+  }
+}
+
+test {
+  exclude 'de/**'
 }
 
 dependencies {
@@ -10,7 +19,6 @@ dependencies {
 
   testCompile project(':server.app:mywms.as').sourceSets.test.output
   testCompile project(':server.app:los.common-ejb').sourceSets.test.output
-  testCompile project(':server.app:los.location-ejb').sourceSets.test.output
 }
 
 jar {
