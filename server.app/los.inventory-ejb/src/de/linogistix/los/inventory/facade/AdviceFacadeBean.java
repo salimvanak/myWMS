@@ -108,9 +108,7 @@ public class AdviceFacadeBean implements AdviceFacade {
 			throw new InventoryException(InventoryExceptionKey.NO_SUCH_ITEMDATA, item.getName());
 		}
 		
-		adviceBusiness.goodsAdvise(client, itemData, lot, amount, expireLot, expectedDelivery, requestId);
-
-		return null;
+		return adviceBusiness.goodsAdvise(client, itemData, lot, amount, expireLot, expectedDelivery, requestId);
 	}
 	
 }

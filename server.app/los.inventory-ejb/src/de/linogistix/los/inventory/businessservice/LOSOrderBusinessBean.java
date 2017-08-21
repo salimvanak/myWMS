@@ -242,7 +242,12 @@ public class LOSOrderBusinessBean implements LOSOrderBusiness {
 			return pickingOrder;
 		}
 		
-		pickingOrder.setState(State.PROCESSABLE);
+		if (pickingOrder.getOperator() == null) {
+			pickingOrder.setState(State.PROCESSABLE);
+		}
+		else {
+			pickingOrder.setState(State.RESERVED);			
+		}
 		
 		manageOrderService.onPickingOrderStateChange(pickingOrder, stateOld);
 

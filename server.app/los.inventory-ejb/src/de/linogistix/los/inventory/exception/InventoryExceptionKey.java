@@ -64,6 +64,7 @@ public enum InventoryExceptionKey {
     NO_SUCH_GOODS_OUT,
     NO_SUCH_ITEMDATA,
     NO_SUCH_LOT,
+    NO_SUCH_ORDER, 
     NO_SUCH_ORDERPOSITION, 
     NO_SUCH_STORAGELOCATION, 
     NO_SUCH_UNITLOAD,

@@ -137,9 +137,9 @@ public abstract class BusinessObjectCRUDBean<T extends BasicEntity> implements
 			// log.debug("result of merge: " + newE.toString());
 			// manager.flush();
 			User user = getCallersUser();
-			log
-					.info(user.getName() + " created: "
-							+ newE.toDescriptiveString());
+//			log
+//					.info(user.getName() + " created: "
+//							+ newE.toDescriptiveString());
 			return newE;
 
 		} catch (Throwable t) {

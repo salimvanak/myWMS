@@ -157,7 +157,7 @@ public class LOSPickingFacadeBean implements LOSPickingFacade {
 			try {
 				user = userService.getByUsername(userName);
 				order.setOperator(user);
-				if( order.getState()<State.RESERVED ) {
+				if(State.RAW < order.getState() && order.getState()< State.RESERVED ) {
 					order.setState(State.RESERVED);
 				}
 			} catch (EntityNotFoundException e) {
@@ -166,7 +166,7 @@ public class LOSPickingFacadeBean implements LOSPickingFacade {
 		}
 		else {
 			order.setOperator(null);
-			if( order.getState()==State.RESERVED ) {
+			if(order.getState() == State.RESERVED ) {
 				order.setState(State.PROCESSABLE);
 			}
 		}
@@ -523,7 +523,7 @@ public class LOSPickingFacadeBean implements LOSPickingFacade {
 	@Override
 	public LOSPickingOrder createNewPickingOrder(String orderNumber, String sequenceName, boolean isManual) throws FacadeException {
 		LOSCustomerOrder order = orderService.getByNumber(orderNumber);
-		if (order == null) throw new InventoryException(InventoryExceptionKey.NO_SUCH_ORDERPOSITION, orderNumber);
+		if (order == null) throw new InventoryException(InventoryExceptionKey.NO_SUCH_ORDER, orderNumber);
 		
 		LOSPickingOrder po = pickingOrderService.create(order.getClient(), order.getStrategy(), sequenceName);
 		po.setCustomerOrderNumber(order.getNumber());

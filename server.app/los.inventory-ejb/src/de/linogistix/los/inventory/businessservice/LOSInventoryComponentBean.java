@@ -437,8 +437,8 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 
 			recalculateWeightDiff((LOSUnitLoad)su.getUnitLoad(), su.getItemData(), amount.negate());
 			recalculateWeightDiff((LOSUnitLoad)dest.getUnitLoad(), dest.getItemData(), amount);
-
-			recordService.recordRemoval(amount.negate(), su, activityCode, null, null);
+		
+			recordService.recordRemoval(amount.negate(), su, activityCode, null, getCallersUsername());
 			recordService.recordCreation(amount, dest, activityCode);
 
 			manageStockService.onStockAmountChange(su, amountSourceOld);
