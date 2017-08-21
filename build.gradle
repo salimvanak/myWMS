@@ -25,7 +25,7 @@ task wildflyDocker (type: Docker) {
   runCommand('curl -o $JBOSS_HOME/standalone/deployments/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar')
 
   addFile('config/start-wildfly.sh', '/start-wildfly.sh')
-  runCommand('chmod +x /start-wildfly.sh')
+  //runCommand('chmod +x /start-wildfly.sh')
 
   addFile('config/standalone.xml', '${JBOSS_HOME}/standalone/configuration/')
   addFile {
@@ -36,7 +36,7 @@ task wildflyDocker (type: Docker) {
 
   exposePort(8080)
   exposePort(9990)
-  defaultCommand(['$JBOSS_HOME/start-wildfly.sh'])
+  defaultCommand(['bash', ,'-i', '/start-wildfly.sh'])
 }
 
 task postgresDocker (type: Docker) {
