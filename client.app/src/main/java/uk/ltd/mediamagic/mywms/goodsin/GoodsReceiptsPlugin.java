@@ -4,14 +4,17 @@ import java.beans.PropertyDescriptor;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.mywms.model.Client;
 
 import de.linogistix.los.inventory.facade.LOSGoodsReceiptFacade;
 import de.linogistix.los.inventory.model.LOSGoodsReceipt;
 import de.linogistix.los.inventory.model.LOSGoodsReceiptState;
+import de.linogistix.los.inventory.query.LOSGoodsReceiptQueryRemote;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.query.dto.StorageLocationTO;
 import de.linogistix.los.query.BODTO;
@@ -28,8 +31,10 @@ import res.R;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
+import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
+import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.controller.MapFormController;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
@@ -57,6 +62,8 @@ import uk.ltd.mediamagic.util.DateUtils;
 	)
 public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 
+	private enum Action {CANCEL_RECEIPT};
+	
 	public GoodsReceiptsPlugin() {
 		super(LOSGoodsReceipt.class);
 	}
@@ -71,6 +78,9 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 		Flow flow = super.createNewFlow(context);
 		flow.with(BODTOTable.class) 
 			.action(Flow.CREATE_ACTION, this::createNewGoodsReceipt)
+			// the java compiler is complaining that the type is mismatched.  Uncomment and recompile gradle
+			//.withMultiSelection(Action.CANCEL_RECEIPT, this::cancelGoodsReceipt) 
+			.withMultiSelection(Action.CANCEL_RECEIPT, (s,f,c,k) -> cancelGoodsReceipt((BODTOTable<?>)s,f,c,k))
 		.end();
 		return flow;
 	}
@@ -84,6 +94,8 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 			TemplateQueryFilter filter = template.addNewFilter();
 			filter.addWhereToken(new TemplateQueryWhereToken(
 					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "receiptState", LOSGoodsReceiptState.FINISHED));
+			filter.addWhereToken(new TemplateQueryWhereToken(
+					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "receiptState", LOSGoodsReceiptState.CANCELED));
 		}
 
 		QueryDetail detail = source.createQueryDetail();
@@ -97,8 +109,29 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 	@Override
 	protected BODTOTable<LOSGoodsReceipt> getTable(ViewContextBase context) {
 		BODTOTable<LOSGoodsReceipt> t = super.getTable(context);
+		t.getCommands()
+			.add(AC.id(Action.CANCEL_RECEIPT).text("Cancel Receipt"))
+		.end();
 		GoodsOutUtils.addOpenFilter(t, () -> refresh(t, t.getContext()));
 		return t;
+	}
+
+	public void cancelGoodsReceipt(BODTOTable<?> source, Flow flow, ViewContext context, Collection<TableKey> keys) {
+		LOSGoodsReceiptFacade facade = context.getBean(LOSGoodsReceiptFacade.class);
+		LOSGoodsReceiptQueryRemote query = context.getBean(LOSGoodsReceiptQueryRemote.class);
+		List<Long> ids = keys.stream().map(CRUDKeyUtils::getID).collect(Collectors.toList());
+		context.getExecutor().execute(p -> {
+			p.setSteps(ids.size());
+			for (Long id : ids) {
+				p.step();
+				LOSGoodsReceipt r = query.queryById(id);
+				facade.cancelGoodsReceipt(r);				
+			}
+			return null;
+		})
+		.whenCompleteUI((x,e) -> {
+			source.saveAndRefresh();
+		});
 	}
 	
 	public void createNewGoodsReceipt(BODTOTable<LOSGoodsReceipt> source, Flow flow, ViewContext context) {

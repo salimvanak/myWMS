@@ -31,7 +31,7 @@ import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 
-	private enum Action {Recount, AcceptCount};
+	private enum Action {Recount, AcceptCount, CreateOrder};
 	enum StockTakingFilter {All, Open, Waiting, Processing, Finished}
 	
 	public StockTakingOrdersPlugin() {
@@ -84,6 +84,15 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 		getListData(context, detail, template)
 			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
 			.thenAccept(source::setItems);					
+	}
+	
+	@Override
+	protected void createAction(CrudTable<LOSStocktakingOrder> source, Flow flow, ViewContext context) {
+		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
+		
+//		MDialogs.create(owner)
+//		
+//		service.generateOrders(execute, clientId, areaId, zoneId, rackId, locationId, locationName, itemId, itemNo, invDate, enableEmptyLocations, enableFullLocations, clientModeLocations, clientModeItemData)
 	}
 	
 	public void recount(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {

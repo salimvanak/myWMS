@@ -3,6 +3,7 @@ package uk.ltd.mediamagic.mywms.goodsout;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ import javax.annotation.PostConstruct;
 
 import org.mywms.model.ItemData;
 import org.mywms.model.Lot;
+import org.mywms.model.User;
 
 import de.linogistix.los.inventory.crud.LOSPickingOrderCRUDRemote;
 import de.linogistix.los.inventory.facade.LOSCompatibilityFacade;
@@ -44,7 +46,10 @@ import uk.ltd.mediamagic.fx.binding.BigDecimalBinding;
 import uk.ltd.mediamagic.fx.binding.FxCollectors;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
+import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.fxcommon.ObservableConstant;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPickingOrderProperties;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPickingOrderProperties.PickingOrderProperties;
 
 public class TreatOrderModel {
 	private final ObjectProperty<LOSCustomerOrder> order;
@@ -116,11 +121,31 @@ public class TreatOrderModel {
 		this.pickingPositionsProperty().set(pickingPositions);
 	}
 	
-	
-	public void createNewPickingOrder(Event e) {
+	private User lastOperator = null;  // we just store the last operator.
+	public CompletableFuture<Long> createNewPickingOrder(Event e, ViewContextBase context) {
+		PickingOrderProperties inProps = new PickingOrderProperties(getOrder().getPrio(), getOrder().getDestination(), lastOperator);
+		
+		final PickingOrderProperties r = GoodsOutPickingOrderProperties.changeProperties(context, inProps);
+		if (r == null) { // user Cancelled
+			CompletableFuture<Long> c = new CompletableFuture<>();
+			c.completeExceptionally(new CancellationException());
+			return c;
+		}
+		
+		lastOperator = r.getUser();
+		
 		String orderNumber = getOrder().getNumber();
-		exec.call(() -> pickingFacade.createNewPickingOrder(orderNumber, null, true))
-		.thenRunAsync(() -> reloadPickingOrders(getOrder()), Platform::runLater);
+		return exec.call(() -> {
+			LOSPickingOrder p = pickingFacade.createNewPickingOrder(orderNumber, null, true);
+			if (r.getUser() != null) pickingFacade.changePickingOrderUser(p.getId(), r.getUser().getName());
+			if (r.isDestinationChanged()) pickingFacade.changePickingOrderDestination(p.getId(), r.getDestination().getName());
+			if (r.isPrioityChanged()) pickingFacade.changePickingOrderPrio(p.getId(), r.getPrio());
+			return p.getId();
+		})
+		.thenApplyAsync(poId -> {
+			reloadPickingOrders(getOrder());
+			return poId;
+		}, Platform::runLater);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -186,7 +211,8 @@ public class TreatOrderModel {
 				.thenApply(FXCollections::observableList)
 				.thenAcceptAsync(pickingOrders::set, Platform::runLater);
 
-			CompletableFuture<List<LOSPickingPosition>> result = exec.apply(pickingPositionsQuery::getByCustomerOrder, orderNumber);
+			CompletableFuture<List<LOSPickingPosition>> result = 
+					exec.apply(pickingPositionsQuery::getByCustomerOrder, orderNumber);
 			result.thenApply(FXCollections::observableList)
 					.thenAcceptAsync(pickingPositions::set, Platform::runLater);
 		}

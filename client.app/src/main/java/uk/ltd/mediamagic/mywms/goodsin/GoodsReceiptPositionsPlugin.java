@@ -65,7 +65,7 @@ public class GoodsReceiptPositionsPlugin  extends BODTOPlugin<LOSGoodsReceiptPos
 				LOSGoodsReceiptPosition::getPositionNumber, 
 				s -> String.format("Item: %s, x %f", s.getItemData(), s.getAmount()),
 				s -> String.format("Lot: %s", s.getLot()),
-				null);
+				s -> String.format("U/Load No: %s", s.getUnitLoad()));
 	}
 	
 	@Override

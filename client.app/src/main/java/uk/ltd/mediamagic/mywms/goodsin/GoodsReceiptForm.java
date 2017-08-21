@@ -83,7 +83,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		
 		public GoodsReceiptForm(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConveryer) {
 			super(beanInfo, getConveryer);
-			setEditorHelper(new MyEditorHelper(this, beanInfo));
+			setEditorHelper(new MyEditorHelper(this, beanInfo, getConveryer));
 			
 			getCommands()
 				.add(AC.idText("Finish Receipt").action(s -> finishGoodsReceipt())
@@ -191,7 +191,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 				facade.finishGoodsReceipt(gr);
 				return null;
 			});
-			saveAndRefresh();
+			restoreState(getContext(), true);
 		}
 		
 		public void clearAdvice() {
@@ -322,12 +322,15 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		}
 
 		
-		private static class MyEditorHelper extends PojoEditorHelper<LOSGoodsReceipt> {
+		private static class MyEditorHelper extends MyWMSEditorHelper<LOSGoodsReceipt> {
 
-			public MyEditorHelper(PoJoEditor<LOSGoodsReceipt> editor, BeanInfo beanInfo) {
-				super(editor, beanInfo);
-			}
 			
+			public MyEditorHelper(PoJoEditor<LOSGoodsReceipt> editor, BeanInfo beanInfo,
+					Function<PropertyDescriptor, StringConverter<?>> getConverter) {
+				super(editor, beanInfo, getConverter);
+			}
+
+
 			public ObservableValue<?> getValueProperty(String id) {
 				if (Strings.equals(id, "positionList")) {
 					Comparator<LOSGoodsReceiptPosition> comparator = Comparator.comparing(

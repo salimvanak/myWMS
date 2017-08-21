@@ -137,7 +137,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 	protected BODTOTable<LOSPickingOrder> getTable(ViewContextBase context) {
 		BODTOTable<LOSPickingOrder> t = super.getTable(context);
 		t.getCommands()
-			.delete(ObservableConstant.TRUE, ObservableConstant.of(MyWMSUserPermissions.isAtLeastForeman()))
+			.delete(ObservableConstant.TRUE, ObservableConstant.of(!MyWMSUserPermissions.isAtLeastForeman()))
 			.menu(RootCommand.MENU)
 			.add(AC.id(Action.ViewLog).text("View Transaction Records"))
 			.add(AC.id(Action.Release).text("Release for picking"))

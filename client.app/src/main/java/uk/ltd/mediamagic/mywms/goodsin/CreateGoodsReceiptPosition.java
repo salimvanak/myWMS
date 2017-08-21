@@ -96,6 +96,8 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 		lotDescription = MBindings.asString(lot.valueProperty(), Lot::getName);
 		itemDataDescription = MBindings.asString(itemData.valueProperty(), ItemData::getDescription);		
 
+		unitLoadID.setPromptText("Generate ID");
+		
 		getCommands()
 			.okCancel(this::okPressed)
 		.end();

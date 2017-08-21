@@ -14,7 +14,6 @@ import de.linogistix.los.inventory.facade.LOSOrderFacade;
 import de.linogistix.los.inventory.facade.LOSPickingFacade;
 import de.linogistix.los.inventory.facade.OrderPositionTO;
 import de.linogistix.los.inventory.model.LOSCustomerOrder;
-import de.linogistix.los.inventory.model.LOSCustomerOrderPosition;
 import de.linogistix.los.inventory.query.LOSCustomerOrderQueryRemote;
 import de.linogistix.los.inventory.query.dto.LOSCustomerOrderTO;
 import de.linogistix.los.location.model.LOSStorageLocation;
@@ -45,9 +44,7 @@ import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
-import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
-import uk.ltd.mediamagic.fx.converters.DateTimeConverter;
 import uk.ltd.mediamagic.fx.converters.MapConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
@@ -55,7 +52,6 @@ import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
-import uk.ltd.mediamagic.fx.table.MTableViewBase;
 import uk.ltd.mediamagic.fxcommon.ObservableConstant;
 import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -212,7 +208,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		userField.configure(context, User.class);
 		destinationField.configure(context, LOSStorageLocation.class);
 		
-		boolean ok = MDialogs.create(context.getRootNode(), "Lock Stock Unit")
+		boolean ok = MDialogs.create(context.getRootNode(), "Automatic order treatment")
 			.input("Priority", prioField)
 			.input("Destination", destinationField)
 			.input("User", userField)
@@ -301,6 +297,10 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		.with(OrderStatusPane.class)
 			.withSelection(Flow.EDIT_ACTION, this::getEditor)
 			.alias(Flow.TABLE_SELECT_ACTION, Flow.EDIT_ACTION)
+		.end()
+		.with(TreatOrderController.class)
+			.action(Flow.SAVE_ACTION, this::save)
+			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((MyWMSEditor<LOSCustomerOrder>)s, c))
 		.end();
 		return flow;
 	}
@@ -325,6 +325,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		super.configureCommands(command);
 		command.begin(RootCommand.MENU)
 			.add(AC.id(Action.TreatOrder).text("Treat Order"))
+			.seperator()
 		.end();
 	}
 		

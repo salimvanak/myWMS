@@ -63,7 +63,6 @@ import uk.ltd.mediamagic.fx.control.TableKeySelectable;
 import uk.ltd.mediamagic.fx.controller.ControllerCommandBase;
 import uk.ltd.mediamagic.fx.controller.SelectionComposite;
 import uk.ltd.mediamagic.fx.controller.list.CellWrappers;
-import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
 import uk.ltd.mediamagic.fx.flow.FlowBase;

@@ -1,0 +1,9 @@
+package uk.ltd.mediamagic.mywms.stocktaking
+
+import javafx.scene.layout.GridPane
+
+component GenerateSTOrders {
+	GridPane {
+		//TODO Add Nodes
+	}
+}
