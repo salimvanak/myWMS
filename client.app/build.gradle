@@ -93,25 +93,27 @@ task signAll {
 	}
 }
 
-task generateJnlp(dependsOn: [signAll]) << {
-  File jnlpTemplateFile = new File('template.jnlp')
-  def root = new XmlParser().parse(jnlpTemplateFile)
-  def jnlpFileName = jar.baseName + "-${version}.jnlp"
-  // Setting resources
-  def resource = root.resources[0]
-  def j2se = resource.j2se[0]
-  j2se.@version = "1.8+"
-  def collection = files { webstartDir.listFiles() }
-  def mainJar = jar.archiveName
-  collection.sort().each {
+task generateJnlp(dependsOn: [signAll]) {
+  doLast {
+    File jnlpTemplateFile = new File('template.jnlp')
+    def root = new XmlParser().parse(jnlpTemplateFile)
+    def jnlpFileName = jar.baseName + "-${version}.jnlp"
+    // Setting resources
+    def resource = root.resources[0]
+    def j2se = resource.j2se[0]
+    j2se.@version = "1.8+"
+    def collection = files { webstartDir.listFiles() }
+    def mainJar = jar.archiveName
+    collection.sort().each {
       def resourceValues = [href: it.name]
       if (mainJar == it.name) {
           resourceValues = [href: it.name, main: 'true']
       }
       resource.appendNode('jar', resourceValues)
+    }
+    File jnlpFile = new File(webstartDir, jnlpFileName)
+    new XmlNodePrinter(new PrintWriter(jnlpFile)).print(root)
   }
-  File jnlpFile = new File(webstartDir, jnlpFileName)
-  new XmlNodePrinter(new PrintWriter(jnlpFile)).print(root)
 }
 
 task webstart {
