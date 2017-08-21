@@ -11,6 +11,7 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
@@ -36,7 +37,8 @@ import org.mywms.service.ConstraintViolatedException;
 //		uniqueConstraints = { 
 //		@UniqueConstraint(columnNames = {
 //		"labelId","itemdata_id" }) })
-@Table(name = "mywms_stockunit")
+@Table(name = "mywms_stockunit", 
+indexes = { @Index(columnList="itemData_id"), @Index(columnList="unitLoad_id")})
 public class StockUnit extends BasicClientAssignedEntity {
 	private static final long serialVersionUID = 1L;
 
