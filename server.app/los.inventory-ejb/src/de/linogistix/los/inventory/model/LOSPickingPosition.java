@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -33,7 +34,11 @@ import de.linogistix.los.model.State;
  * @author krane
  */
 @Entity
-@Table(name = "los_pickingpos")
+@Table(name = "los_pickingpos",
+indexes = {
+		@Index(columnList="pickingOrder_id"),
+		@Index(columnList="customerOrderPosition_id")	
+})
 @NamedQueries({
 @NamedQuery(name="LOSPickingPosition.queryByCustomerOrder", query="FROM LOSPickingPosition pos WHERE pos.customerOrderPosition.order=:customerOrder"),
 @NamedQuery(name="LOSPickingPosition.queryByCustomerOrderPos", query="FROM LOSPickingPosition pos WHERE pos.customerOrderPosition=:customerOrderPos")

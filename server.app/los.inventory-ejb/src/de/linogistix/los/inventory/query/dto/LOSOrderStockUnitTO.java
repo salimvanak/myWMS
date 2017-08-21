@@ -69,6 +69,15 @@ public class LOSOrderStockUnitTO extends BODTO<StockUnit> {
 		this.lot = lot;
 	}
 
+	
+	public Lot getLotEntity() {
+		return lotEntity;
+	}
+
+	public void setLotEntity(Lot lotEntity) {
+		this.lotEntity = lotEntity;
+	}
+
 	public String getUnitLoad() {
 		return unitLoad;
 	}

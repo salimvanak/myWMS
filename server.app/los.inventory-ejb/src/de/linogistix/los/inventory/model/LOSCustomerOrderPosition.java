@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -29,8 +30,12 @@ import de.linogistix.los.model.State;
  * @author krane
  */
 @Entity
-@Table(name = "los_customerpos", uniqueConstraints = { 
-		@UniqueConstraint(columnNames = {"client_id","number" }) 
+@Table(name = "los_customerpos", 
+uniqueConstraints = { 
+		@UniqueConstraint(columnNames = {"client_id","number" })
+},
+indexes={
+		@Index(columnList="order_id"),
 })
 @NamedQueries({
 	@NamedQuery(name="LOSCustomerOrderPosition.queryByNumber", query="FROM LOSCustomerOrderPosition pos WHERE pos.number=:number"),

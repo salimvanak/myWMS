@@ -11,6 +11,7 @@ package de.linogistix.los.inventory.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -26,7 +27,11 @@ import de.linogistix.los.model.State;
  * @author krane
  */
 @Entity
-@Table(name = "los_pickingunitload")
+@Table(name = "los_pickingunitload",
+indexes= {
+		@Index(columnList="pickingOrder_id"),
+		@Index(columnList="unitLoad_id")
+})
 @NamedQueries({
 	@NamedQuery(name="LOSPickingUnitLoad.queryByLabel", query="FROM LOSPickingUnitLoad ul WHERE ul.unitLoad.labelId=:label"),
 	@NamedQuery(name="LOSPickingUnitLoad.queryByUnitLoad", query="FROM LOSPickingUnitLoad ul WHERE ul.unitLoad=:unitLoad"),
