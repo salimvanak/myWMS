@@ -63,6 +63,7 @@ import de.linogistix.los.model.State;
 import de.linogistix.los.util.StringTools;
 import de.linogistix.los.util.businessservice.ContextService;
 import uk.ltd.mediamagic.los.reference.ws.OrderInfo.PickUnitLoad;
+import uk.ltd.mediamagic.los.reference.ws.OrderInfo.PickingOrder;
 
 /**
  * A Webservice for ordering items from stock
@@ -226,33 +227,54 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     	return getOrderInfo(order, true);
     }
 
-    private OrderInfo getOrderInfo(LOSCustomerOrder order, boolean full) throws FacadeException {
+    /**
+     * We create an order info object for the given order.
+     * if the <code>details</code> parameter is false we do not provide accurate info on the number of item and the
+     * number of items that are currently picked, this is to return fast without any addition database
+     * queries.  the pick size will always be 1 and the pick count will always be 0 or 1.
+     * 
+     * For when we are generating the OrderInfo for large lists of orders, it is recommended
+     * that the <code>details</code> parameter is set to false, otherwise the operation will take a long time to 
+     * collect all the data.
+     * 
+     * @param order
+     * @param detailed
+     * @return
+     * @throws FacadeException
+     */
+    private OrderInfo getOrderInfo(LOSCustomerOrder order, boolean detailed) throws FacadeException {
     	if (order == null) return null;;
-    	int pickedCount = 0;
     	
-   		List<LOSCustomerOrderPosition> ps = order.getPositions();
-   		for(LOSCustomerOrderPosition p : ps) {
-   			if (p.getState() >= State.PICKED) {
-   				pickedCount ++;
-   			}
-   		}
-     	    	
-    	OrderInfo oi = new OrderInfo(order.getNumber(), order.getPositions().size(), pickedCount);
-    	oi.setPriority(order.getPrio());
-    	oi.setState(order.getState());
+    	OrderInfo oi = new OrderInfo(order);
 
-    	if (full) {
-    		List<PickUnitLoad> unitLoads = new ArrayList<>();
-    		List<LOSPickingOrder> pos = pickingService.getByCustomerOrder(order);
-    		for (LOSPickingOrder po : pos) {
-    			for (LOSPickingUnitLoad ul : po.getUnitLoads()) {
-    				String unitLoad = ul.getUnitLoad().getLabelId();
-    				int state = po.getState();
-    				String stateStr = (state <= State.PICKED) ? "Picked" : "Finished";
-    				String pickedBy = (po.getOperator() == null) ? "Unknown" : po.getOperator().toUniqueString(); 
-    				unitLoads.add(new PickUnitLoad(unitLoad, pickedBy, stateStr));    			
+  		if (detailed) {
+    		List<LOSCustomerOrderPosition> ps = order.getPositions();
+
+    		int pickedCount = 0;    		
+    		for(LOSCustomerOrderPosition p : ps) {
+    			if (p.getState() >= State.PICKED) {
+    				pickedCount ++;
     			}
-    			po.getUnitLoads();
+    		}    		
+    	
+    		oi.setPickedPositions(pickedCount);
+    		oi.setTotalPositions(ps.size());
+    		oi.setDestinationLocation((order.getDestination() == null) ? "" : order.getDestination().getName());
+    		
+    		List<PickUnitLoad> unitLoads = new ArrayList<>();
+    		List<LOSPickingOrder> picks = pickingService.getByCustomerOrder(order);
+    		List<PickingOrder> picksTO = new ArrayList<>();
+    		
+    		for (LOSPickingOrder po : picks) {
+  				String pickedBy = (po.getOperator() == null) ? "Unknown" : po.getOperator().toUniqueString(); 
+
+  				picksTO.add(new PickingOrder(po));
+    			
+  				for (LOSPickingUnitLoad ul : po.getUnitLoads()) {
+    				String unitLoad = ul.getUnitLoad().getLabelId();
+    				String location = ul.getUnitLoad().getStorageLocation().getName();
+    				unitLoads.add(new PickUnitLoad(unitLoad, pickedBy, location));    			
+    			}
     		}
     		
     		List<LOSGoodsOutRequest> goodsOutRequests = goodsOutService.getByCustomerOrder(order);    	
@@ -262,7 +284,8 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     		}
 
     		oi.setUnitLoads(unitLoads);
-        	oi.setGoodsOutNumbers(goodsOutNumbers);
+        oi.setGoodsOutNumbers(goodsOutNumbers);
+        oi.setPickingOrders(picksTO);
     	}
     	
     	return oi;
@@ -275,7 +298,6 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
 		StringBuilder b = new StringBuilder();	
 		b.append("SELECT co FROM ");
 		b.append(LOSCustomerOrder.class.getSimpleName()).append(" co ");
-//		b.append(" JOIN FETCH co.positions");
 		b.append(" WHERE co.state < :statefinished ");
 	
 		Query query = manager.createQuery(b.toString());
