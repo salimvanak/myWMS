@@ -40,12 +40,26 @@ dependencies {
 task createSQLScript(dependsOn: ['build']) {
   group = DB_GROUP
   doLast {
+    BasicConfigurator.configure();
+    ant.taskdef(name: 'hibernatetool',
+            classname: 'org.hibernate.tool.ant.HibernateToolTask',
+            classpath: configurations.hibtools.asPath)
+    ant.hibernatetool(destdir: file('build2')) {
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.hbm2ddl(drop: 'false', export: 'false', outputfilename: 'mydb.sql')
+    }
+  }
+}
+
+task updateSchemaScript(dependsOn: ['build']) {
+  group = DB_GROUP
+  doLast {
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
     ant.hibernatetool(destdir: file('build')) {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
-        ant.hbm2ddl(drop: 'false', export: 'false', outputfilename: 'mydb.sql')
+        ant.hbm2ddl(export: 'false', create: 'false', update:'true', drop:'false', outputfilename: 'db_update.sql')
     }
   }
 }
