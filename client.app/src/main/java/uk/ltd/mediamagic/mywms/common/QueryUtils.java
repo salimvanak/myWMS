@@ -68,6 +68,10 @@ public class QueryUtils {
 	}
 
 	public static ComboBox<Integer> priorityCombo() {
+		return priorityCombo(new ComboBox<>());
+	}
+
+	public static ComboBox<Integer> priorityCombo(ComboBox<Integer> cb) {
 		int defaultInt = Prio.NORMAL;
 		ArrayList<Integer> items = new ArrayList<>();
 		items.add(Prio.LOWEST);
@@ -76,7 +80,6 @@ public class QueryUtils {
 		items.add(Prio.HIGH);
 		items.add(Prio.HIGHEST);
 		
-		ComboBox<Integer> cb = new ComboBox<>();
 		cb.setItems(FXCollections.observableList(items));
 		cb.setConverter(new OrderPriorityConverter());
 		cb.setValue(defaultInt);

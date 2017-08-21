@@ -151,6 +151,9 @@ public class MyWMS extends Application {
 		super.init();
 		application = this;
 		System.setSecurityManager(null);
+		
+		
+		
 		lastLoginError.addListener((v,o,n)-> {
 			log.log(Level.SEVERE,"While logging in", n);
 			boolean yes = MDialogs.create(this, "Login Error")

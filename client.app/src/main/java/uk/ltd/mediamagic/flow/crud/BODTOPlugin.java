@@ -53,6 +53,7 @@ import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.FlowContext;
+import uk.ltd.mediamagic.fx.flow.FlowLifeCycle;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.fxcommon.UserPermissions;
@@ -290,10 +291,9 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 	/**
 	 * this method is called by the editor when the user requests a refresh.
 	 * @param source the editor that made the call
-	 * @param flow the current flow
 	 * @param context the current context
 	 */
-	protected void refresh(PoJoEditor<T> source, Flow flow, ViewContext context) {
+	protected void refresh(PoJoEditor<T> source, ViewContextBase context) {
 		T data = source.getData();
 		source.setData(null);
 		getData(context, data.getId())
@@ -346,7 +346,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		.end()
 		.with(MyWMSEditor.class)
 			.action(Flow.SAVE_ACTION, this::save)
-			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((MyWMSEditor<T>)s, f, c))
+			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((MyWMSEditor<T>)s, c))
 		.end();		
 		return flow;
 	}
@@ -365,6 +365,25 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		}
 
 		MyWMSEditor<T> controller = new MyWMSEditor<>(getBeanInfo(), this::getConverter);
+		controller.addFlowLifecycle(new FlowLifeCycle() {
+			
+			@Override
+			public boolean saveState(ViewContextBase context) {
+				CompletableFuture<Void> r = save(controller.getContext(), controller.getData());
+				context.getExecutor().executeAndWait(context.getRootNode(), () -> r.get());
+				return true;
+			}
+			
+			@Override
+			public void restoreState(ViewContextBase context, boolean force) {
+				refresh(controller, context);
+			}
+			
+			@Override
+			public boolean isSaveRequired() {
+				return true;
+			}
+		});
 		context.autoInjectBean(controller);
 		initialiseEditController(context, key, controller);
 		return controller;
@@ -444,7 +463,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 				
 		refresh(table, context);
 		table.addQueryListener(o -> refresh(table, context));
-		
+		table.addFlowLifecycle(new FlowLifeCycle.OnRefresh((c,f) -> refresh(table, context)));
 		return table;
 	}
 		

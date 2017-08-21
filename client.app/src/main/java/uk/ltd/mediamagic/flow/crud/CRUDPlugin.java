@@ -67,6 +67,8 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 	private final Class<T> boClass;
 	private final BeanInfo beanInfo;
 	private UserPermissions userPermissions = new MyWMSUserPermissions();
+	private boolean createAllowed = false;
+	private boolean deleteAllowed = false;
 
 	public CRUDPlugin(Class<T> boClass) {
 		super();
@@ -75,7 +77,23 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		this.boClass = boClass;
 		this.beanInfo = BeanUtils.getBeanInfo(boClass);
 	}
-	
+
+	public boolean isCreateAllowed() {
+		return createAllowed;
+	}
+
+	public void setCreateAllowed(boolean createAllowed) {
+		this.createAllowed = createAllowed;
+	}
+
+	public boolean isDeleteAllowed() {
+		return deleteAllowed;
+	}
+
+	public void setDeleteAllowed(boolean deleteAllowed) {
+		this.deleteAllowed = deleteAllowed;
+	}
+
 	protected BeanInfo getBeanInfo() {
 		return beanInfo;
 	}
@@ -119,7 +137,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 
 	@Override
 	public Supplier<CellRenderer<BODTO<T>>> createTOCellFactory() {
-		return null;
+		return TextRenderer.of(new ToStringConverter<BODTO<T>>(BODTO::toString));
 	}
 	
 	@Override
@@ -222,6 +240,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 			.alias(Flow.CANCEL_ACTION, Flow.BACK_ACTION)
 		.end()
 		.with(CrudTable.class)
+			.action(Flow.CREATE_ACTION, (s,f,c) -> this.createAction((CrudTable<T>)s, f, c))
 			.withSelection(Flow.EDIT_ACTION, this::getEditor)
 			.alias(Flow.TABLE_SELECT_ACTION, Flow.EDIT_ACTION)
 			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((CrudTable<T>)s, c))
@@ -263,14 +282,16 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		getData(context, id).thenAcceptAsync(controller::setData, Platform::runLater);
 		return controller;
 	}
-	
-	
-	
+
 	protected void getEditor(CrudTable<T> source, Flow flow, ViewContext context, TableKey key) {
 		MyWMSEditor<T> controller = getEditor(context, key);
 		controller.setUserPermissions(getUserPermissions());
 		context.setActiveBean(MyWMSEditor.class, controller);
 		flow.next(context);
+	}
+	
+	protected void createAction(CrudTable<T> source, Flow flow, ViewContext context) {
+		throw new UnsupportedOperationException("Create has not been implemented");
 	}
 	
 	/**
@@ -303,7 +324,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		tcb.setConverterFactory(this::getConverter);
 		Bindings.bindContent(table.getTable().getColumns(), tcb);
 		table.getCommands()
-			.cru()
+			.crud(isCreateAllowed(), true, true, true, isDeleteAllowed())
 		.end();
 		
 		context.autoInjectBean(table);

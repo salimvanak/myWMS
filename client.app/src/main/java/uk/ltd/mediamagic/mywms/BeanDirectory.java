@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.mywms.model.BasicEntity;
+import org.mywms.model.User;
 
 import de.linogistix.los.crud.BusinessObjectCRUDRemote;
 import de.linogistix.los.inventory.model.LOSGoodsOutRequestPosition;
@@ -19,6 +20,7 @@ import de.linogistix.los.location.query.dto.StorageLocationTO;
 import de.linogistix.los.location.query.dto.UnitLoadTO;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.BusinessObjectQueryRemote;
+import de.linogistix.los.user.query.UserQueryRemote;
 import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.mywms.common.ClassLookup;
 
@@ -120,6 +122,7 @@ public class BeanDirectory {
 	 */
 	private static Iterable<String> getQueryClassName(Class<? extends BasicEntity> cls) {
 		if (cls == LOSRack.class) return Collections.singleton(RackQueryRemote.class.getName());
+		if (cls == User.class) return Collections.singleton(UserQueryRemote.class.getName());
 		String simpleName = cls.getSimpleName();
 		return Arrays.stream(queryPackages).map(s -> s + "." + simpleName + QUERY_SUFFIX)::iterator;
 	}
