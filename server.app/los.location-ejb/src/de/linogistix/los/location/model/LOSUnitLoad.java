@@ -35,7 +35,10 @@ import org.mywms.model.UnitLoad;
  * @author Jordan
  */
 @Entity
-@Table(indexes=@Index(columnList="storageLocation_id"))
+@Table(indexes={
+		@Index(columnList="storageLocation_id"),
+		@Index(columnList="carrierUnitLoadid")
+})
 @NamedQueries({
 	@NamedQuery(name="LOSUnitLoad.queryByLabel", query="FROM LOSUnitLoad ul WHERE ul.labelId=:label"),
 	@NamedQuery(name="LOSUnitLoad.queryByLocation", query="FROM LOSUnitLoad ul WHERE ul.storageLocation=:location"),

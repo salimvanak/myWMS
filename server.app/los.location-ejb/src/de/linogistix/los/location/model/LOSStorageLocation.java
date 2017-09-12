@@ -9,6 +9,7 @@ package de.linogistix.los.location.model;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +26,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.log4j.Logger;
 import org.mywms.model.BasicClientAssignedEntity;
 import org.mywms.model.Zone;
 
@@ -38,6 +41,8 @@ import org.mywms.model.Zone;
 	@NamedQuery(name="LOSStorageLocation.queryByName", query="FROM LOSStorageLocation sl WHERE sl.name=:name")
 })
 public class LOSStorageLocation extends BasicClientAssignedEntity{
+
+	private static final Logger log = Logger.getLogger(LOSStorageLocation.class);
 
 	private static final long serialVersionUID = 1L;
 
@@ -96,6 +101,11 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
     
     @OneToMany(mappedBy="storageLocation")
     public List<LOSUnitLoad> getUnitLoads() {
+    	if (getType().getId() == 1) {
+    		//we log this as an error so we get stack trace.
+    		log.error("Fetching unit loads for system locations is dangerous and will cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));
+    		return Collections.emptyList();
+    	}
         return unitLoads;
     }
 
