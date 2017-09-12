@@ -28,6 +28,9 @@ import javax.persistence.TemporalType;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.mywms.model.BasicClientAssignedEntity;
 import org.mywms.model.Zone;
 
@@ -47,73 +50,77 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 	private static final long serialVersionUID = 1L;
 
 	private String name;
-    
-    private LOSStorageLocationType type;
 
-    private List<LOSUnitLoad> unitLoads = new ArrayList<LOSUnitLoad>();
-    
-    private LOSTypeCapacityConstraint currentTypeCapacityConstraint;
-    
-    private LOSArea area;
+	private LOSStorageLocationType type;
 
-    private LOSLocationCluster cluster;
-    
-    private Date stockTakingDate;
-    
-    private Zone zone = null;
-    
-    private BigDecimal allocation = BigDecimal.ZERO;
-    
-    private LOSRack rack;
-    
-    private int XPos;
-    
-    private int YPos;
-    
-    private int ZPos;
+	private List<LOSUnitLoad> unitLoads = new ArrayList<LOSUnitLoad>();
 
-    private String field;
-    private int fieldIndex;
-    
-    private String scanCode;
-    private String plcCode;
-    private int allocationState = 0;
+	private LOSTypeCapacityConstraint currentTypeCapacityConstraint;
 
-    private int orderIndex = 0;
+	private LOSArea area;
 
-    @Column(nullable=false, unique=true)
+	private LOSLocationCluster cluster;
+
+	private Date stockTakingDate;
+
+	private Zone zone = null;
+
+	private BigDecimal allocation = BigDecimal.ZERO;
+
+	private LOSRack rack;
+
+	private int XPos;
+
+	private int YPos;
+
+	private int ZPos;
+
+	private String field;
+	private int fieldIndex;
+
+	private String scanCode;
+	private String plcCode;
+	private int allocationState = 0;
+
+	private int orderIndex = 0;
+
+	@Column(nullable=false, unique=true)
 	public String getName() {
-        return name;
-    }
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    @ManyToOne(optional=false)
-    public LOSStorageLocationType getType() {
-        return type;
-    }
+	@ManyToOne(optional=false)
+	public LOSStorageLocationType getType() {
+		return type;
+	}
 
-    public void setType(LOSStorageLocationType type) {
-        this.type = type;
-    }
-    
-    @OneToMany(mappedBy="storageLocation")
-    public List<LOSUnitLoad> getUnitLoads() {
-    	if (getType().getId() == 1) {
-    		//we log this as an error so we get stack trace.
-    		log.error("Fetching unit loads for system locations is dangerous and will cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));
-    		return Collections.emptyList();
-    	}
-        return unitLoads;
-    }
+	public void setType(LOSStorageLocationType type) {
+		this.type = type;
+	}
 
-    public void setUnitLoads(List<LOSUnitLoad> unitLoads) {
-        this.unitLoads = unitLoads;
-    }
+	@BatchSize(size=500)
+	@LazyCollection(LazyCollectionOption.EXTRA)
+	@OneToMany(mappedBy="storageLocation")
+	public List<LOSUnitLoad> getUnitLoads() {
+		if (getType().getId() == 1) {
+			//we log this as an error so we get stack trace.
+			if (getId() == 0 || getId() == 1 || "Goods-Out".equals(getName())) {
+				log.error("Fetching unit loads for system location " + getName() + " is dangerous and cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));    			
+				return Collections.emptyList();
+			}
+		}
+		return unitLoads;
+	}
 
-    @ManyToOne(optional=true)
+	public void setUnitLoads(List<LOSUnitLoad> unitLoads) {
+		this.unitLoads = unitLoads;
+	}
+
+	@ManyToOne(optional=true)
 	@JoinColumn(name="currentTCC")
 	public LOSTypeCapacityConstraint getCurrentTypeCapacityConstraint() {
 		return currentTypeCapacityConstraint;
@@ -124,7 +131,7 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.currentTypeCapacityConstraint = currentTypeCapacityConstraint;
 	}
 
-    @ManyToOne(optional=false)
+	@ManyToOne(optional=false)
 	public LOSArea getArea() {
 		return area;
 	}
@@ -133,10 +140,10 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.area = area;
 	}
 
-    @Override
-    public String toUniqueString() {
-        return getName();
-    }
+	@Override
+	public String toUniqueString() {
+		return getName();
+	}
 
 	@ManyToOne(optional=true)
 	public LOSLocationCluster getCluster() {
@@ -156,15 +163,15 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.stockTakingDate = stockTakingDate;
 	}
 
-    @ManyToOne(optional=true)
+	@ManyToOne(optional=true)
 	public Zone getZone() {
 		return zone;
 	}
 	public void setZone(Zone zone) {
 		this.zone = zone;
 	}
-    @Column(nullable = false, precision=15, scale=2)
-    public BigDecimal getAllocation() {
+	@Column(nullable = false, precision=15, scale=2)
+	public BigDecimal getAllocation() {
 		return allocation;
 	}
 	public void setAllocation(BigDecimal allocation) {
@@ -172,37 +179,37 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 	}
 
 	@ManyToOne(optional=true)
-    public LOSRack getRack() {
-        return rack;
-    }
-    public void setRack(LOSRack rack) {
-        this.rack = rack;
-    }
-    
-    @Column(nullable=false)
-    public int getXPos() {
-        return XPos;
-    }
-    public void setXPos(int xPos) {
-        this.XPos = xPos;
-    }
+	public LOSRack getRack() {
+		return rack;
+	}
+	public void setRack(LOSRack rack) {
+		this.rack = rack;
+	}
 
-    @Column(nullable=false)
-    public int getYPos() {
-        return YPos;
-    }
-    public void setYPos(int yPos) {
-        this.YPos = yPos;
-    }
+	@Column(nullable=false)
+	public int getXPos() {
+		return XPos;
+	}
+	public void setXPos(int xPos) {
+		this.XPos = xPos;
+	}
 
-    @Column(nullable=false)
+	@Column(nullable=false)
+	public int getYPos() {
+		return YPos;
+	}
+	public void setYPos(int yPos) {
+		this.YPos = yPos;
+	}
+
+	@Column(nullable=false)
 	public int getZPos() {
 		return ZPos;
 	}
 	public void setZPos(int pos) {
 		ZPos = pos;
 	}
-	
+
 	public String getField() {
 		return field;
 	}
@@ -210,7 +217,7 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.field = field;
 	}
 
-    @Column(nullable=false)
+	@Column(nullable=false)
 	public int getFieldIndex() {
 		return fieldIndex;
 	}
@@ -218,7 +225,7 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.fieldIndex = fieldIndex;
 	}
 
-    @Column(nullable=false)
+	@Column(nullable=false)
 	public String getScanCode() {
 		return scanCode;
 	}
@@ -233,7 +240,7 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.plcCode = plcCode;
 	}
 
-    @Column(nullable=false)
+	@Column(nullable=false)
 	public int getAllocationState() {
 		return allocationState;
 	}
@@ -241,7 +248,7 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.allocationState = allocationState;
 	}
 
-    @Column(nullable=false)
+	@Column(nullable=false)
 	public int getOrderIndex() {
 		return orderIndex;
 	}
