@@ -295,6 +295,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 	 */
 	protected void refresh(PoJoEditor<T> source, ViewContextBase context) {
 		T data = source.getData();
+		if (data == null) return;
 		source.setData(null);
 		getData(context, data.getId())
 		.whenCompleteAsync((d,e) -> {
