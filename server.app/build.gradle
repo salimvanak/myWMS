@@ -1,5 +1,5 @@
 plugins {
-  id "org.hibernate.gradle.tools" version "1.2.2"
+  id "org.hibernate.gradle.tools" version "1.2.4"
 }
 
 apply plugin: 'ear'
@@ -39,15 +39,26 @@ dependencies {
 
 task createSQLScript(dependsOn: ['build']) {
   group = DB_GROUP
+  dependsOn 'mywms.as:classes'
+  dependsOn 'los.common-ejb:classes'
+  dependsOn 'los.location-ejb:classes'
+  dependsOn 'los.inventory-ejb:classes'
+  dependsOn 'los.stocktaking-ejb:classes'
+  description = "Creates a DDL script for creating the database"
+  outputs.files('build/db_create.sql')
   doLast {
-    BasicConfigurator.configure();
+//    BasicConfigurator.configure();
     ant.taskdef(name: 'hibernatetool',
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
-    ant.hibernatetool(destdir: file('build2')) {
+        ant.hibernatetool(destdir: buildDir) {
         ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
-        ant.hbm2ddl(drop: 'false', export: 'false', outputfilename: 'mydb.sql')
+        ant.hbm2ddl(drop: 'false', export: 'false', create: 'true', outputfilename: 'db_create.sql')
     }
+  }
+  doLast {
+    def input = file("$buildDir/db_create.sql")
+    input.text = '\\set ON_ERROR_STOP 0\n' + input.text
   }
 }
 
@@ -145,7 +156,7 @@ subprojects {
 
 allprojects {
   apply plugin: 'eclipse'
-  sourceCompatibility = 1.8
+  //sourceCompatibility = 1.8
 
   repositories {
 		jcenter()
@@ -160,7 +171,6 @@ allprojects {
       name "Jasper Reports third party artifacts"
       url "http://jaspersoft.artifactoryonline.com/jaspersoft/third-party-ce-artifacts/"
     }
-
 
     maven {
       name "Gradle Repository"

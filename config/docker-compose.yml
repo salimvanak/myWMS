@@ -1,6 +1,6 @@
 db:
   container_name: "db"
-  image: postgres
+  image: mywms/postgres
   ports:
      - "8432:5432"
   environment:
@@ -11,8 +11,8 @@ wildfly:
   image: mywms/wildfly
   links:
     - db
-  depends_on:
-    - db
+#  depends_on:
+#    - db
   environment:
     - POSTGRES_URI=db:5432
     - POSTGRES_DB=los_reference

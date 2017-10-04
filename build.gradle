@@ -41,7 +41,7 @@ task wildflyDocker (type: Docker) {
 
 task postgresDocker (type: Docker) {
   group = DOCKER_GROUP
-
+  dependsOn 'server.app::createSQLScript'
   baseImage 'postgres'
   maintainer 'Salim Vanak "s.vanak@mediamagic.ltd.uk"'
   applicationName = 'postgres'
@@ -50,7 +50,11 @@ task postgresDocker (type: Docker) {
   setEnvironment('POSTGRES_USER','jboss')
   setEnvironment('POSTGRES_PASSWORD','jboss')
 
-  addFile('config/initdata-postgres.sql', '/docker-entrypoint-initdb.d/')
+//  task('server.app:createSQLScript').outputs.each {
+//    addFile(it.toString(), '/docker-entrypoint-initdb.d/')
+//  }
+  addFile('server.app/build/db_create.sql', '/docker-entrypoint-initdb.d/01-db_create.sql')
+  addFile('config/initdata-postgres.sql', '/docker-entrypoint-initdb.d/02-initdata-postgres.sql')
 
   defaultCommand(['postgres'])
 }

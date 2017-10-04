@@ -5,7 +5,7 @@
 <hibernate-configuration>
     <session-factory>
                 
-		<mapping class="org.mywms.model.Area"/>
+	<mapping class="org.mywms.model.Area"/>
         <mapping class="org.mywms.model.BasicClientAssignedEntity"/>
         <mapping class="org.mywms.model.BasicEntity"/>
         <mapping class="org.mywms.model.ClearingItem"/>
