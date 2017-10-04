@@ -219,7 +219,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		// avoid lazily initialize exception
 		sl = manager.find(LOSStorageLocation.class, sl.getId());
 
-		List<LOSUnitLoad> ulList = sl.getUnitLoads();
+		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
 
 		// if there are no unit loads booked on the location
 		if (ulList.size() == 0) {
@@ -452,7 +452,8 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		if( lock != 0 && lock != STOCKTAKING_LOCK_NO ) {
 			throw new LOSStockTakingException(LOSStockTakingExceptionKey.LOCATION_LOCKED, new Object[]{sl.getName()});
 		}
-		for( LOSUnitLoad ul : sl.getUnitLoads() ) {
+		List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(sl);
+		for( LOSUnitLoad ul : unitloads ) {
 			lock = ul.getLock();
 			if( lock != 0 && lock != STOCKTAKING_LOCK_NO ) {
 				throw new LOSStockTakingException(LOSStockTakingExceptionKey.UNITLOAD_LOCKED, new Object[]{ul.getLabelId()});
@@ -729,7 +730,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 			// avoid lazily initialize exception
 			sl = manager.find(LOSStorageLocation.class, sl.getId());
 
-			ulList = sl.getUnitLoads();
+			ulList = ulService.getListByStorageLocation(sl);
 
 			for (LOSUnitLoad ul : ulList) {
 				ul.setStockTakingDate(Calendar.getInstance().getTime());
@@ -979,7 +980,8 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 			stOrder.getStockTaking();
 			recordService.recordCounting(null, null, sl, "ST "+stOrder.getId().toString(), null, stOrder.getOperator());
 
-			for( LOSUnitLoad ul : sl.getUnitLoads() ) {
+			List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+			for( LOSUnitLoad ul : ulList ) {
 				if( !ul.getStorageLocation().equals(sl) ) {
 					continue;
 				}

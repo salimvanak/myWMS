@@ -577,13 +577,11 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 	}
 
 	public void sendStockUnitsToNirwana(LOSStorageLocation sl, String activityCode) throws FacadeException {
-
 		sl = manager.merge(sl);
-
-		for (LOSUnitLoad ul : (List<LOSUnitLoad>) sl.getUnitLoads()) {
+		List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(sl);
+		for (LOSUnitLoad ul : unitloads) {
 			sendStockUnitsToNirwana(ul, activityCode);
 		}
-
 	}
 
 	public void sendStockUnitsToNirwana(LOSUnitLoad ul, String activityCode) throws FacadeException {
@@ -932,7 +930,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 	public BigDecimal getAmountOfStorageLocation(ItemData idat, LOSStorageLocation sl) throws InventoryException {
 		BigDecimal amount = new BigDecimal(0);
 
-		for (LOSUnitLoad ul : sl.getUnitLoads()) {
+		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+
+		for (LOSUnitLoad ul : ulList) {
 			if( ul.getPackageType() == LOSUnitLoadPackageType.CONTAINER ) {
 				continue;
 			}
@@ -1181,7 +1181,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 			manager.flush();
 			manager.clear();
 			sl = manager.find(LOSStorageLocation.class, sl.getId());
-			for (LOSUnitLoad ul : sl.getUnitLoads()) {
+
+			List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+			for (LOSUnitLoad ul : ulList) {
 				if (i % 30 == 0) {
 					manager.flush();
 					manager.clear();
@@ -1534,7 +1536,8 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 
 		sl = manager.find(LOSStorageLocation.class, sl.getId());
 
-		for (LOSUnitLoad ul : (List<LOSUnitLoad>) sl.getUnitLoads()) {
+		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+		for (LOSUnitLoad ul : ulList) {
 			for (StockUnit su : ul.getStockUnitList()) {
 				sus.add(su.getId());
 				// su = manager.find(StockUnit.class, su.getId());

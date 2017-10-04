@@ -35,6 +35,7 @@ import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.service.LOSLotService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationTypeService;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSStorageLocationType;
 import de.linogistix.los.location.model.LOSUnitLoad;
@@ -60,6 +61,8 @@ public class ManageInventoryBusinessBean extends BasicFacadeBean implements
 	
 	@EJB 
 	private LOSLotService lotService;
+	@EJB
+	private LOSUnitLoadService ulService;
 	@EJB
 	private LOSStorageLocationTypeService typeService;
 	@EJB
@@ -165,8 +168,10 @@ public class ManageInventoryBusinessBean extends BasicFacadeBean implements
 		List<Long> uls = new ArrayList<Long>();
 		
 		sl = manager.find(LOSStorageLocation.class, sl.getId());
-		
-		for (LOSUnitLoad ul : (List<LOSUnitLoad>)sl.getUnitLoads()){
+
+		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+
+		for (LOSUnitLoad ul : ulList){
 			for (StockUnit su : ul.getStockUnitList()){
 				sus.add(su.getId());
 //				su = manager.find(StockUnit.class, su.getId());

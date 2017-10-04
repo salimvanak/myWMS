@@ -46,6 +46,7 @@ import de.linogistix.los.location.crud.UnitLoadCRUDRemote;
 import de.linogistix.los.location.crud.UnitLoadTypeCRUDRemote;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationTypeService;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.model.LOSArea;
 import de.linogistix.los.location.model.LOSFixedLocationAssignment;
 import de.linogistix.los.location.model.LOSRack;
@@ -185,8 +186,10 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 	
 	@EJB
 	ItemUnitService itemUnitService;
-    @EJB
-    LOSStorageLocationService locationService;
+  @EJB
+  LOSStorageLocationService locationService;
+  @EJB
+  LOSUnitLoadService ulService;
 	@PersistenceContext(unitName = "myWMS")
 	protected EntityManager em;
 
@@ -275,20 +278,20 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 		
 		try {
 			PALETTENPLATZ_TYP_2 = slTypeQuery
-					.queryByIdentity(PALETTENPLATZ_TYP_2_NAME);
+					.queryByIdentity(STORAGE_LOCATION_TYPE_NAME);
 		} catch (BusinessObjectNotFoundException ex) {
 			// Typ Palettenplatz
 			PALETTENPLATZ_TYP_2 = new LOSStorageLocationType();
-			PALETTENPLATZ_TYP_2.setName(PALETTENPLATZ_TYP_2_NAME);
+			PALETTENPLATZ_TYP_2.setName(STORAGE_LOCATION_TYPE_NAME);
 			em.persist(PALETTENPLATZ_TYP_2);
 		}
 
 		try {
-			KOMMPLATZ_TYP = slTypeQuery.queryByIdentity(KOMMPLATZ_TYP_NAME);
+			KOMMPLATZ_TYP = slTypeQuery.queryByIdentity(PICKING_LOCATION_TYPE_NAME);
 		} catch (BusinessObjectNotFoundException ex) {
 			// Typ Kommplatz
 			KOMMPLATZ_TYP = new LOSStorageLocationType();
-			KOMMPLATZ_TYP.setName(KOMMPLATZ_TYP_NAME);
+			KOMMPLATZ_TYP.setName(PICKING_LOCATION_TYPE_NAME);
 			em.persist(KOMMPLATZ_TYP);
 		}
 		
@@ -304,7 +307,7 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 		
 		EINE_PALETTE = null;
 		try {
-			EINE_PALETTE = typeCapacityConstaintQuery.queryByIdentity(EINE_PALETTE_NAME);
+			EINE_PALETTE = typeCapacityConstaintQuery.queryByIdentity(ONE_PALETTE_NAME);
 		} catch (BusinessObjectNotFoundException ex) {}
 		
 		if( EINE_PALETTE == null ) {
@@ -322,9 +325,11 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 
 		KOMM_FACH_DUMMY_LHM_CONSTR = null;
 		try {
-			KOMM_FACH_DUMMY_LHM_CONSTR = typeCapacityConstaintQuery
-					.queryByIdentity(KOMM_FACH_DUMMY_LHM_CONSTR_NAME);
+			KOMM_FACH_DUMMY_LHM_CONSTR = typeCapacityConstaintQuery.queryByIdentity(KOMM_FACH_DUMMY_LHM_CONSTR_NAME);
 		} catch (BusinessObjectNotFoundException ex) {
+			KOMM_FACH_DUMMY_LHM_CONSTR = typeCapacityConstaintService.getByTypes(KOMMPLATZ_TYP, DUMMY_KOMM_ULTYPE);
+		} catch (Exception ex) {
+			log.error(ex.getLocalizedMessage());
 			KOMM_FACH_DUMMY_LHM_CONSTR = typeCapacityConstaintService.getByTypes(KOMMPLATZ_TYP, DUMMY_KOMM_ULTYPE);
 		}
 		if( KOMM_FACH_DUMMY_LHM_CONSTR == null ) {
@@ -352,11 +357,11 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 		}
 
 		try {
-			KOMM_AREA = areaQuery.queryByIdentity(KOMM_AREA_NAME);
+			KOMM_AREA = areaQuery.queryByIdentity(PICKING_AREA_NAME);
 		} catch (BusinessObjectNotFoundException ex) {
 			KOMM_AREA = new LOSArea();
 			KOMM_AREA.setClient(SYSTEMCLIENT);
-			KOMM_AREA.setName(KOMM_AREA_NAME);
+			KOMM_AREA.setName(PICKING_AREA_NAME);
 			KOMM_AREA.setUseForPicking(true);
 			em.persist(KOMM_AREA);
 		}
@@ -716,7 +721,9 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 					try {
 						rl = slQuery.queryById(rl.getId());
 						rl = em.find(LOSStorageLocation.class, rl.getId());
-						for (LOSUnitLoad u : rl.getUnitLoads()) {
+						
+						List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(rl);
+						for (LOSUnitLoad u : ulList) {
 							u = (LOSUnitLoad) ulQuery.queryById(u.getId());
 							u = em.find(LOSUnitLoad.class, u.getId());
 							for (StockUnit su : u.getStockUnitList()) {
@@ -796,7 +803,8 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 				try {
 					
 					rl = em.find(LOSStorageLocation.class, rl.getId());
-					for (LOSUnitLoad u : rl.getUnitLoads()) {
+					List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(rl);
+					for (LOSUnitLoad u : ulList) {
 						u = (LOSUnitLoad) ulQuery.queryById(u.getId());
 						u = em.find(LOSUnitLoad.class, u.getId());
 						for (StockUnit su : u.getStockUnitList()) {

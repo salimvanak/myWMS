@@ -137,14 +137,14 @@ public class LocationSanityBusinessBean implements LocationSanityBusiness{
 					log.debug("IGNORE TYPE " + sl.getCurrentTypeCapacityConstraint().toDescriptiveString());
 					continue;
 				}
-							
-				if (sl.getUnitLoads().isEmpty()){
+				List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(sl);
+				if (unitloads.isEmpty()){
 					continue;
 				}
 				
 				List<Long> ids = new ArrayList<Long>();
 				
-				for (LOSUnitLoad ul : sl.getUnitLoads()){
+				for (LOSUnitLoad ul : unitloads){
 					ids.add(ul.getId());
 				}
 				
@@ -244,9 +244,10 @@ public class LocationSanityBusinessBean implements LocationSanityBusiness{
 		sendToNirwana.setMessageResourceKey(CLEARING_CAPACITYEXH_SENDNIRWANA);
 		
 		ClearingItemOptionRetval retval = new ClearingItemOptionRetval();
-		String[] uls = new String[sl.getUnitLoads().size()];
+		List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(sl);
+		String[] uls = new String[unitloads.size()];
 		int i=0;
-		for (LOSUnitLoad ul : sl.getUnitLoads()){
+		for (LOSUnitLoad ul : unitloads){
 			uls[i++] = ul.getLabelId();
 		}
 		retval.setNameResourceKey(CLEARING_CAPACITYEXH_ULLIST);

@@ -82,5 +82,13 @@ public interface PickingMobileFacade {
 	 * skip the labelling and scan the target location to compelete the order.
 	 */
 	OnPickCompleteBehaviour getOnPickCompleteBehaviour();
+	
+	/**
+	 * return true if the is only one unitload on the location 
+	 * and the locating is not a system location type.
+	 * @param locationName the unit load count
+	 * @return true if the picker should be asked to count the location. 
+	 */
+	boolean isLocationCountIndicated(String locationName);
 
 }

@@ -32,8 +32,26 @@ public interface LOSUnitLoadService extends BasicService<LOSUnitLoad>{
                                          UnitLoadType type,
                                          LOSStorageLocation storageLocation) throws FacadeException;
     
-    public List<LOSUnitLoad> getListByStorageLocation(LOSStorageLocation sl);
+    /**
+     * counts the unit loads stored on the storage location
+     * @param sl the storage location
+     * @return number of unit loads stored on the location.
+     */
+    public long countUnitLoadsByStorageLocation(LOSStorageLocation sl);
     
+    /**
+     * Returns all the unit loads on the storage location.
+     * @param sl the storage location
+     * @return a list of unit loads.
+     */
+    public List<LOSUnitLoad> getListByStorageLocation(LOSStorageLocation sl);
+
+    /**
+     * Returns all empty unit loads on the storage location.
+     * Empty loads are those that contain no stock units.
+     * @param sl the storage location
+     * @return a list of empty unit loads.
+     */    
     public List<LOSUnitLoad> getListEmptyByStorageLocation(LOSStorageLocation sl);
     
     /**

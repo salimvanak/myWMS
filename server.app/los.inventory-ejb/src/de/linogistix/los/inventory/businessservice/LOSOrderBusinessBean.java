@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -39,6 +38,7 @@ import de.linogistix.los.inventory.service.LOSStockUnitRecordService;
 import de.linogistix.los.inventory.service.StockUnitLockState;
 import de.linogistix.los.location.businessservice.LOSStorage;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.model.State;
@@ -67,6 +67,8 @@ public class LOSOrderBusinessBean implements LOSOrderBusiness {
 	private LOSStorage storage;
 	@EJB
 	private LOSPickingUnitLoadService pickingUnitLoadService;
+	@EJB
+	private LOSUnitLoadService ulService;
 	@EJB
 	private LOSCustomerOrderService customerOrderService;
 
@@ -700,7 +702,7 @@ public class LOSOrderBusinessBean implements LOSOrderBusiness {
 			}
 			
 			if( counted ) {
-				if( pickFromLocation.getUnitLoads().size()<2 ) {
+				if( ulService.countUnitLoadsByStorageLocation(pickFromLocation) < 2 ) {
 					pickFromLocation.setStockTakingDate(new Date());
 				}
 				recordService.recordCounting(pickFromStock, pickFromUnitLoad, pickFromLocation, activityCode, null,null);

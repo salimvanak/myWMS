@@ -7,6 +7,8 @@
  */
 package de.linogistix.los.inventory.facade;
 
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -22,6 +24,7 @@ import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.model.LOSStorageRequest;
 import de.linogistix.los.inventory.service.LOSStorageRequestService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.exception.LOSLocationException;
 import de.linogistix.los.location.exception.LOSLocationExceptionKey;
 import de.linogistix.los.location.model.LOSStorageLocation;
@@ -44,6 +47,8 @@ public class StorageFacadeBean implements StorageFacade {
 //    private LOSStorageLocationQueryRemote locQuery;
 //    @EJB
 //    private LOSStorageRequestQueryRemote reqQuery;
+    @EJB
+    private LOSUnitLoadService ulService;
     @EJB
     private LOSStorageLocationService locationService;
     @EJB
@@ -120,10 +125,12 @@ public class StorageFacadeBean implements StorageFacade {
 	            	if( sl == null ) {
 	            		throw new BusinessObjectNotFoundException();
 	            	}
-	            	if (sl.getUnitLoads().size() == 1){
-	            		ul = sl.getUnitLoads().get(0);
+	            	long unitloadCount = ulService.countUnitLoadsByStorageLocation(sl); 
+	            	if (unitloadCount == 1){
+	            		List<LOSUnitLoad> unitLoads = ulService.getListByStorageLocation(sl);
+	            		ul = unitLoads.get(0);
 	            		storage.finishStorageRequest(r, ul);
-	            	} else if (sl.getUnitLoads().size() == 0){
+	            	} else if (unitloadCount == 0){
 	            		storage.finishStorageRequest(r, sl, overwrite);
 	            	} else{
 	            		throw new InventoryException(InventoryExceptionKey.MUST_SCAN_STOCKUNIT, "");

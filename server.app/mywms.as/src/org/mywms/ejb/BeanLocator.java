@@ -280,6 +280,11 @@ public class BeanLocator implements Externalizable {
 
 	}
 
+	public <T> T getStateless(Class<T> interfaceClazz, String moduleName) {
+		String lookUpString = resolve(interfaceClazz, applicationName, moduleName);
+		return getStateless(interfaceClazz, moduleName, lookUpString);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public <T> T getStateless(Class<T> interfaceClazz, String moduleName, String lookUpString)
 			throws BeanLocatorException {

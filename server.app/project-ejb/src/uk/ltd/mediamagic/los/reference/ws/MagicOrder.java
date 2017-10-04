@@ -155,8 +155,10 @@ public interface MagicOrder {
     public List<String> getGoodsOutLocations() throws FacadeException;    
 
     /**
-     * Returns a list of LotTraceTO object that contain data about how picking order positions 
-     * for the given lot.
+     * This is a reporting function to aid tractability of lot number from an external source.
+     * For a given ItemData and Lot this method returns a list of LotTraceTO objects 
+     * that contain data about the picking order positions.
+     * 
      * @param clientName the client name
      * @param itemNumber the item number
      * @param lotName the lotName
@@ -166,5 +168,21 @@ public interface MagicOrder {
      */
     @WebMethod
 		public List<LotTraceTO> traceLot(String clientName, String itemNumber, String lotName) throws FacadeException, EntityNotFoundException;
+
+    /**
+     * This is a reporting function to aid tractability of lot number from an external source.
+     * For a given ItemData and a list of order numbers this method returns a list of LotTraceTO objects 
+     * that contain data about the picking order positions.
+     * 
+     * This can used to determine which (ItemData x Lot) combinations were on any of the orders.
+     * @param clientName the client name
+     * @param orderNumbers the list of order numbers to search
+     * @param itemNr the item number to select.
+     * @return a list of LotTraceTO objects
+     * @throws FacadeException
+     * @throws EntityNotFoundException if the item number or client.
+     */
+    @WebMethod
+		public List<LotTraceTO> traceLotsForOrder(String clientName, List<String> orderNumbers, String itemNr) throws FacadeException, EntityNotFoundException;
 
 }

@@ -33,6 +33,7 @@ import de.linogistix.los.inventory.model.LOSStorageStrategy;
 import de.linogistix.los.inventory.service.InventoryGeneratorService;
 import de.linogistix.los.location.businessservice.LOSStorage;
 import de.linogistix.los.location.businessservice.LocationReserver;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.exception.LOSLocationAlreadyFullException;
 import de.linogistix.los.location.exception.LOSLocationException;
 import de.linogistix.los.location.exception.LOSLocationNotSuitableException;
@@ -63,6 +64,8 @@ public class StorageBusinessBean extends BasicFacadeBean implements
 	private InventoryGeneratorService genService;
 	@EJB
 	private ClientQueryRemote clQuery;
+	@EJB
+	private LOSUnitLoadService ulService;
 	@EJB
 	private StockUnitService suService;
 	@EJB
@@ -253,18 +256,18 @@ public class StorageBusinessBean extends BasicFacadeBean implements
 					throw new InventoryException(InventoryExceptionKey.STORAGE_WRONG_LOCATION_NOT_ALLOWED, targetLocation.getName());
 				}
 			}
-			
-			if (targetLocation.getUnitLoads() != null && targetLocation.getUnitLoads().size() > 0) {
+			List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(targetLocation);
+			if (unitloads != null && unitloads.size() > 0) {
 				// There is already a unit load on the destination. => Add stock
 				LOSUnitLoad targetUl = null;
-				for( LOSUnitLoad ul : targetLocation.getUnitLoads() ) {
+				for( LOSUnitLoad ul : unitloads ) {
 					if( ul.getLabelId().equals(targetLocation.getName() ) ) {
 						targetUl = ul;
 						break;
 					}
 				}
 				if( targetUl == null ) {
-					targetUl = targetLocation.getUnitLoads().get(0);
+					targetUl = unitloads.get(0);
 				}
 				
 				inventoryComponent.transferStock(unitload, targetUl, req.getNumber(), false);

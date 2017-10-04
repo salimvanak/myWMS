@@ -20,11 +20,7 @@ import org.mywms.facade.FacadeException;
 
 import de.linogistix.los.inventory.facade.LOSGoodsOutFacade;
 import de.linogistix.los.inventory.facade.LOSGoodsOutTO;
-import de.linogistix.los.inventory.model.LOSCustomerOrder;
 import de.linogistix.los.inventory.query.dto.LOSGoodsOutRequestTO;
-import de.linogistix.los.inventory.service.LOSCustomerOrderService;
-import de.linogistix.los.inventory.service.LOSGoodsOutRequestService;
-import de.linogistix.los.inventory.service.dto.GoodsReceiptTO;
 import de.linogistix.los.util.StringTools;
 import de.linogistix.mobile.common.gui.bean.BasicDialogBean;
 import de.linogistix.mobile.common.system.JSFHelper;

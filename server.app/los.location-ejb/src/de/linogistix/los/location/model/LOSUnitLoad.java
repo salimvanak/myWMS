@@ -36,6 +36,7 @@ import org.mywms.model.UnitLoad;
 @NamedQueries({
 	@NamedQuery(name="LOSUnitLoad.queryByLabel", query="FROM LOSUnitLoad ul WHERE ul.labelId=:label"),
 	@NamedQuery(name="LOSUnitLoad.queryByLocation", query="FROM LOSUnitLoad ul WHERE ul.storageLocation=:location"),
+	@NamedQuery(name="LOSUnitLoad.countByLocation", query="SELECT count(*) FROM LOSUnitLoad ul WHERE ul.storageLocation=:location"),
 	@NamedQuery(name="LOSUnitLoad.existsByLocation", query="SELECT ul.id FROM LOSUnitLoad ul WHERE ul.storageLocation=:location"),
 	@NamedQuery(name="LOSUnitLoad.queryByCarrierId", query="FROM LOSUnitLoad ul WHERE ul.carrierUnitLoadId = :carrierId"),
 	@NamedQuery(name="LOSUnitLoad.countByCarrierId", query="SELECT count(*) FROM LOSUnitLoad ul WHERE ul.carrierUnitLoadId = :carrierId")

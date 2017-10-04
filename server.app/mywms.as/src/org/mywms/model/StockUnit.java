@@ -32,11 +32,6 @@ import org.mywms.service.ConstraintViolatedException;
  * @version $Revision: 744 $ provided by $Author: mkrane $
  */
 @Entity
-//dgrys portierung wildfly 8.2, PrePersist doesn't work because id always null, labelId is not needed
-//@Table(name = "mywms_stockunit",
-//		uniqueConstraints = { 
-//		@UniqueConstraint(columnNames = {
-//		"labelId","itemdata_id" }) })
 @Table(name = "mywms_stockunit", 
 indexes = { @Index(columnList="itemData_id"), @Index(columnList="unitLoad_id")})
 public class StockUnit extends BasicClientAssignedEntity {

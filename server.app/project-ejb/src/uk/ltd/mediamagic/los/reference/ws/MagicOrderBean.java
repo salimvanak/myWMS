@@ -403,4 +403,39 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
   		
  			return (List<LotTraceTO>) q.getResultList();
     }
+
+		public List<LotTraceTO> traceLotsForOrder(String clientName, List<String> orderNumbers, String itemNr) throws FacadeException, EntityNotFoundException {
+    	Client client;
+    	if (clientName == null || clientName.length() == 0) {
+    		client = getCallersClient();
+    	}
+    	else {
+    		client = clientService.getByName(clientName);
+    	}
+
+    	if (orderNumbers.isEmpty()) return Collections.emptyList();
+    	ItemData item = itemService.getByItemNumber(client, itemNr);
+    	
+    	if (itemNr.isEmpty()) throw new javax.persistence.EntityNotFoundException("Cannot find itemNr " + itemNr);
+    	StringBuilder b = new StringBuilder();
+  		b.append("SELECT NEW ").append(LotTraceTO.class.getName()).append("(pp)")
+  			.append(" FROM ")
+  			.append(LOSPickingPosition.class.getSimpleName()).append(" pp")
+  			.append(" JOIN pp.customerOrderPosition")
+  			.append(" JOIN pp.customerOrderPosition.order")
+  			.append(" JOIN pp.pickingOrder")
+  			.append(" JOIN pp.lotPicked")
+  			.append(" JOIN pp.pickingOrder.operator")
+  			.append(" JOIN pp.pickToUnitLoad.unitLoad")
+  			.append(" WHERE pp.client = :client AND pp.itemData = :item AND pp.customerOrderPosition.order.number IN (:orders)");
+
+  		
+  		Objects.requireNonNull(manager);
+  		TypedQuery<LotTraceTO> q = manager.createQuery(new String(b), LotTraceTO.class);
+  		q.setParameter("client", client);
+  		q.setParameter("item", item);
+  		q.setParameter("orders", orderNumbers);
+  		
+ 			return (List<LotTraceTO>) q.getResultList();
+    }
 }

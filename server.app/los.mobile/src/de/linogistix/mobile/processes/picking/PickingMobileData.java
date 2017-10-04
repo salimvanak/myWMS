@@ -65,15 +65,11 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 		facade = getStateless(PickingMobileFacade.class);
 	}
 
-
-
+	
 	// ************************************************************************
 	// Operation PICKUP
 	// These methods are only defined in this operation mode
 	// ************************************************************************
-
-
-
 
 	public void loadOrder( long orderId ) throws FacadeException {
 		String logStr = "loadOrder ";
@@ -374,10 +370,19 @@ public class PickingMobileData extends BasicBackingBean implements Serializable 
 
 	public boolean isLocationEmpty() {
 		PickingMobilePos pick = getCurrentPick();
-		if( pick.checkLocationEmpty && pick.amount.compareTo(pick.amountStock)>=0 ) {
-			return true;
+		if( facade.isLocationCountIndicated(pick.locationName)) {
+//			if( pick.countStockUnitsOnUnitLoad == 1 ) {
+				if( pick.amount.compareTo(pick.amountStock)>=0 ) {
+					return true;
+				}
+//			}
 		}
 		return false;
+// FIXME remove this as the above is more efficient.
+//		if( pick.checkLocationEmpty && pick.amount.compareTo(pick.amountStock)>=0 ) {
+//			return true;
+//		}
+//		return false;
 	}
 
 	protected void sortPicks() {

@@ -757,7 +757,7 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 			log.info(logStr+"Invalid location. id="+loc.getId());
 			throw new LOSExceptionRB("LocationInvalid", this.getClass());
 		}
-		if( loc.getUnitLoads().size()>1 ) {
+		if( ulService.countUnitLoadsByStorageLocation(loc) > 1 ) {
 			log.info(logStr+"Too much unit loads on location. name="+name);
 			throw new LOSExceptionRB("LocationNotUnique", this.getClass());
 		}
@@ -788,5 +788,28 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 	@Override
 	public OnPickCompleteBehaviour getOnPickCompleteBehaviour() {
 		return manageMobile.getOnPickCompleteBehaviour();
+	}
+
+	@Override
+	public boolean isLocationCountIndicated(String locationName) {
+		LOSStorageLocation loc = locService.getByName(locationName);
+		// we do not count system locations.
+		if (loc.getType().getId() == 1) return false;
+		// we could just get the unitloads list here, but there might be a very large number of uls on the location 
+		// so better to just count them first and only query them if there is one on the location.
+		long ulCount = ulService.countUnitLoadsByStorageLocation(loc); 
+		if (ulCount == 0) return true;
+		if (ulCount > 1) return false;
+		
+		List<LOSUnitLoad> uls = ulService.getListByStorageLocation(loc);
+		if (uls.isEmpty()) return true;
+		if (uls.size() == 1) {
+			long suCount = stockUnitService.getCountOnUnitLoad(uls.get(0));
+			return (suCount <= 1);
+		}
+		else {
+			return false;
+		}
+		
 	}
 }

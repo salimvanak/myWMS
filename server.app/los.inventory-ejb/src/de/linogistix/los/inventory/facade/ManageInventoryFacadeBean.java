@@ -42,6 +42,7 @@ import de.linogistix.los.inventory.service.InventoryGeneratorService;
 import de.linogistix.los.inventory.service.LOSLotService;
 import de.linogistix.los.inventory.service.QueryItemDataService;
 import de.linogistix.los.location.businessservice.LOSStorage;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.model.LOSFixedLocationAssignment;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSUnitLoad;
@@ -80,23 +81,23 @@ public class ManageInventoryFacadeBean implements ManageInventoryFacade {
 	@EJB
 	private ClientService clientService;
 	
-    @EJB 
-    private LOSLotService lotService;
+  @EJB 
+  private LOSLotService lotService;
 	
-    @EJB
-    private LOSAdviceBusiness goodsAdvice;
+  @EJB
+  private LOSAdviceBusiness goodsAdvice;
 	
-    @EJB
-    private LOSInventoryComponent inventoryComponent;
+  @EJB
+  private LOSInventoryComponent inventoryComponent;
     
-    @EJB
-    private ContextService contextService;
+  @EJB
+  private ContextService contextService;
     
-    @EJB
-    private InventoryGeneratorService genService;
+  @EJB
+  private InventoryGeneratorService genService;
     
-    @EJB
-    private LOSStorageLocationQueryRemote slQueryRemote;
+   @EJB
+  private LOSStorageLocationQueryRemote slQueryRemote;
     
 	@EJB
 	private QueryFixedAssignmentService queryFixService;
@@ -106,6 +107,9 @@ public class ManageInventoryFacadeBean implements ManageInventoryFacade {
 
 	@EJB
 	private ItemUnitService itemUnitService;
+
+	@EJB
+  private LOSUnitLoadService ulService;
 	
 	@PersistenceContext(unitName="myWMS")
 	private EntityManager manager;
@@ -637,10 +641,11 @@ public class ManageInventoryFacadeBean implements ManageInventoryFacade {
 				throw new InventoryException(InventoryExceptionKey.WRONG_ITEMDATA, new Object[]{itemData.getNumber(),fix.getItemData().getNumber()});
 			}
 			
-			if (targetLocation.getUnitLoads() != null && targetLocation.getUnitLoads().size() > 0) {
+			List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(targetLocation);
+			if (unitloads != null && unitloads.size() > 0) {
 				// There is aready a unit load on the destination. => Add stock
 				
-				LOSUnitLoad onDestination = targetLocation.getUnitLoads().get(0);
+				LOSUnitLoad onDestination = unitloads.get(0);
 				
 				inventoryComponent.transferStock(unitLoad, onDestination, "", false);
 				storage.sendToNirwana( contextService.getCallerUserName(), unitLoad);

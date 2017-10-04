@@ -299,7 +299,8 @@ public class LocationFinderBean implements LocationFinder {
 				if( liftingCapacity != null && liftingCapacity.compareTo(BigDecimal.ZERO)>0 ) {
 
 					BigDecimal weightLoc = (weight == null ? BigDecimal.ZERO : weight);
-					for( LOSUnitLoad ulLoc : location.getUnitLoads() ) {
+					List<LOSUnitLoad> unitloads = unitLoadService.getListByStorageLocation(location);
+					for( LOSUnitLoad ulLoc : unitloads ) {
 						if( ulLoc.getWeight() != null ) {
 							weightLoc = weightLoc.add( ulLoc.getWeight() );
 						}

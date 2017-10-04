@@ -119,6 +119,14 @@ public interface StockUnitService
     int getCount(ItemData itemData);
 
     /**
+     * Returns the number of stock units on the given unit load
+     * 
+     * @param unitload the unitload
+     * @return the number of stock units
+     */
+    long getCountOnUnitLoad(UnitLoad unitload);
+
+    /**
      * Returns an info object about the stock of the specified item
      * data.
      * 

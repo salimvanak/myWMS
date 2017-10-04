@@ -23,39 +23,41 @@ import org.mywms.model.BasicEntity;
 @Remote()
 public interface LocationTestTopologyRemote {
   
-    String PALETTE_NAME = "EuroPalette, bis 1,2m hoch";
+  String PALETTE_NAME = "EuroPalette, upto 1,2m high";
 		
-	String KLT_NAME = "KLT Behaelter, 400 x 600 mm";
+	String KLT_NAME = "KLT Container, 400 x 600 mm";
 	
-	String PALETTENPLATZ_TYP_2_NAME = "Palettenplatz, Europalette TYP 2";
+	String STORAGE_LOCATION_TYPE_NAME = "Pallet area, Euro palette TYP 2";
 		
-	String KOMMPLATZ_TYP_NAME = "Kommissionierplatz";
+	String PICKING_LOCATION_TYPE_NAME = "Picking Location";
 	
-	String VIELE_PALETTEN_NAME = "Viele Paletten";
+	String SYSTEM_LOCATION_TYPE_NAME = "System";
 	
-	String EINE_PALETTE_NAME = "Eine Palette";
+	String MANY_PALETTE_NAME = "Many Palettes";
 	
-	String KOMM_FACH_DUMMY_LHM_CONSTR_NAME = "Ein virtuelles LHM fuer Kommfach";
+	String ONE_PALETTE_NAME = "One Palette";
 	
-	String STORE_AREA_NAME = "Lager";
+	String KOMM_FACH_DUMMY_LHM_CONSTR_NAME = "A virtual LHM for testing";
 	
-	String KOMM_AREA_NAME = "Kommissionierung";
+	String STORE_AREA_NAME = "Storage";
 	
-	String WE_BEREICH_NAME = "Wareneingang";
+	String PICKING_AREA_NAME = "Picking";
 	
-	String WA_BEREICH_NAME = "Warenausgang";
+	String WE_BEREICH_NAME = "Goods-IN";
+	
+	String WA_BEREICH_NAME = "Goods-OUT";
 	
 	String CLEARING_BEREICH_NAME = "Clearing";
 	
 	String PRODUCTION_BEREICH_NAME = "Produktion";
 	
-	String SL_WE_TESTCLIENT_NAME = "Test Wareneingang 1";
+	String SL_WE_TESTCLIENT_NAME = "Test Goods-IN 1";
 	
-	String SL_WE_TESTMANDANT_NAME = "Test Wareneingang 2";
+	String SL_WE_TESTMANDANT_NAME = "Test Goods-IN 2";
 	
-	String SL_PRODUCTION_TESTCLIENT_NAME = "Test Produktion 1";
+	String SL_PRODUCTION_TESTCLIENT_NAME = "Test Production 1";
 	
-	String SL_PRODUCTION_TESTMANDANT_NAME = "Test Produktion 2";
+	String SL_PRODUCTION_TESTMANDANT_NAME = "Test Production 2";
 	
 	String TEST_RACK_1_NAME = "T1";
 	
@@ -65,16 +67,16 @@ public interface LocationTestTopologyRemote {
 	
 	String SL_WA_TESTMANDANT_NAME = "TESTWA 2";
 	
-	String SL_CLEARING_NAME = "Klaerplatz";
+	String SL_CLEARING_NAME = "Clearing";
 		
 	String UL_NIRWANA_NAME = "Nirwana";
 	
-	String EINE_DEFAULT_PALETTE_NAME = "Fachbeschraenkung 1 Standardpalette";
+	String EINE_DEFAULT_PALETTE_NAME = "Constraint 1 Standard palette";
 	
 	void clear() throws LocationTopologyException;
 
-    void create() throws LocationTopologyException;
+  void create() throws LocationTopologyException;
 
-    void remove(Class<BasicEntity> clazz) throws LocationTopologyException;
+  void remove(Class<BasicEntity> clazz) throws LocationTopologyException;
   
 }

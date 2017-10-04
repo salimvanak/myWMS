@@ -10,8 +10,6 @@ package de.linogistix.los.inventory.facade;
 import java.util.List;
 import java.util.Vector;
 
-import junit.framework.TestCase;
-
 import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.model.Client;
@@ -37,6 +35,7 @@ import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import de.linogistix.los.test.TestUtilities;
+import junit.framework.TestCase;
 
 /**
  * 
@@ -148,8 +147,10 @@ public class StorageFacadeBeanTest extends TestCase {
 						false, false);
 				LOSStorageLocation sl = slQuery.queryByIdentity(r
 						.getDestination().getName());
-				assertTrue(sl.getUnitLoads().size() == 1);
-				assertEquals(sl.getUnitLoads().get(0), r.getUnitLoad());
+
+				List<LOSUnitLoad> ulList = ulQuery.getListByStorageLocation(sl);
+				assertTrue(ulList.size() == 1);
+				assertEquals(ulList.get(0), r.getUnitLoad());
 
 			} else if (su.getLot().getName().equals(
 					ManageInventoryFacadeBeanTest.TEST_LOT)) {
@@ -296,8 +297,9 @@ public class StorageFacadeBeanTest extends TestCase {
 					}
 					LOSStorageLocation sl = slQuery.queryByIdentity(r
 							.getDestination().getName());
-					assertTrue(sl.getUnitLoads().size() == 1);
-					assertEquals(sl.getUnitLoads().get(0), r.getUnitLoad());
+					List<LOSUnitLoad> ulList = ulQuery.getListByStorageLocation(sl);
+					assertTrue(ulList.size() == 1);
+					assertEquals(ulList.get(0), r.getUnitLoad());
 					
 				}
 			}

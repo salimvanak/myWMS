@@ -177,6 +177,27 @@ public class StockUnitServiceBean
     }
 
     /**
+     * @see org.mywms.service.StockUnitService#getCountOnUnitload(org.mywms.model.UnitLoad)
+     */
+    public long getCountOnUnitLoad(UnitLoad itemData) {
+        Query query =
+            manager.createQuery("SELECT count(su) FROM "
+                + StockUnit.class.getSimpleName()
+                + " su "
+                + " WHERE su.unitLoad= :id");
+        query.setParameter("id", itemData);
+
+        Long result = (Long) query.getSingleResult();
+
+        if (result != null) {
+            return result;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
      * @see org.mywms.service.StockUnitService#getReservedStock(org.mywms.model.ItemData)
      */
     public int getReservedStock(ItemData itemData) {

@@ -32,6 +32,7 @@ import de.linogistix.los.inventory.service.LOSPickingPositionService;
 import de.linogistix.los.inventory.service.LOSPickingUnitLoadService;
 import de.linogistix.los.inventory.service.QueryItemDataService;
 import de.linogistix.los.inventory.service.QueryStockService;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.model.LOSFixedLocationAssignment;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSUnitLoad;
@@ -75,6 +76,8 @@ public class InfoFacadeBean implements InfoFacade {
 	private LOSPickingPositionService pickingPositionService;
 	@EJB
 	private LOSCustomerOrderService customerOrderService;
+	@EJB
+	private LOSUnitLoadService ulService;
 
 	@PersistenceContext(unitName = "myWMS")
 	protected EntityManager manager;
@@ -138,9 +141,11 @@ public class InfoFacadeBean implements InfoFacade {
 			fixList.add(fix);
 		}
 
-		InfoLocationTO locto = new InfoLocationTO( loc, fixList );
+		List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(loc);
+
+		InfoLocationTO locto = new InfoLocationTO( loc, fixList, unitloads );
 		if( locto.getNumUnitLoads() == 1 ) {
-			readOrder( locto.getUnitLoad(), loc.getUnitLoads().get(0) );
+			readOrder( locto.getUnitLoad(), unitloads.get(0) );
 		}
 		
 		return locto;
@@ -183,8 +188,8 @@ public class InfoFacadeBean implements InfoFacade {
 		if( loc == null ) {
 			return toList;
 		}
-		
-		for( LOSUnitLoad ul : loc.getUnitLoads() ) {
+		List<LOSUnitLoad> unitloads = ulService.getListByStorageLocation(loc);
+		for( LOSUnitLoad ul : unitloads ) {
 			InfoUnitLoadTO ulto = new InfoUnitLoadTO(ul);
 			readOrder(ulto, ul);
 			

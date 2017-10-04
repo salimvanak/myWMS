@@ -765,11 +765,12 @@ public class LOSGoodsReceiptFacadeBean
 
 		// To picking? (implicitly if virtual ul type)
 		UnitLoadType virtual = queryUltService.getPickLocationUnitLoadType();
-
-		if (targetLocation.getUnitLoads() != null && targetLocation.getUnitLoads().size() > 0) {
+		
+		List<LOSUnitLoad> unitloads = losUlService.getListByStorageLocation(targetLocation);
+		if (unitloads != null && unitloads.size() > 0) {
 			// There is aready a unit load on the destination. => Add stock
 
-			LOSUnitLoad onDestination = targetLocation.getUnitLoads().get(0);
+			LOSUnitLoad onDestination = unitloads.get(0);
 
 			inventoryComponent.transferStock(unitload, onDestination, activityCode, false);
 			storageService.sendToNirwana( contextService.getCallerUserName(), unitload);

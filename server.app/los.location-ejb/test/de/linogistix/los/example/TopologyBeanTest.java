@@ -161,7 +161,7 @@ public class TopologyBeanTest extends TestCase {
     }
 
      public static LOSTypeCapacityConstraint getVIELE_PALETTEN() throws BusinessObjectNotFoundException {
-        return capacityQuery.queryByIdentity(LocationTestTopologyBean.VIELE_PALETTEN_NAME);
+        return capacityQuery.queryByIdentity(LocationTestTopologyBean.MANY_PALETTE_NAME);
     }
 
      public static LOSTypeCapacityConstraint getKOMM_FACH_DUMMY_LHM_CONSTR() throws BusinessObjectNotFoundException {
@@ -173,7 +173,7 @@ public class TopologyBeanTest extends TestCase {
     }
 
      public static LOSArea getKOMM_AREA() throws BusinessObjectNotFoundException {
-         return areaQuery.queryByIdentity(LocationTestTopologyBean.KOMM_AREA_NAME);
+         return areaQuery.queryByIdentity(LocationTestTopologyBean.PICKING_AREA_NAME);
     }
 
      public static LOSArea getWE_BEREICH() throws BusinessObjectNotFoundException {
@@ -185,7 +185,7 @@ public class TopologyBeanTest extends TestCase {
     }
 
      public static LOSStorageLocationType getKOMMISIONIER_FACH() throws BusinessObjectNotFoundException {
-         return slTypeQuery.queryByIdentity(LocationTestTopologyBean.KOMMPLATZ_TYP_NAME);
+         return slTypeQuery.queryByIdentity(LocationTestTopologyBean.PICKING_LOCATION_TYPE_NAME);
     }
 
      //-----------------------------------------------------------------------

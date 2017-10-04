@@ -12,11 +12,17 @@
 package de.linogistix.los.location.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.ejb.Stateless;
+import javax.persistence.Query;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.log4j.Logger;
 
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
+import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.location.query.dto.UnitLoadTO;
 import de.linogistix.los.query.BODTOConstructorProperty;
@@ -32,7 +38,8 @@ public class LOSUnitLoadQueryBean
         extends BusinessObjectQueryBean<LOSUnitLoad> 
         implements LOSUnitLoadQueryRemote
 {
-	
+	private static final Logger log = Logger.getLogger(LOSUnitLoadQueryBean.class);
+
 	@Override
 	public String getUniqueNameProp() {
 		return "labelId";
@@ -146,4 +153,34 @@ public class LOSUnitLoadQueryBean
   		return ret;
   	}
     
+  	@Override
+  	public long countUnitLoadsByStorageLocation(LOSStorageLocation sl) {
+  		Query query = manager.createNamedQuery("LOSUnitLoad.countByLocation");
+  		query.setParameter("location", sl);
+      Long count = (Long)query.getSingleResult();
+      return (count == null) ? 0 : count;
+  	}
+
+    @SuppressWarnings("unchecked")
+   	@Override
+  	public List<LOSUnitLoad> getListByStorageLocation(LOSStorageLocation sl) {
+      	
+    		if (sl.getType().getId() == 1) {
+    			//we log this as an error so we get stack trace.
+    			if (sl.getId() == 0 || sl.getId() == 1 || "Goods-Out".equals(sl.getName())) {
+    				log.error("Fetching unit loads for system location " + sl.getName() + " is dangerous and cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));    			
+    				return Collections.emptyList();
+    			}
+    			else {  				
+    				log.warn("Fetching unit loads for system location " + sl.getName());    			
+    			}
+    		}
+
+  		Query query = manager.createNamedQuery("LOSUnitLoad.queryByLocation");
+  		query.setParameter("location", sl);
+                  
+          return (List<LOSUnitLoad>)query.getResultList();
+      }
+
+
 }

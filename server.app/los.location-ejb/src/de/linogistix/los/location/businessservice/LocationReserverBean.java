@@ -10,6 +10,7 @@ import org.mywms.facade.FacadeException;
 
 import de.linogistix.los.location.constants.LOSStorageLocationLockState;
 import de.linogistix.los.location.customization.CustomLocationService;
+import de.linogistix.los.location.entityservice.LOSUnitLoadService;
 import de.linogistix.los.location.exception.LOSLocationAlreadyFullException;
 import de.linogistix.los.location.exception.LOSLocationException;
 import de.linogistix.los.location.exception.LOSLocationExceptionKey;
@@ -25,6 +26,8 @@ import de.linogistix.los.location.service.QueryTypeCapacityConstraintService;
 public class LocationReserverBean implements LocationReserver {
 	private static final Logger log = Logger.getLogger(LocationReserverBean.class);
 
+	@EJB
+	private LOSUnitLoadService ulService;
 	@EJB
 	private QueryTypeCapacityConstraintService capacityService;
 	@EJB
@@ -191,7 +194,7 @@ public class LocationReserverBean implements LocationReserver {
 			// Generally not allocated locations should not be checked
 			if( checkEmptyLocation ) {
 				if( allocationLocationStart.compareTo(BigDecimal.ZERO)!=0 ) {
-					for( LOSUnitLoad ul : location.getUnitLoads() ) {
+					for( LOSUnitLoad ul : ulService.getListByStorageLocation(location)) {
 						if( !ul.equals(unitLoad) ) {
 							log.warn(logStr+"Something went wrong with location allocation. allocation<=0, but still unitloads on location. Try to correct. location name="+location.getName());
 							recalculateAllocation(location, unitLoad);
@@ -228,7 +231,7 @@ public class LocationReserverBean implements LocationReserver {
 		// added a zero so that it recalculates the correct allocation amount.
 		location.setAllocation(BigDecimal.ZERO);
 		
-		for( LOSUnitLoad unitLoad : location.getUnitLoads() ) {
+		for( LOSUnitLoad unitLoad : ulService.getListByStorageLocation(location)) {
 			boolean ignore = false;
 			
 			if( knownAsRemoved != null && knownAsRemoved.length>0 ) {

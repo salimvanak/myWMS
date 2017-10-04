@@ -52,7 +52,6 @@ import de.linogistix.los.location.query.LOSStorageLocationQueryRemote;
 import de.linogistix.los.location.query.LOSUnitLoadQueryRemote;
 import de.linogistix.los.location.query.UnitLoadTypeQueryRemote;
 import de.linogistix.los.query.BODTO;
-import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.exception.BusinessObjectNotFoundException;
 import de.linogistix.los.query.exception.BusinessObjectQueryException;
@@ -348,7 +347,8 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 	}
 	private void correctUnitLoad(LOSUnitLoad ul, LOSStorageLocation sl, int index, boolean forceFullStorageLocation) throws FacadeException {
 		
-		if (sl.getUnitLoads().contains(ul)) {
+		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+		if (ulList.contains(ul)) {
 			log.info("OK: Unitload " + ul.getLabelId()
 					+ " already on StorageLocaton " + sl.getName());
 			ul.setIndex(index);
@@ -362,7 +362,7 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 			} catch (LOSLocationAlreadyFullException ex){
 				if (forceFullStorageLocation){
 					Vector<Long> ids = new Vector<Long>();
-					for (LOSUnitLoad existing : sl.getUnitLoads()) {
+					for (LOSUnitLoad existing : ulList) {
 						log.warn("WARN: send existing to clearing: "
 								+ existing.getLabelId());
 						ids.add(existing.getId());

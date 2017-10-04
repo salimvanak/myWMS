@@ -83,7 +83,9 @@ public class LocationSanityCheckFacadeBean implements LocationSanityCheckFacade 
 				if (!sl.getArea().equals(area)){
 					continue;
 				}
-				if (sl.getUnitLoads().isEmpty()){
+				
+				List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
+				if (ulList.isEmpty()){
 					
 					try {
 						LOSUnitLoad existing = ulService.getByLabelId(sl.getClient(), sl.getName());
@@ -100,7 +102,7 @@ public class LocationSanityCheckFacadeBean implements LocationSanityCheckFacade 
 					}
 				}
 				
-				for (LOSUnitLoad ul : sl.getUnitLoads()){
+				for (LOSUnitLoad ul : ulList){
 					
 					if (ul.getLabelId().equals(sl.getName())){
 						ul = manager.find(LOSUnitLoad.class, ul.getId());

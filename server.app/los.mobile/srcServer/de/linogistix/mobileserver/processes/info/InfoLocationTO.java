@@ -12,6 +12,7 @@ import java.util.List;
 
 import de.linogistix.los.location.model.LOSFixedLocationAssignment;
 import de.linogistix.los.location.model.LOSStorageLocation;
+import de.linogistix.los.location.model.LOSUnitLoad;
 
 /**
  * @author krane
@@ -32,7 +33,7 @@ public class InfoLocationTO implements Serializable{
 
 	public InfoLocationTO() {
 	}
-	public InfoLocationTO( LOSStorageLocation loc, List<LOSFixedLocationAssignment> fixList ) {
+	public InfoLocationTO( LOSStorageLocation loc, List<LOSFixedLocationAssignment> fixList, List<LOSUnitLoad> unitloads ) {
 		if( loc == null ) {
 			return;
 		}
@@ -42,9 +43,9 @@ public class InfoLocationTO implements Serializable{
 		this.name = loc.getName();
 		this.type = loc.getType().getName();
 		
-		this.numUnitLoads = loc.getUnitLoads().size();
+		this.numUnitLoads = unitloads.size();
 		if( numUnitLoads == 1 ) {
-			this.unitLoad = new InfoUnitLoadTO( loc.getUnitLoads().get(0) );
+			this.unitLoad = new InfoUnitLoadTO( unitloads.get(0) );
 		}
 		
 		if( fixList != null ) {

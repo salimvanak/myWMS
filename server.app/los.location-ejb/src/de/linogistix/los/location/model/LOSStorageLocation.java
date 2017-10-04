@@ -8,10 +8,7 @@
 package de.linogistix.los.location.model;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,18 +16,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import org.mywms.model.BasicClientAssignedEntity;
 import org.mywms.model.Zone;
 
@@ -45,7 +36,7 @@ import org.mywms.model.Zone;
 })
 public class LOSStorageLocation extends BasicClientAssignedEntity{
 
-	private static final Logger log = Logger.getLogger(LOSStorageLocation.class);
+//	private static final Logger log = Logger.getLogger(LOSStorageLocation.class);
 
 	private static final long serialVersionUID = 1L;
 
@@ -53,7 +44,7 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 
 	private LOSStorageLocationType type;
 
-	private List<LOSUnitLoad> unitLoads = new ArrayList<LOSUnitLoad>();
+//	private List<LOSUnitLoad> unitLoads = new ArrayList<LOSUnitLoad>();
 
 	private LOSTypeCapacityConstraint currentTypeCapacityConstraint;
 
@@ -102,23 +93,24 @@ public class LOSStorageLocation extends BasicClientAssignedEntity{
 		this.type = type;
 	}
 
-	@BatchSize(size=500)
-	@LazyCollection(LazyCollectionOption.EXTRA)
-	@OneToMany(mappedBy="storageLocation")
-	public List<LOSUnitLoad> getUnitLoads() {
-		if (getType().getId() == 1) {
-			//we log this as an error so we get stack trace.
-			if (getId() == 0 || getId() == 1 || "Goods-Out".equals(getName())) {
-				log.error("Fetching unit loads for system location " + getName() + " is dangerous and cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));    			
-				return Collections.emptyList();
-			}
-		}
-		return unitLoads;
-	}
-
-	public void setUnitLoads(List<LOSUnitLoad> unitLoads) {
-		this.unitLoads = unitLoads;
-	}
+//	@BatchSize(size=500)
+//	@LazyCollection(LazyCollectionOption.EXTRA)
+//	@OneToMany(mappedBy="storageLocation")
+//	@Deprecated
+//	public List<LOSUnitLoad> getUnitLoads() {
+//		if (getType().getId() == 1) {
+//			//we log this as an error so we get stack trace.
+//			if (getId() == 0 || getId() == 1 || "Goods-Out".equals(getName())) {
+//				log.error("Fetching unit loads for system location " + getName() + " is dangerous and cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));    			
+//				return Collections.emptyList();
+//			}
+//		}
+//		return unitLoads;
+//	}
+//
+//	public void setUnitLoads(List<LOSUnitLoad> unitLoads) {
+//		this.unitLoads = unitLoads;
+//	}
 
 	@ManyToOne(optional=true)
 	@JoinColumn(name="currentTCC")

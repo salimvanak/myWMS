@@ -7,6 +7,7 @@
  */
 package de.linogistix.los.location.entityservice;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.ejb.EJB;
@@ -14,6 +15,7 @@ import javax.ejb.Stateless;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.globals.ServiceExceptionKey;
@@ -117,10 +119,30 @@ public class LOSUnitLoadServiceBean
 	    }
         return true;
     }
+	
+	@Override
+	public long countUnitLoadsByStorageLocation(LOSStorageLocation sl) {
+		Query query = manager.createNamedQuery("LOSUnitLoad.countByLocation");
+		query.setParameter("location", sl);
+    Long count = (Long)query.getSingleResult();
+    return (count == null) ? 0 : count;
+	}
 
     //-----------------------------------------------------------------------
     @SuppressWarnings("unchecked")
 	public List<LOSUnitLoad> getListByStorageLocation(LOSStorageLocation sl) {
+    	
+  		if (sl.getType().getId() == 1) {
+  			//we log this as an error so we get stack trace.
+  			if (sl.getId() == 0 || sl.getId() == 1 || "Goods-Out".equals(sl.getName())) {
+  				log.error("Fetching unit loads for system location " + sl.getName() + " is dangerous and cause a OutOfMemoryError\n" + ExceptionUtils.getStackTrace(new RuntimeException()));    			
+  				return Collections.emptyList();
+  			}
+  			else {  				
+  				log.warn("Fetching unit loads for system location " + sl.getName());    			
+  			}
+  		}
+
 		Query query = manager.createNamedQuery("LOSUnitLoad.queryByLocation");
 		query.setParameter("location", sl);
                 
@@ -145,6 +167,7 @@ public class LOSUnitLoadServiceBean
      * @see LOSUnitLoadService.getListByLabelStartsWith(Client, String)
      */
 	@SuppressWarnings("unchecked")
+	@Override
 	public List<LOSUnitLoad> getListByLabelStartsWith(Client client, String labelPart) 
 	{
 		String lowerPart = labelPart.toLowerCase();

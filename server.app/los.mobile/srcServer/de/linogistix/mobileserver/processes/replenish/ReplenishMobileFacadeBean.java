@@ -364,7 +364,8 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		log.debug(logStr + "Looking for lot number " + pickingLot + " on destination.");
 		boolean matchingLotNumbers = false;
 		boolean containsStock = false;
-		greenCut: for (LOSUnitLoad ul : loc.getUnitLoads()) {
+		List<LOSUnitLoad> unitloads = unitLoadService.getListByLocation(loc);
+		greenCut: for (LOSUnitLoad ul : unitloads) {
 			for(StockUnit su : ul.getStockUnitList()) {
 				containsStock = true;
 				if (Objects.equals(su.getLot(), pickingLot)) {
