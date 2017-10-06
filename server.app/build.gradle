@@ -21,9 +21,10 @@ dependencies {
   deploy project(path: 'los.mobile', configuration: 'archives')
   deploy project(path: 'project-ejb', configuration: 'archives')
 
-  earlib 'net.sf.jasperreports:jasperreports:4.6.0'
+  earlib group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.4.1'
+//  earlib 'net.sf.jasperreports:jasperreports:4.6.0'
+//  earlib group: 'net.sf.jasperreports', name: 'jasperreports-fonts', version: '4.0.0'
   earlib group: 'net.sourceforge.barbecue', name: 'barbecue', version: '1.5-beta1'
-  earlib group: 'net.sf.jasperreports', name: 'jasperreports-fonts', version: '4.0.0'
   earlib 'org.apache.commons:commons-lang3:3.4'
 
   hibtools 'org.hibernate:hibernate-tools:4.+'
@@ -159,7 +160,7 @@ allprojects {
   //sourceCompatibility = 1.8
 
   repositories {
-		jcenter()
+    jcenter()
     mavenCentral()
 
     maven {
@@ -186,5 +187,14 @@ allprojects {
       name "PrimeFaces Repository"
       url "http://repository.primefaces.org"
     }
-	}
+  }
+
+  eclipse {
+    classpath {
+      file.whenMerged {
+	entries.removeAll { it.path == '/home/slim/code/mywms-branch/myWMS/server.app/los.common-ejb/build/classes/groovy/test' }
+        entries.removeAll { it.path == '/home/slim/code/mywms-branch/myWMS/server.app/los.mobile/build/classes/groovy/server' }
+      }
+    }
+  }
 }

@@ -25,8 +25,6 @@ task wildflyDocker (type: Docker) {
   runCommand('curl -o $JBOSS_HOME/standalone/deployments/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar')
 
   addFile('config/start-wildfly.sh', '/start-wildfly.sh')
-  //runCommand('chmod +x /start-wildfly.sh')
-
   addFile('config/standalone.xml', '${JBOSS_HOME}/standalone/configuration/')
   addFile {
       from project(':server.app').ear.outputs
