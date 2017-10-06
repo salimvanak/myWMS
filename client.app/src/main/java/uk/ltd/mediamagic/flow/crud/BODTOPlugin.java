@@ -4,6 +4,7 @@ import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.mywms.model.BasicEntity;
 
@@ -43,6 +45,7 @@ import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
+import uk.ltd.mediamagic.fx.concurrent.function.BgConsumer;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
@@ -382,7 +385,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 			
 			@Override
 			public boolean isSaveRequired() {
-				return true;
+				return controller.isSaveReqired();
 			}
 		});
 		context.autoInjectBean(controller);
@@ -495,4 +498,28 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugi
 		ApplicationPane.setOnCloseRequestHandler(parent, onCloseRequestHandler);
 		return parent;
 	}
+
+	protected void withMultiSelectionTO(ViewContext context, Collection<TableKey> sel, BgConsumer<BODTO<T>> closure) {
+		List<BODTO<T>> values = sel.stream().map(CRUDKeyUtils::<T>getBOTO).collect(Collectors.toList());
+		withMultiSelection(context, values, closure);
+	}
+	
+	protected <S> void withMultiSelection(ViewContext context, Collection<S> values, BgConsumer<S> closure) {
+		if (values.isEmpty()) {
+			FXErrors.selectionError(context.getRootNode());
+			return;
+		}
+		
+		context.getExecutor().executeAndWait(context.getRootNode(), p -> {
+			p.setSteps(values.size());
+			for (S v : values) {
+				p.step();
+				closure.consume(v);
+			}
+			return null;
+		});
+		Flow flow = context.getBean(Flow.class);
+		flow.executeCommand(Flow.REFRESH_ACTION);
+	}
+
 }

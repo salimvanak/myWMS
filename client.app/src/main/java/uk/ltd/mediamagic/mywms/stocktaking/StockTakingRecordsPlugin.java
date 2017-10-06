@@ -31,7 +31,7 @@ public class StockTakingRecordsPlugin extends CRUDPlugin<LOSStocktakingRecord> {
 	
 	@Override
 	public String getPath() {
-		return "{1, _Logs} -> {2, _Stock Taking Records}";
+		return "{2, _Internal Orders} -> {2, _Stock Taking Records}";
 	}
 	
 	private Node getIcon(LOSStocktakingRecord r) {

@@ -19,7 +19,7 @@ public class ZonePlugin extends CRUDPlugin<Zone> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {2, _Zones}";
+		return "{1, _Master Data} -> {1, _Location} -> {3, _Zones}";
 	}
 
 	@Override

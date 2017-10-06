@@ -30,6 +30,11 @@ public class CRUDKeyUtils {
 		return (key == null) ? null : key.get("bodto");
 	}
 
+
+	public static <R extends BODTO<?>> R getTO(TableKey key) {
+		return (key == null) ? null : key.get("bodto");
+	}
+
 	public static Long getID(TableKey key) {
 		return (key == null) ? null : key.get("id");
 	}

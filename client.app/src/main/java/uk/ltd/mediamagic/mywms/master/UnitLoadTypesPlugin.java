@@ -23,7 +23,7 @@ public class UnitLoadTypesPlugin extends CRUDPlugin<UnitLoadType> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {3, _Unit load types}";
+		return "{1, _Master Data} -> {1, _Location} -> {4, _Unit load types}";
 	}
 
 	@Override

@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.mywms.model.BasicEntity;
+import org.mywms.model.Role;
 import org.mywms.model.User;
 
 import de.linogistix.los.crud.BusinessObjectCRUDRemote;
@@ -20,6 +21,9 @@ import de.linogistix.los.location.query.dto.StorageLocationTO;
 import de.linogistix.los.location.query.dto.UnitLoadTO;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.BusinessObjectQueryRemote;
+import de.linogistix.los.user.crud.RoleCRUDRemote;
+import de.linogistix.los.user.crud.UserCRUDRemote;
+import de.linogistix.los.user.query.RoleQueryRemote;
 import de.linogistix.los.user.query.UserQueryRemote;
 import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.mywms.common.ClassLookup;
@@ -28,8 +32,8 @@ public class BeanDirectory {
 	private static final Logger log = MLogger.log(BeanDirectory.class);
 	private static final String CRUD_SUFFIX = "CRUDRemote";
 	private static final String QUERY_SUFFIX = "QueryRemote";
-	private static final String[] curdPackages = {"de.linogistix.los.crud", "de.linogistix.los.inventory.crud", "de.linogistix.los.location.crud", "de.linogistix.los.stocktaking.crud"};
-	private static final String[] queryPackages = {"de.linogistix.los.query","de.linogistix.los.inventory.query", "de.linogistix.los.location.query", "de.linogistix.los.stocktaking.query"};  
+	private static final String[] curdPackages = {"de.linogistix.los.crud", "de.linogistix.los.inventory.crud", "de.linogistix.los.location.crud", "de.linogistix.los.stocktaking.crud", "de.linogistix.los.inventory.pick.crud"};
+	private static final String[] queryPackages = {"de.linogistix.los.query","de.linogistix.los.inventory.query", "de.linogistix.los.location.query", "de.linogistix.los.stocktaking.query", "de.linogistix.los.inventory.pick.query"};  
 	
 	private static final ClassLookup<Class<? extends BusinessObjectCRUDRemote<? extends BasicEntity>>> 
 		crudLookup = new ClassLookup<>(BeanDirectory::findCRUD);
@@ -123,6 +127,7 @@ public class BeanDirectory {
 	private static Iterable<String> getQueryClassName(Class<? extends BasicEntity> cls) {
 		if (cls == LOSRack.class) return Collections.singleton(RackQueryRemote.class.getName());
 		if (cls == User.class) return Collections.singleton(UserQueryRemote.class.getName());
+		if (cls == Role.class) return Collections.singleton(RoleQueryRemote.class.getName());
 		String simpleName = cls.getSimpleName();
 		return Arrays.stream(queryPackages).map(s -> s + "." + simpleName + QUERY_SUFFIX)::iterator;
 	}
@@ -135,6 +140,8 @@ public class BeanDirectory {
 	 */
 	private static Iterable<String> getCRUDClassName(Class<? extends BasicEntity> cls) {
 		String simpleName = cls.getSimpleName();
+		if (cls == User.class) return Collections.singleton(UserCRUDRemote.class.getName());
+		if (cls == Role.class) return Collections.singleton(RoleCRUDRemote.class.getName());
 		return Arrays.stream(curdPackages).map(s -> s + "." + simpleName + CRUD_SUFFIX)::iterator;
 	}
 

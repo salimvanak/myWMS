@@ -18,7 +18,7 @@ public class FunctionalAreasPlugin extends CRUDPlugin<LOSArea> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {2, _Functional Areas}";
+		return "{1, _Master Data} -> {1, _Location} -> {3, _Functional Areas}";
 	}
 
 	@Override

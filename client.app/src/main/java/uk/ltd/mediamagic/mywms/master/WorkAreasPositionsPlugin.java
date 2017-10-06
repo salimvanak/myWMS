@@ -18,7 +18,7 @@ public class WorkAreasPositionsPlugin extends BODTOPlugin<LOSWorkingAreaPosition
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {2, _Working area positions}";
+		return "{1, _Master Data} -> {1, _Location} -> {3, _Working area positions}";
 	}
 
 	@Override

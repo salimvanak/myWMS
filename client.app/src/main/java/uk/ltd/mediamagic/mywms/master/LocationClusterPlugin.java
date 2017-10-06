@@ -18,7 +18,7 @@ public class LocationClusterPlugin extends CRUDPlugin<LOSLocationCluster> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {2, _Location Clusters}";
+		return "{1, _Master Data} -> {1, _Location} -> {3, _Location Clusters}";
 	}
 
 	@Override

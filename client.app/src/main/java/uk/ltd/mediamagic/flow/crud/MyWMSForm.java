@@ -28,7 +28,7 @@ import uk.ltd.mediamagic.plugin.PluginRegistry;
 
 public class MyWMSForm extends PojoForm {
 
-	private final Logger log = MLogger.log(this);
+	private static final Logger log = MLogger.log(MyWMSForm.class);
 	
 	private final List<SubForm> forms;
 

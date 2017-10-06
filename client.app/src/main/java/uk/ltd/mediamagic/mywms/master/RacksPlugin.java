@@ -18,7 +18,7 @@ public class RacksPlugin extends BODTOPlugin<LOSRack> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {2, _Racks}";
+		return "{1, _Master Data} -> {1, _Location} -> {3, _Racks}";
 	}
 
 	@Override

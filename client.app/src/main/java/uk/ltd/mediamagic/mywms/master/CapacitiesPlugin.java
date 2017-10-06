@@ -43,7 +43,7 @@ public class CapacitiesPlugin extends BODTOPlugin<LOSTypeCapacityConstraint> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {1, _Capacities}";
+		return "{1, _Master Data} -> {1, _Location} -> {2, _Capacities}";
 	}
 
 	@Override

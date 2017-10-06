@@ -13,8 +13,10 @@ import java.util.logging.Logger;
 import javax.persistence.Column;
 import javax.persistence.Id;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.adapter.JavaBeanObjectPropertyBuilder;
 import javafx.beans.property.adapter.ReadOnlyJavaBeanObjectPropertyBuilder;
@@ -35,7 +37,11 @@ import uk.ltd.mediamagic.mywms.common.BeanUtils;
 
 public abstract class PoJoEditor<T> extends EditorBase {
 
+	
+	private ReadOnlyBooleanWrapper saveReqired = new ReadOnlyBooleanWrapper();	
 	private ObjectProperty<T> data = new SimpleObjectProperty<>(); 
+
+	private InvalidationListener watchForChanges = o -> saveReqired.set(true);
 	
 	public PoJoEditor(BeanInfo beanInfo) {
 		super();
@@ -51,7 +57,8 @@ public abstract class PoJoEditor<T> extends EditorBase {
 		nodeNamespace.forEach((k, n) -> {
 			String field = getField(n);
 			unbind(field, n);
-			bind(field, n);			
+			bind(field, n);
+			saveReqired.set(false);
 		});
 	}
 	
@@ -72,6 +79,14 @@ public abstract class PoJoEditor<T> extends EditorBase {
 		this.dataProperty().set(data);
 	}
 
+	public final javafx.beans.property.ReadOnlyBooleanProperty saveReqiredProperty() {
+		return this.saveReqired.getReadOnlyProperty();
+	}
+
+	public final boolean isSaveReqired() {
+		return this.saveReqiredProperty().get();
+	}	
+	
 	public static class PojoEditorHelper<T> implements EditorHelper {
 
 		private final Logger log = MLogger.log(this);
@@ -117,7 +132,9 @@ public abstract class PoJoEditor<T> extends EditorBase {
 					return ReadOnlyJavaBeanObjectPropertyBuilder.create().bean(getData()).name(id).build();
 				}
 				else {
-					return JavaBeanObjectPropertyBuilder.create().bean(getData()).name(id).build();
+					ObservableValue<?> value = JavaBeanObjectPropertyBuilder.create().bean(getData()).name(id).build();
+					value.addListener(editor.watchForChanges);
+					return value;
 				}
 			}
 			catch (NoSuchMethodException e) {

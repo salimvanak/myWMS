@@ -18,6 +18,14 @@ public class MyWMSUserPermissions implements UserPermissions {
 		return MyWMS.hasRole("Admin", "Foreman");
 	}
 	
+	public static final BooleanBinding atLeastForemanUser() {
+		return MyWMS.roleBinding("Admin", "Foreman");
+	}
+
+	public static final BooleanBinding adminUser() {
+		return MyWMS.roleBinding("Admin", "Foreman");
+	}
+
 	BooleanBinding isAdmin = MyWMS.roleBinding("Admin");
 	
 	public MyWMSUserPermissions() {
@@ -34,7 +42,7 @@ public class MyWMSUserPermissions implements UserPermissions {
 	public ObservableBooleanValue isVisible(String colName) {
 		return ObservableConstant.TRUE;
 	}
-	 
+		 
 	public static class ForMasterData extends MyWMSUserPermissions {
 		BooleanBinding isAtleastForeman = MyWMS.roleBinding("Foreman", "Admin");
 
@@ -46,6 +54,20 @@ public class MyWMSUserPermissions implements UserPermissions {
 			if ("created".equals(colName)) return ObservableConstant.FALSE;
 			if ("modified".equals(colName)) return ObservableConstant.FALSE;
 			return isAtleastForeman;
+		}
+	}
+
+	public static class ForSystemData extends MyWMSUserPermissions {
+		BooleanBinding isAdmin = MyWMS.roleBinding("Admin");
+
+		public ForSystemData() {
+		}
+		
+		@Override
+		public ObservableBooleanValue isEditable(String colName) {
+			if ("created".equals(colName)) return ObservableConstant.FALSE;
+			if ("modified".equals(colName)) return ObservableConstant.FALSE;
+			return isAdmin;
 		}
 	}
 

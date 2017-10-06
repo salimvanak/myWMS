@@ -42,7 +42,7 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 		T sel = getData();
 		return CRUDKeyUtils.createKey(sel);
 	}
-
+	
 	@Override
 	public Collection<TableKey> getSelectedKeys() {
 		return Collections.singleton(getSelectedKey());

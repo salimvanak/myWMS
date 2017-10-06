@@ -22,7 +22,7 @@ public class StorageLocationTypesPlugin extends CRUDPlugin<LOSStorageLocationTyp
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {1, _Storage location types}";
+		return "{1, _Master Data} -> {1, _Location} -> {2, _Storage location types}";
 	}
 
 	@Override

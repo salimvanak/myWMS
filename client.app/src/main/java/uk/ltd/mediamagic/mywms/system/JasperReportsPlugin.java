@@ -1,4 +1,4 @@
-package uk.ltd.mediamagic.mywms.master;
+package uk.ltd.mediamagic.mywms.system;
 
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -63,7 +63,7 @@ public class JasperReportsPlugin extends CRUDPlugin<LOSJasperReport> {
 	}
 
 	private void uploadFile(Object source, Flow flow, ViewContext context, TableKey key) {
-		FXUtils.getFileOpen(context.getRootNode(), Collections.singleton(new FileChooser.ExtensionFilter("Jasper Report", ".jrxml")))
+		FXUtils.getFileOpen(context.getRootNode(), Collections.singleton(new FileChooser.ExtensionFilter("Jasper Report", "*.jrxml")))
 		.ifPresent(file -> {
 			LOSJasperReportCRUDRemote crud = context.getBean(LOSJasperReportCRUDRemote.class);
 			Long id = CRUDKeyUtils.getID(key);
@@ -75,6 +75,7 @@ public class JasperReportsPlugin extends CRUDPlugin<LOSJasperReport> {
 				StringBuilder sout = Files.lines(file.toPath())
 						.collect(StringBuilder::new, (sb,s) -> sb.append(s).append('\n'), StringBuilder::append);
 				report.setSourceDocument(sout.toString());
+				report.setCompiledDocument(null);
 				crud.update(report);
 				return null;
 			});			

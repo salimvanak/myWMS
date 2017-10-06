@@ -18,7 +18,7 @@ public class WorkAreasPlugin extends CRUDPlugin<LOSWorkingArea> {
 
 	@Override
 	public String getPath() {
-		return "{1, _Master Data} -> {1, _Location} -> {2, _Working Areas}";
+		return "{1, _Master Data} -> {1, _Location} -> {3, _Working Areas}";
 	}
 
 	@Override

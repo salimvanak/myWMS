@@ -118,6 +118,11 @@ public class MyWMS extends Application {
 		public void setMessage(String message) {
 			statusBar.setText(message);
 		}
+		
+		@Override
+		public boolean isDebug() {
+			return false;
+		}
 
 		@Override
 		public Runnable addNewNode(Node n) {
@@ -325,6 +330,8 @@ public class MyWMS extends Application {
     plugins.add(new GoodsInModule());
     plugins.add(new GoodsOutModule());
     plugins.add(new StockTakingModule());
+    plugins.add(new InternalOrdersModule());
+    plugins.add(new DocumentsModule());
 
     return plugins.toArray(new AbstractPluginSet[plugins.size()]);
   }

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
@@ -15,23 +14,23 @@ import de.linogistix.los.stocktaking.model.LOSStocktakingOrder;
 import de.linogistix.los.stocktaking.model.LOSStocktakingState;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
+import res.R;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.CrudTable;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.action.RootCommand;
-import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 
-	private enum Action {Recount, AcceptCount, CreateOrder};
+	private enum Action {Recount, AcceptCount, CreateOrder, RemoveOrder};
 	enum StockTakingFilter {All, Open, Waiting, Processing, Finished}
 	
 	public StockTakingOrdersPlugin() {
@@ -40,7 +39,7 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 	
 	@Override
 	public String getPath() {
-		return "{1, _Logs} -> {2, _Stock Taking Orders}";
+		return "{2, _Internal Orders} -> {2, _Stock Taking Orders}";
 	}
 	
 	@Override
@@ -89,38 +88,25 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 	@Override
 	protected void createAction(CrudTable<LOSStocktakingOrder> source, Flow flow, ViewContext context) {
 		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
-		
+		//TODO finish this for creating orders.
 //		MDialogs.create(owner)
 //		
 //		service.generateOrders(execute, clientId, areaId, zoneId, rackId, locationId, locationName, itemId, itemNo, invDate, enableEmptyLocations, enableFullLocations, clientModeLocations, clientModeItemData)
 	}
 	
 	public void recount(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
-		List<Long> sel = key.stream().map(CRUDKeyUtils::getID).collect(Collectors.toList());
 		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
-		context.getBean(MExecutor.class).execute(p -> {
-			p.setSteps(sel.size());
-			for (Long id : sel) {
-				if (id == null) continue;
-				service.recountOrder(id);
-				p.step();
-			}
-			return null;
-		});
+		withMultiSelectionTO(context, key, o -> service.recountOrder(o.getId()));
 	}
 
 	public void acceptCount(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
-		List<Long> sel = key.stream().map(CRUDKeyUtils::getID).collect(Collectors.toList());
 		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
-		context.getBean(MExecutor.class).execute(p -> {
-			p.setSteps(sel.size());
-			for (Long id : sel) {
-				if (id == null) continue;
-				service.acceptOrder(id);
-				p.step();
-			}
-			return null;
-		});
+		withMultiSelectionTO(context, key, o -> service.acceptOrder(o.getId()));
+	}
+
+	public void removeCount(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		LOSStocktakingFacade service = context.getBean(LOSStocktakingFacade.class);
+		withMultiSelectionTO(context, key, o -> service.removeOrder(o.getId()));
 	}
 
 	@Override
@@ -136,6 +122,7 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 				.globalWithSelection()
 					.withMultiSelection(Action.Recount, this::recount)
 					.withMultiSelection(Action.AcceptCount, this::acceptCount)
+					.withMultiSelection(Action.RemoveOrder, this::removeCount)
 				.end();
 	}
 	
@@ -145,6 +132,7 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 		command.begin("actions")
 			.add(AC.id(Action.AcceptCount).text("Accept Count").description("Accept the stock count and adjust unit loads."))			
 			.add(AC.id(Action.Recount).text("Recount").description("Order a recount on this location."))
+			.add(AC.id(Action.RemoveOrder).icon(R.icons.delete()).disable(MyWMSUserPermissions.adminUser().not()).description("Remove this storage request"))
 		.end();
 	}
 		

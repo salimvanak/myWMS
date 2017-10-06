@@ -15,7 +15,8 @@ import uk.ltd.mediamagic.fx.flow.actions.CommandProvider;
 import uk.ltd.mediamagic.fx.helpers.ComboBoxes;
 
 public class QueryUtils {
-	
+	public enum OpenAllFilter {All, Open};
+
 	public static TemplateQueryWhereToken or(TemplateQueryWhereToken t) {
 		t.setLogicalOperator("OR");
 		return t;
