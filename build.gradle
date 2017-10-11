@@ -20,6 +20,7 @@ task wildflyDocker (type: Docker) {
 
   setEnvironment('POSTGRES_URI','db')
   setEnvironment('POSTGRES_DB','los_reference')
+  setEnvironment('java.io.tmpdir','/tmp/')
 
   runCommand '$JBOSS_HOME/bin/add-user.sh admin ${JBOSS_SECRET:-admin} --silent'
   runCommand('curl -o $JBOSS_HOME/standalone/deployments/postgresql.jar https://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar')

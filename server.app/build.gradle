@@ -192,8 +192,8 @@ allprojects {
   eclipse {
     classpath {
       file.whenMerged {
-	entries.removeAll { it.path == '/home/slim/code/mywms-branch/myWMS/server.app/los.common-ejb/build/classes/groovy/test' }
-        entries.removeAll { it.path == '/home/slim/code/mywms-branch/myWMS/server.app/los.mobile/build/classes/groovy/server' }
+        entries.removeAll { it.path.endsWith('server.app/los.common-ejb/build/classes/groovy/test') }
+        entries.removeAll { it.path.endsWith('server.app/los.mobile/build/classes/groovy/server') }
       }
     }
   }
