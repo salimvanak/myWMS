@@ -230,8 +230,12 @@ public class PickingMobileBean extends BasicDialogBean {
 			}
 			loadSelectedOrder();
 		}
-
-		log.info(logStr+"Found "+orderSelectList.size()+" orders");
+		if (orderSelectList == null) {
+			log.info(logStr+"Found (null) orders");			
+		}
+		else {
+			log.info(logStr+"Found "+orderSelectList.size()+" orders");
+		}
 		return orderSelectList;
 	}
 
