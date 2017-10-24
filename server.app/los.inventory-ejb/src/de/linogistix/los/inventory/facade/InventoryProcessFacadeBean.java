@@ -34,8 +34,10 @@ import de.linogistix.los.inventory.businessservice.LOSInventoryComponent;
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.query.LotQueryRemote;
+import de.linogistix.los.inventory.query.StockUnitLabelQueryRemote;
 import de.linogistix.los.inventory.query.StockUnitQueryRemote;
 import de.linogistix.los.inventory.service.InventoryGeneratorService;
+import de.linogistix.los.inventory.service.QueryStockServiceRemote;
 import de.linogistix.los.location.businessservice.LOSRackLocationNameUtil;
 import de.linogistix.los.location.businessservice.LOSStorage;
 import de.linogistix.los.location.businessservice.LocationReserver;
@@ -88,6 +90,8 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 	@EJB
 	private LOSUnitLoadService ulService;
 	@EJB
+	private QueryStockServiceRemote suService;
+	@EJB
 	private UnitLoadTypeQueryRemote uTypeQuery;
 	@PersistenceContext(unitName = "myWMS")
 	private EntityManager manager;
@@ -125,7 +129,7 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 				ul = ulQueryRemote.queryByIdentity(ulName);
 				ul = manager.find(LOSUnitLoad.class, ul.getId());
 				Vector<Long> sus = new Vector<Long>();
-				for (StockUnit su : ul.getStockUnitList()){
+				for (StockUnit su : suService.getListByUnitLoad(ul)){
 					sus.add(su.getId());
 				}
 				for (Long id : sus){
@@ -133,7 +137,6 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 					inventoryComponent.changeAmount(su, new BigDecimal(0), true, "IMAN", null, null, true);
 					inventoryComponent.sendStockUnitsToNirwana(su, "IMAN");
 				}
-				ul.setStockUnitList(new ArrayList<StockUnit>());
 				ul.setLock(0);
 				ul.setAdditionalContent("");
 				manager.flush();
@@ -290,7 +293,8 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 			break;
 		}	
 		
-		if (su != null && ul.getStockUnitList().size() > 0){
+		long stockUnitCountOnUL = suService.countByUnitLoad(ul); 
+		if (su != null && stockUnitCountOnUL > 0){
 			if (! su.getUnitLoad().equals(ul)){
 				if (force){
 					inventoryComponent.transferStockUnit(su, ul, "IMAN");
@@ -304,7 +308,7 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 			}
 		}
 		
-		else if (su == null && ul.getStockUnitList().size() > 0){
+		else if (su == null && stockUnitCountOnUL > 0){
 			if (force){
 				su = inventoryComponent.createStock(idat.getClient(),
 						l, idat, amount, ul, "IMAN", null);
@@ -331,7 +335,7 @@ public class InventoryProcessFacadeBean implements InventoryProcessFacade {
 
 	private String getStockUnitListAsString(LOSUnitLoad ul) {
 		String s = "";
-		for (StockUnit exists : ul.getStockUnitList()){
+		for (StockUnit exists : suService.getListByUnitLoad(ul)){
 			//dgrys portierung wildfly 8.2
 			//s += exists.getId() +"; "+ exists.getLabelId() +"; "+ exists.getLot() == null ? "" : exists.getLot().toUniqueString() +"; "+ exists.getAmount();
 			s += exists.getId() +"; "+ exists.getLot() == null ? "" : exists.getLot().toUniqueString() +"; "+ exists.getAmount();

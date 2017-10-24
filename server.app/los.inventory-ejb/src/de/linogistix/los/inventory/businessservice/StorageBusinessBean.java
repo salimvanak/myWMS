@@ -251,7 +251,7 @@ public class StorageBusinessBean extends BasicFacadeBean implements
 		
 		LOSFixedLocationAssignment fix = fixService.getByLocation(targetLocation);
 		if( fix != null ) {
-			for( StockUnit su : unitload.getStockUnitList() ) {
+			for( StockUnit su : suService.getListByUnitLoad(unitload) ) {
 				if( !su.getItemData().equals(fix.getItemData()) ) {
 					throw new InventoryException(InventoryExceptionKey.STORAGE_WRONG_LOCATION_NOT_ALLOWED, targetLocation.getName());
 				}
@@ -322,7 +322,7 @@ public class StorageBusinessBean extends BasicFacadeBean implements
 		locationReserver.deallocateLocation(orig, from);
 		
 		// if UnitLoad empty, send to nirwana
-		if (req.getUnitLoad().getStockUnitList().isEmpty()) {
+		if (suService.getCountOnUnitLoad(req.getUnitLoad()) == 0) {
 			LOSUnitLoad u = manager.find(LOSUnitLoad.class, req.getUnitLoad().getId());
 			storageLocService.sendToNirwana(getCallersUsername(), u);
 		}

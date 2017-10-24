@@ -16,6 +16,7 @@ import org.mywms.facade.FacadeException;
 
 import de.linogistix.los.example.CommonTestTopologyRemote;
 import de.linogistix.los.example.InventoryTestTopologyRemote;
+import de.linogistix.los.inventory.service.QueryStockServiceRemote;
 import de.linogistix.los.location.exception.LOSLocationException;
 import de.linogistix.los.location.exception.LOSLocationExceptionKey;
 import de.linogistix.los.location.model.LOSUnitLoad;
@@ -128,10 +129,11 @@ public class InventoryProcessFacadeBeanTest extends TestCase {
 		}
 		
 		LOSUnitLoadQueryRemote ulQuery = TestUtilities.beanLocator.getStateless(LOSUnitLoadQueryRemote.class);
+		QueryStockServiceRemote suService = TestUtilities.beanLocator.getStateless(QueryStockServiceRemote.class);
 		
 		try{
 			LOSUnitLoad ul = ulQuery.queryByIdentity("T1-1-4-1-Expectedfull");
-			assertEquals(1, ul.getStockUnitList().size());
+			assertEquals(1, suService.countByUnitLoad(ul));
 		} catch (FacadeException e) {
 			logger.error(e.getMessage(),e);
 			fail(e.getMessage());

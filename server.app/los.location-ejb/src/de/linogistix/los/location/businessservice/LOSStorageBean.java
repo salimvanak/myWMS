@@ -17,6 +17,7 @@ import javax.persistence.PersistenceContext;
 import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.model.StockUnit;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.entityservice.BusinessObjectLockState;
 import de.linogistix.los.location.constants.LOSStorageLocationLockState;
@@ -48,6 +49,8 @@ public class LOSStorageBean implements LOSStorage {
 	
 	@EJB
 	private LOSUnitLoadService unitLoadService;
+	@EJB
+	private StockUnitService stockUnitService;
 	@EJB
 	private LocationReserver locationReserver;
 	@EJB
@@ -106,7 +109,7 @@ public class LOSStorageBean implements LOSStorage {
 				log.error(logStr+"Carrier unit loads are not allowed on fixed locations");
 				throw new LOSLocationException( LOSLocationExceptionKey.CARRIER_NOT_ON_FIXLOC, new String[]{});
 			}
-			for (StockUnit su : unitLoad.getStockUnitList()){
+			for (StockUnit su : stockUnitService.getListByUnitLoad(unitLoad)) {
 				if ( ! su.getItemData().equals(fixAss.getItemData())){
 					throw new LOSLocationException(
 							LOSLocationExceptionKey.WRONG_ITEMDATA_FIXASSIGNMENT, 

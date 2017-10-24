@@ -570,7 +570,7 @@ public class LOSGoodsReceiptComponentBean extends BasicFacadeBean implements
 				}
 			}
 			
-			if( ul.getStockUnitList().size() <= 1 ) {
+			if( suService.getCountOnUnitLoad(ul) <= 1 ) {
 				logger.info("Remove UnitLoad " + ul.getLabelId());
 				storageService.sendToNirwana(contextService.getCallerUserName(), ul);
 			}

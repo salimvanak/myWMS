@@ -25,6 +25,7 @@ import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.model.LOSStorageRequest;
 import de.linogistix.los.inventory.model.LOSStorageRequestState;
 import de.linogistix.los.inventory.query.StockUnitQueryRemote;
+import de.linogistix.los.inventory.service.QueryStockServiceRemote;
 import de.linogistix.los.location.exception.LOSLocationException;
 import de.linogistix.los.location.exception.LOSLocationExceptionKey;
 import de.linogistix.los.location.model.LOSStorageLocation;
@@ -74,6 +75,7 @@ public class StorageFacadeBeanTest extends TestCase {
 		LOSStorageLocationQueryRemote slQuery = TestUtilities.beanLocator
 				.getStateless(LOSStorageLocationQueryRemote.class);
 		StockUnitQueryRemote suQuery = TestUtilities.beanLocator.getStateless(StockUnitQueryRemote.class);
+		QueryStockServiceRemote suService = TestUtilities.beanLocator.getStateless(QueryStockServiceRemote.class);
 		
 		QueryDetail d = new QueryDetail(0, Integer.MAX_VALUE,"labelId", true);
 		
@@ -93,9 +95,11 @@ public class StorageFacadeBeanTest extends TestCase {
 		Vector<String> labels = new Vector<String>();
 		for (UnitLoad u : l) {
 			LOSUnitLoad ul = (LOSUnitLoad) ulQuery.queryById(u.getId());
-			if (ul.getStockUnitList().size() > 0) {
-				for (StockUnit su : ul.getStockUnitList()){
-					su = suQuery.queryById(ul.getStockUnitList().get(0).getId());
+			if (suService.countByUnitLoad(ul) > 0) {
+				List<StockUnit> stockUnits = suService.getListByUnitLoad(ul);
+				for (StockUnit su : stockUnits){
+					// FIXME this has to be a faulty test case??
+					su = suQuery.queryById(stockUnits.get(0).getId());
 					if (su.getClient().equals(
 							TopologyBeanTest.getTESTCLIENT()) 
 							|| su.getClient().equals(TopologyBeanTest.getTESTMANDANT())) {
@@ -126,9 +130,8 @@ public class StorageFacadeBeanTest extends TestCase {
 			LOSStorageRequest r = bean.getStorageRequest(label, false);
 			assertNotNull(r);
 
-			LOSUnitLoad ul = (LOSUnitLoad) ulQuery.queryById(r.getUnitLoad()
-					.getId());
-			StockUnit su = ul.getStockUnitList().get(0);
+			LOSUnitLoad ul = (LOSUnitLoad) ulQuery.queryById(r.getUnitLoad().getId());
+			StockUnit su = suService.getListByUnitLoad(ul).get(0);
 
 			if (su.getLot().getName().equals(InventoryTestTopologyRemote.LOT_N1_A1_NAME)) {
 				log.info("Request: " + r.toDescriptiveString());
@@ -243,8 +246,7 @@ public class StorageFacadeBeanTest extends TestCase {
 									LOSUnitLoad u = r.getUnitLoad();
 									u = (LOSUnitLoad) ulQuery.queryById(u
 											.getId());
-									StockUnit sUnit = u.getStockUnitList().get(
-											0);
+									StockUnit sUnit = suService.getListByUnitLoad(u).get(0);
 									log.info("test zuschuetten/add to existing  from "
 													+ label
 													+ " to "
@@ -255,8 +257,7 @@ public class StorageFacadeBeanTest extends TestCase {
 											.getId());
 									assertEquals(slQuery.getNirwanaName(),
 											u.getStorageLocation().getName());
-									assertTrue(u.getStockUnitList() == null
-											|| u.getStockUnitList().size() == 0);
+									assertTrue(suService.countByUnitLoad(u) == 0);
 									sUnit = TopologyBeanTest.getSuQuery()
 											.queryById(sUnit.getId());
 									assertFalse(sUnit.getUnitLoad().equals(u));
@@ -264,7 +265,7 @@ public class StorageFacadeBeanTest extends TestCase {
 									// now there are two StockUnits on a pallet
 //									//assertTrue(u.getStockUnitList().size() == 2);
 									// but should be consolidated??
-									assertTrue(u.getStockUnitList().size() == 1);
+									assertTrue(suService.countByUnitLoad(u) == 1);
 									lastLotXLabel = null; // reset
 									lastLotXLabelTestMandant = null; // ... for next loop
 								} else {

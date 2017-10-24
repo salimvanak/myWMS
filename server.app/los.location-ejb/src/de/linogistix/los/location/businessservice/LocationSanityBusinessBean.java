@@ -35,6 +35,7 @@ import org.mywms.model.UnitLoadType;
 import org.mywms.model.User;
 import org.mywms.service.ClearingItemService;
 import org.mywms.service.EntityNotFoundException;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.location.entityservice.LOSAreaService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
@@ -89,6 +90,10 @@ public class LocationSanityBusinessBean implements LocationSanityBusiness{
 	
 	@EJB
 	LOSUnitLoadService ulService;
+
+	@EJB
+	StockUnitService suService;
+	
 	
 	@EJB
 	QueryUnitLoadTypeService ulTypeService;
@@ -158,7 +163,7 @@ public class LocationSanityBusinessBean implements LocationSanityBusiness{
 						continue;
 					}
 					
-					if (ul.getStockUnitList().size() == 0){
+					if (suService.getCountOnUnitLoad(ul) == 0){
 						log.error("FOUND EMPTY UNITLOAD: " + ul.toDescriptiveString());
 						clearEmptyUnitLoad(ul);
 						continue;
@@ -311,7 +316,6 @@ public class LocationSanityBusinessBean implements LocationSanityBusiness{
 
 	}
 
-	@SuppressWarnings("unchecked")
 	public void cancelCronJob() {
 		TimerService timerService = ctx.getTimerService();
 		for (Timer timer : (Collection<Timer>) timerService.getTimers()) {
@@ -326,7 +330,6 @@ public class LocationSanityBusinessBean implements LocationSanityBusiness{
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public Timer getTimer() {
 		TimerService timerService = ctx.getTimerService();
 		for (Timer timer : (Collection<Timer>) timerService.getTimers()) {

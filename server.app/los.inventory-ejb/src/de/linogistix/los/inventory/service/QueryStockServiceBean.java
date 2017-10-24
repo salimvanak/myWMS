@@ -63,6 +63,30 @@ public class QueryStockServiceBean
         return (List<StockUnit>) query.getResultList();
 	}
 
+	public long countByUnitLoad(LOSUnitLoad ul) {
+		
+		Client callersClient = ctxService.getCallersClient();
+		
+		StringBuffer qstr = new StringBuffer("SELECT count(su) FROM ");
+        qstr.append(StockUnit.class.getSimpleName()+ " su ");
+        qstr.append("WHERE su.unitLoad = :ul ");
+		
+        if (!callersClient.isSystemClient()) {
+            qstr.append("AND su.client = :cl ");
+        }
+        
+		Query query = manager.createQuery(qstr.toString());
+
+        query.setParameter("ul", ul);
+        
+        if (!callersClient.isSystemClient()) {
+        	query.setParameter("cl", callersClient);
+        }
+
+        Long count = (Long)query.getSingleResult();
+        return (count == null) ? 0 : count;
+	}
+
 	@SuppressWarnings("unchecked")
 	public List<StockUnit> getListByUnitLoadLabel( String label ) {
 		

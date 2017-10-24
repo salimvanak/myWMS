@@ -31,7 +31,18 @@ public interface QueryStockService {
 	 * @return {@link List} of {@link StockUnit}s
 	 */
 	public List<StockUnit> getListByUnitLoad(LOSUnitLoad ul);
-	
+
+	/**
+	 * In case of lazily loading this method counts the stock units on a unitload.
+	 *  For security reasons result will be limited according to the callers client <br> 
+	 * - callers who belong to the system client will get all {@link StockUnit}s for the specified {@link LOSUnitLoad}<br>
+	 * - callers of a certain client will get only those {@link StockUnit}s that are also assigned to that client.
+	 * 
+	 * @param ul {@link LOSUnitLoad} the stocks are placed on
+	 * @return {@link List} of {@link StockUnit}s
+	 */
+	public long countByUnitLoad(LOSUnitLoad ul);
+
 	/**
 	 * Reading the stock units of a unit load.<br>
 	 * For security reasons result will be limited according to the callers client <br> 

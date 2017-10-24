@@ -29,6 +29,7 @@ import org.mywms.model.UnitLoad;
 import org.mywms.service.ClientService;
 import org.mywms.service.EntityNotFoundException;
 import org.mywms.service.ItemDataService;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
@@ -63,6 +64,8 @@ public class ManageInventoryBusinessBean extends BasicFacadeBean implements
 	private LOSLotService lotService;
 	@EJB
 	private LOSUnitLoadService ulService;
+	@EJB
+	private StockUnitService suService;
 	@EJB
 	private LOSStorageLocationTypeService typeService;
 	@EJB
@@ -172,7 +175,7 @@ public class ManageInventoryBusinessBean extends BasicFacadeBean implements
 		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
 
 		for (LOSUnitLoad ul : ulList){
-			for (StockUnit su : ul.getStockUnitList()){
+			for (StockUnit su : suService.getListByUnitLoad(ul)) {
 				sus.add(su.getId());
 //				su = manager.find(StockUnit.class, su.getId());
 //				manager.remove(su);

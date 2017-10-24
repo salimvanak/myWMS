@@ -38,6 +38,7 @@ import de.linogistix.los.inventory.service.InventoryGeneratorService;
 import de.linogistix.los.inventory.service.LOSStockUnitRecordService;
 import de.linogistix.los.inventory.service.QueryItemDataService;
 import de.linogistix.los.inventory.service.QueryLotService;
+import de.linogistix.los.inventory.service.QueryStockService;
 import de.linogistix.los.inventory.service.StockUnitLockState;
 import de.linogistix.los.location.businessservice.LOSStorage;
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
@@ -81,6 +82,9 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 
 	@EJB
 	private QueryUnitLoadService queryUlService;
+
+	@EJB
+	private QueryStockService querySuService;
 
 	@EJB
 	private QueryItemDataService queryItemService;
@@ -259,7 +263,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 			for (LOSUnitLoad ul : ulList) {
 
 				// if there are stocks booked on the unit load
-				if (ul.getStockUnitList().size() > 0) {
+				if (querySuService.countByUnitLoad(ul) > 0) {
 
 					missingUlList.add(ul);
 				}
@@ -309,7 +313,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 
 					for (LOSUnitLoad ul : missingUlList) {
 
-						for (StockUnit su : ul.getStockUnitList()) {
+						for (StockUnit su : querySuService.getListByUnitLoad(ul)) {
 
 							// create a record for every missing stock
 							// with plannedQuantity = stock.amount and
@@ -459,7 +463,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 				throw new LOSStockTakingException(LOSStockTakingExceptionKey.UNITLOAD_LOCKED, new Object[]{ul.getLabelId()});
 			}
 
-			for( StockUnit su : ul.getStockUnitList() ) {
+			for( StockUnit su : querySuService.getListByUnitLoad(ul)) {
 				lock = su.getLock();
 				if( lock != 0 && lock != STOCKTAKING_LOCK_NO ) {
 					throw new LOSStockTakingException(LOSStockTakingExceptionKey.STOCK_LOCKED, new Object[]{ul.getLabelId()});
@@ -657,7 +661,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		}
 
 		for (LOSStocktakingOrder so : soList) {
-			for (StockUnit su : ul.getStockUnitList()) {
+			for (StockUnit su : querySuService.getListByUnitLoad(ul)) {
 
 				// create a record for every missing stock
 				// with plannedQuantity = stock.amount and countedQuantity = 0
@@ -736,7 +740,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 				ul.setStockTakingDate(Calendar.getInstance().getTime());
 				recordService.recordCounting(null, ul, sl, "ST "+so.getId().toString(), null, so.getOperator());
 				
-				for( StockUnit su : ul.getStockUnitList() ) {
+				for( StockUnit su : querySuService.getListByUnitLoad(ul)) {
 					recordService.recordCounting(su, ul, sl, "ST "+so.getId().toString(), null, so.getOperator());
 				}
 			}
@@ -987,7 +991,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 				}
 				recordService.recordCounting(null, ul, sl, "ST "+stOrder.getId().toString(), null, stOrder.getOperator());
 				
-				for( StockUnit su : ul.getStockUnitList() ) {
+				for( StockUnit su : querySuService.getListByUnitLoad(ul)) {
 					if( !su.getUnitLoad().equals(ul) ) {
 						continue;
 					}
@@ -1016,7 +1020,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		ul = manager.merge(ul);
 		
 		log.debug(methodName+"Post Unresolved");
-		for (StockUnit su : ul.getStockUnitList()){
+		for (StockUnit su : querySuService.getListByUnitLoad(ul)) {
 			// remove all su not having a ResolvedStockTakingRecord
 			boolean found = false;
 			for (ResolvedStockTakingRecord res : recordList){
@@ -1044,7 +1048,7 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		for (ResolvedStockTakingRecord res : recordList){
 			StockUnit suDiff = null;
 			
-			for (StockUnit suCheck : ul.getStockUnitList()){
+			for (StockUnit suCheck : querySuService.getListByUnitLoad(ul)){
 				log.debug(methodName+"Check... " + res.countedStockId + ", " + suCheck.getId());
 				
 				if (res.countedStockId != null && res.countedStockId.equals(suCheck.getId())){

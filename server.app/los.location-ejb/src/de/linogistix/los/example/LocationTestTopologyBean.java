@@ -28,6 +28,7 @@ import org.mywms.model.UnitLoadType;
 import org.mywms.service.ClientService;
 import org.mywms.service.ItemUnitService;
 import org.mywms.service.RoleService;
+import org.mywms.service.StockUnitService;
 import org.mywms.service.UserService;
 
 import de.linogistix.los.crud.BusinessObjectCreationException;
@@ -36,7 +37,6 @@ import de.linogistix.los.crud.BusinessObjectMergeException;
 import de.linogistix.los.crud.BusinessObjectModifiedException;
 import de.linogistix.los.crud.ClientCRUDRemote;
 import de.linogistix.los.crud.LogItemCRUDRemote;
-import de.linogistix.los.example.CommonTestTopologyRemote;
 import de.linogistix.los.location.crud.LOSAreaCRUDRemote;
 import de.linogistix.los.location.crud.LOSRackCRUDRemote;
 import de.linogistix.los.location.crud.LOSStorageLocationCRUDRemote;
@@ -190,6 +190,8 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
   LOSStorageLocationService locationService;
   @EJB
   LOSUnitLoadService ulService;
+  @EJB
+  StockUnitService suService;
 	@PersistenceContext(unitName = "myWMS")
 	protected EntityManager em;
 
@@ -726,7 +728,7 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 						for (LOSUnitLoad u : ulList) {
 							u = (LOSUnitLoad) ulQuery.queryById(u.getId());
 							u = em.find(LOSUnitLoad.class, u.getId());
-							for (StockUnit su : u.getStockUnitList()) {
+							for (StockUnit su : suService.getListByUnitLoad(u)) {
 								su = em.find(StockUnit.class, su.getId());
 								em.remove(su);
 							}
@@ -807,7 +809,7 @@ public class LocationTestTopologyBean implements LocationTestTopologyRemote {
 					for (LOSUnitLoad u : ulList) {
 						u = (LOSUnitLoad) ulQuery.queryById(u.getId());
 						u = em.find(LOSUnitLoad.class, u.getId());
-						for (StockUnit su : u.getStockUnitList()) {
+						for (StockUnit su : suService.getListByUnitLoad(u)) {
 							su = em.find(StockUnit.class, su.getId());
 							em.remove(su);
 						}

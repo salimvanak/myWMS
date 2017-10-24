@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.globals.DocumentTypes;
 import org.mywms.model.StockUnit;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.common.businessservice.LOSJasperReportGenerator;
 import de.linogistix.los.customization.EntityGenerator;
@@ -60,6 +61,8 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 	private LOSPickingUnitLoadService pulService;
 	@EJB
 	private LOSUnitLoadService ulService;
+	@EJB
+	private StockUnitService suService;
 	@EJB
 	private PickReceiptService labelService;
 	@EJB
@@ -109,7 +112,7 @@ public class LOSUnitLoadReportBean implements LOSUnitLoadReport {
 			log.info(logStr+"Skipping stock untis for unit load Nirwana");
 		}
 		else {
-			for( StockUnit stock : unitLoad.getStockUnitList() ) {
+			for( StockUnit stock : suService.getListByUnitLoad(unitLoad) ) {
 
 
 				PickReceiptPosition pickReceiptPos = entityGenerator.generateEntity( PickReceiptPosition.class );

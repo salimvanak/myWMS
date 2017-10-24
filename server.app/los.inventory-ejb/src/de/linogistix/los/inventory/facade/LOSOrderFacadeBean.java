@@ -63,6 +63,7 @@ import de.linogistix.los.inventory.service.LOSPickingPositionService;
 import de.linogistix.los.inventory.service.LOSPickingUnitLoadService;
 import de.linogistix.los.inventory.service.LOSStorageRequestService;
 import de.linogistix.los.inventory.service.QueryLotService;
+import de.linogistix.los.inventory.service.QueryStockService;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
 import de.linogistix.los.location.exception.LOSLocationException;
 import de.linogistix.los.location.exception.LOSLocationExceptionKey;
@@ -134,6 +135,8 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 	private LOSGoodsOutGenerator goodsOutGenerator;
 	@EJB
 	private QueryUnitLoadService unitLoadService;
+	@EJB
+	private QueryStockService stockService;
 	@EJB
 	private LOSUnitLoadReport unitLoadReport;
     @PersistenceContext(unitName = "myWMS")
@@ -419,7 +422,7 @@ public class LOSOrderFacadeBean implements LOSOrderFacade {
 				manager.remove(outPos);
 			}
 			
-			for( StockUnit su : ul.getStockUnitList() ) {
+			for( StockUnit su : stockService.getListByUnitLoad(ul) ) {
 				manager.remove(su);
 			}
 			manager.remove(ul);

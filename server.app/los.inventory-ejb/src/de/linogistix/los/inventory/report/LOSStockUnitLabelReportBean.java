@@ -24,6 +24,7 @@ import org.mywms.facade.FacadeException;
 import org.mywms.globals.DocumentTypes;
 import org.mywms.model.StockUnit;
 import org.mywms.service.ConstraintViolatedException;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.common.businessservice.LOSJasperReportGenerator;
 import de.linogistix.los.customization.EntityGenerator;
@@ -50,6 +51,8 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
     private StockUnitLabelService labelService;
 	@EJB
 	private LOSUnitLoadService ulService;
+	@EJB
+	private StockUnitService suService;
 	@EJB
 	private EntityGenerator entityGenerator;
 
@@ -94,11 +97,11 @@ public class LOSStockUnitLabelReportBean implements LOSStockUnitLabelReport {
 			valueMap.add(new LOSStockUnitReportTO());
 		}
 		else {
-			List<StockUnit> stockUnitList = unitLoad.getStockUnitList();
+			List<StockUnit> stockUnitList = suService.getListByUnitLoad(unitLoad);
 			final int maxStockUnits = 10;
 			if (stockUnitList.size() > maxStockUnits) {
 				log.error(logStr+"Max stock units exceded, only the first " 
-						+ maxStockUnits + " of " + unitLoad.getStockUnitList().size() 
+						+ maxStockUnits + " of " + stockUnitList.size() 
 						+ "stock units printed for unit load unitLoad " + unitLoad.getLabelId());
 				stockUnitList = stockUnitList.subList(0, maxStockUnits);
 			}

@@ -207,8 +207,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		su.setLot(batch);
 		su.setUnitLoad(unitLoad);
 		su.setSerialNumber(serialNumber);
-		unitLoad.getStockUnitList().add(su);
-
+	
 		if( batch != null && batch.getBestBeforeEnd()!=null ) {
 			su.setStrategyDate(batch.getBestBeforeEnd());
 		}
@@ -243,7 +242,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 	public void transferStock(LOSUnitLoad src, LOSUnitLoad dest, String activityCode, boolean yesReallyDoIt) throws FacadeException {
 
 		List<StockUnit> sus = new ArrayList<StockUnit>();
-		sus.addAll(src.getStockUnitList());
+		sus.addAll(stockUnitService.getListByUnitLoad(src));
 
 		if( !yesReallyDoIt ) {
 			boolean destAllowed = true;
@@ -264,7 +263,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		for (StockUnit su : sus) {
 			transferStockUnit(su, dest, activityCode, null, null, yesReallyDoIt);
 		}
-		src.setStockUnitList(new ArrayList<StockUnit>());
+		//src.setStockUnitList(new ArrayList<StockUnit>());
 	}
 
 	public void consolidate(LOSUnitLoad ul, String activityCode) throws FacadeException {
@@ -278,7 +277,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		is = new HashMap<ItemData, StockUnit>();
 
 		ul = manager.merge(ul);
-		List<StockUnit> sus = ul.getStockUnitList();
+		List<StockUnit> sus = stockUnitService.getListByUnitLoad(ul);
 		if (sus == null || sus.size() < 1) {
 			return;
 		}
@@ -448,7 +447,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 				LOSUnitLoad sourceUnitLoad = (LOSUnitLoad)su.getUnitLoad();
 				sendStockUnitsToNirwana(su, activityCode, null);
 				
-				if( sourceUnitLoad.getStockUnitList() == null || sourceUnitLoad.getStockUnitList().size()==0 ) {
+				if( stockUnitService.getCountOnUnitLoad(sourceUnitLoad) == 0 ) {
 					log.info(logStr+"remove empty unit load. labelId="+sourceUnitLoad.getLabelId());
 					storage.sendToNirwana(contextService.getCallerUserName(), sourceUnitLoad);
 				}
@@ -589,7 +588,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		List<Long> sus = new ArrayList<Long>();
 		// List<Long> uls = new ArrayList<Long>();
 
-		for (StockUnit su : ul.getStockUnitList()) {
+		for (StockUnit su : stockUnitService.getListByUnitLoad(ul)) {
 			sus.add(su.getId());
 			// su = manager.find(StockUnit.class, su.getId());
 			// manager.remove(su);
@@ -730,16 +729,17 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		}
 		LOSUnitLoad old = (LOSUnitLoad) su.getUnitLoad();
 		// Do not actualize stock unit list of container unit loads. This will cause problems in parallel access (Nirwana) 
-		if( old.getPackageType() != LOSUnitLoadPackageType.CONTAINER ) {
-			old.getStockUnitList().remove(su);
-		}
+//TODO check this
+//		if( old.getPackageType() != LOSUnitLoadPackageType.CONTAINER ) {
+//			old.getStockUnitList().remove(su);
+//		}
 
 		// add to destination
 		su.setUnitLoad(dest);
 		// Do not actualize stock unit list of container unit loads. This will cause problems in parallel access (Nirwana) 
-		if( dest.getPackageType() != LOSUnitLoadPackageType.CONTAINER ) {
-			dest.getStockUnitList().add(su);
-		}
+//		if( dest.getPackageType() != LOSUnitLoadPackageType.CONTAINER ) {
+//			dest.getStockUnitList().add(su);
+//		}
 
 		((LOSUnitLoad)su.getUnitLoad()).setOpened(true);
 		dest.setOpened(true);
@@ -765,7 +765,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 
 	public void sendUnitLoadToNirwanaIfEmpty(LOSUnitLoad ul) throws FacadeException {
 		ul = manager.merge(ul);
-		if (ul.getStockUnitList() == null || ul.getStockUnitList().size() == 0) {
+		if (stockUnitService.getCountOnUnitLoad(ul) == 0) {
 			log.info("A UnitLoad has become empty: " + ul.toShortString());
 			try {
 				UnitLoadType type = ulTypeQueryRemote.getPickLocationUnitLoadType();
@@ -826,9 +826,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 	public boolean testSameItemData(StockUnit su, LOSUnitLoad ul) {
 
 		boolean ret = false;
-		if (ul.getStockUnitList() != null && ul.getStockUnitList().size() > 0) {
+		if (stockUnitService.getCountOnUnitLoad(ul) > 0) {
 
-			for (StockUnit s : ul.getStockUnitList()) {
+			for (StockUnit s : stockUnitService.getListByUnitLoad(ul)) {
 				if (s.getItemData().equals(su.getItemData())) {
 					ret = true;
 				} else {
@@ -847,9 +847,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 	public boolean testSameItemData(ItemData idat, LOSUnitLoad ul) {
 
 		boolean ret = false;
-		if (ul.getStockUnitList() != null && ul.getStockUnitList().size() > 0) {
+		if (stockUnitService.getCountOnUnitLoad(ul) > 0) {
 
-			for (StockUnit s : ul.getStockUnitList()) {
+			for (StockUnit s : stockUnitService.getListByUnitLoad(ul)) {
 				if (s.getItemData().equals(idat)) {
 					ret = true;
 				} else {
@@ -868,9 +868,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 	public boolean testSameLot(StockUnit su, LOSUnitLoad ul) {
 		boolean ret = false;
 		// ul = manager.find(LOSUnitLoad.class, ul.getId());
-		if (ul.getStockUnitList() != null && ul.getStockUnitList().size() > 0) {
+		if (stockUnitService.getCountOnUnitLoad(ul) > 0) {
 
-			for (StockUnit s : ul.getStockUnitList()) {
+			for (StockUnit s : stockUnitService.getListByUnitLoad(ul)) {
 				if (s.getItemData().equals(su.getItemData())) {
 					ret = true;
 				} else {
@@ -904,7 +904,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		}
 		
 		boolean contains = false;
-		for (StockUnit su : ul.getStockUnitList()) {
+		for (StockUnit su : stockUnitService.getListByUnitLoad(ul)) {
 			if (su.getItemData().equals(idat)) {
 				amount = amount.add(su.getAvailableAmount());
 				contains = true;
@@ -936,7 +936,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 			if( ul.getPackageType() == LOSUnitLoadPackageType.CONTAINER ) {
 				continue;
 			}
-			for (StockUnit su : ul.getStockUnitList()) {
+			for (StockUnit su : stockUnitService.getListByUnitLoad(ul)) {
 				if (su.getItemData().equals(idat)) {
 					amount = amount.add(su.getAvailableAmount());
 				}
@@ -948,9 +948,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 
 	public boolean testSameLot(Lot lot, LOSUnitLoad ul) {
 		boolean ret = false;
-		if (ul.getStockUnitList() != null && ul.getStockUnitList().size() > 0) {
+		if (stockUnitService.getCountOnUnitLoad(ul) > 0) {
 
-			for (StockUnit s : ul.getStockUnitList()) {
+			for (StockUnit s : stockUnitService.getListByUnitLoad(ul)) {
 				if (s.getLot() != null && lot != null) {
 					if (s.getLot().equals(lot)) {
 						ret = true;
@@ -1023,15 +1023,16 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 					manager.clear();
 				}
 				ul = manager.merge(ul);
-				if (ul.getStockUnitList().size() > 0) {
+				long suCount = stockUnitService.getCountOnUnitLoad(ul);
+				if (suCount > 0) {
 					log.info("found UnitLoad with at least one StockUnit: " + ul.toShortString());
-				} else if (ul.getStockUnitList().size() == 0) {
+				} else if (suCount == 0) {
 					log.warn("found UnitLoad with no StockUnit: " + ul.toShortString());
 					continue;
 
 				}
 				int k = 0;
-				for (StockUnit su : ul.getStockUnitList()) {
+				for (StockUnit su : stockUnitService.getListByUnitLoad(ul)) {
 					k++;
 					if (k % 30 == 0) {
 						manager.flush();
@@ -1192,7 +1193,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 					continue;
 				ul = manager.find(LOSUnitLoad.class, ul.getId());
 				List<Long> susIds = new ArrayList<Long>();
-				for (StockUnit su : ul.getStockUnitList()) {
+				for (StockUnit su : stockUnitService.getListByUnitLoad(ul)) {
 					su = manager.find(StockUnit.class, su.getId());
 					if (!checkStockUnitDelete(su)) {
 						log.warn("skip: " + su.toShortString());
@@ -1214,7 +1215,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 				}
 
 				// delete UnitLoad
-				if (ul.getStockUnitList().size() == 0) {
+				if (stockUnitService.getCountOnUnitLoad(ul) == 0) {
 					TemplateQueryWhereToken t = new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "unitLoad", ul);
 					TemplateQuery q = new TemplateQuery();
 					q.addWhereToken(t);
@@ -1310,12 +1311,12 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 //		}
 //	}
 
-	public void cleanupStockUnitsOnNirwana() throws FacadeException {
+	public long cleanupStockUnitsOnNirwana() throws FacadeException {
 
 		LOSUnitLoad ul = ulService.getNirwana();
 		ul = manager.find(LOSUnitLoad.class, ul.getId());
 		List<Long> susIds = new ArrayList<Long>();
-		for (StockUnit su : ul.getStockUnitList()) {
+		for (StockUnit su : stockUnitService.getListByUnitLoad(ul, 100)) {
 			if (!checkStockUnitDelete(su)) {
 				log.warn("skip: " + su.toShortString());
 				continue;
@@ -1323,16 +1324,17 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 			susIds.add(su.getId());
 		}
 
-		int i = 1;
+		long i = 0;
 		for (Long id : susIds) {
+			i++;
 			StockUnit su = manager.find(StockUnit.class, id);
 			removeStockUnit(su, "CLS", true);
 			if (i % 30 == 0) {
 				manager.flush();
 				manager.clear();
 			}
-
 		}
+		return i;
 	}
 
 	private boolean checkStockUnitDelete(StockUnit su) {
@@ -1456,9 +1458,6 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 				throw new InventoryException(InventoryExceptionKey.CREATE_STOCKUNIT_ON_STORAGELOCATION_FAILED, slName);
 			}
 
-			// Fucking hibernate is not able to handle the stock unit list without accessing it in advance
-			((LOSUnitLoad)ul).getStockUnitList().size();
-
 			su = createStock(c, lot, idat, amount, (LOSUnitLoad) ul, activityCode, serialNumber);
 
 			consolidate((LOSUnitLoad) su.getUnitLoad(), activityCode);
@@ -1538,7 +1537,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 
 		List<LOSUnitLoad> ulList = ulService.getListByStorageLocation(sl);
 		for (LOSUnitLoad ul : ulList) {
-			for (StockUnit su : ul.getStockUnitList()) {
+			for (StockUnit su : stockUnitService.getListByUnitLoad(ul)) {
 				sus.add(su.getId());
 				// su = manager.find(StockUnit.class, su.getId());
 				// manager.remove(su);
@@ -1602,7 +1601,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		BigDecimal weightSum = unitLoad.getType().getWeight();
 		weightSum = weightSum == null ? BigDecimal.ZERO : weightSum;
 		int numStock=0;
-		for( StockUnit stock : unitLoad.getStockUnitList() ) {
+		for( StockUnit stock : stockUnitService.getListByUnitLoad(unitLoad)) {
 			BigDecimal weightItem = stock.getItemData().getWeight();
 			if( weightItem != null ) {
 				weightSum = weightSum.add( weightItem.multiply(stock.getAmount()));

@@ -15,4 +15,6 @@ import org.mywms.facade.FacadeException;
 public interface InventoryCleanupFacade {
 
 	void cleanup() throws FacadeException;
+	
+	long cleanupStockUnitsOnNirwana() throws FacadeException;
 }

@@ -75,6 +75,22 @@ public class StockUnitServiceBean
         return (List<StockUnit>) query.getResultList();
     }
 
+
+    /**
+     * @see org.mywms.service.StockUnitService#getListByUnitLoad(UnitLoad)
+     */
+    @SuppressWarnings("unchecked")
+    public List<StockUnit> getListByUnitLoad(UnitLoad unitLoad, int limit) {
+        Query query =
+            manager.createQuery("SELECT su FROM "
+                + StockUnit.class.getSimpleName()
+                + " su "
+                + " WHERE su.unitLoad = :ul ORDER BY su.id");
+        query.setParameter("ul", unitLoad);
+        query.setMaxResults(limit);
+        return (List<StockUnit>) query.getResultList();
+    }
+
     /**
      * @see org.mywms.service.StockUnitService#getListByItemData(org.mywms.model.ItemData)
      */
@@ -179,13 +195,13 @@ public class StockUnitServiceBean
     /**
      * @see org.mywms.service.StockUnitService#getCountOnUnitload(org.mywms.model.UnitLoad)
      */
-    public long getCountOnUnitLoad(UnitLoad itemData) {
+    public long getCountOnUnitLoad(UnitLoad unitload) {
         Query query =
             manager.createQuery("SELECT count(su) FROM "
                 + StockUnit.class.getSimpleName()
                 + " su "
                 + " WHERE su.unitLoad= :id");
-        query.setParameter("id", itemData);
+        query.setParameter("id", unitload);
 
         Long result = (Long) query.getSingleResult();
 

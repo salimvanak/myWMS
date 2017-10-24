@@ -368,7 +368,7 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 			unitLoad = pickingUnitLoad.getUnitLoad();
 		}
 
-		if( unitLoad.getStockUnitList().size()>0 ) {
+		if( stockUnitService.getCountOnUnitLoad(unitLoad) > 0 ) {
 			return false;
 		}
 
@@ -664,6 +664,7 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 			throw new InventoryException(InventoryExceptionKey.NO_SUCH_UNITLOAD, label);
 		}
 
+		List<StockUnit> stockUnitsNew = stockUnitService.getListByUnitLoad(unitLoadNew);
 		LOSPickingPosition pick = getPickingPosition(to.id);
 		if( pick == null ) {
 			log.info(logStr+"The current picking position cannot be read");
@@ -676,11 +677,11 @@ public class PickingMobileFacadeBean implements PickingMobileFacade {
 			throw new LOSExceptionRB("SwitchLocationMismatch", this.getClass());
 		}
 
-		if( unitLoadNew.getStockUnitList().size() != 1 ) {
+		if( stockUnitsNew.size() != 1 ) {
 			log.info(logStr+"Cannot switch to mixed unit load. label="+label);
 			throw new LOSExceptionRB("SwitchMixUnitLoadMismatch", this.getClass());
 		}
-		StockUnit stockNew = unitLoadNew.getStockUnitList().get(0);
+		StockUnit stockNew = stockUnitsNew.get(0);
 
 		if( !stockNew.getItemData().equals(pick.getItemData()) ) {
 			log.info(logStr+"Wrong item data on unit load. label="+label);

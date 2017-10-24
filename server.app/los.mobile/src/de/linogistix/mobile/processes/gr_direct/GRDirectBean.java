@@ -985,7 +985,7 @@ public class GRDirectBean extends BasicDialogBean {
 						targetUl = (LOSUnitLoad) queryUnitLoadRemote.queryById(su.getUnitLoad().getId());
 					} catch (Exception e) {
 					}
-					if( targetUl != null && targetUl.getStockUnitList().size() == 1 ) {
+					if( targetUl != null && queryStockService.countByUnitLoad(targetUl) == 1 ) {
 						break;
 					}
 					log.info("More than one stock on UnitLoad="+targetUl.getLabelId());
@@ -1070,7 +1070,7 @@ public class GRDirectBean extends BasicDialogBean {
 						ul = (LOSUnitLoad) queryUnitLoadRemote.queryById(su.getUnitLoad().getId());
 					} catch (Exception e) {
 					}
-					if( ul != null && ul.getStockUnitList().size() == 1 ) {
+					if( ul != null && queryStockService.countByUnitLoad(ul) == 1 ) {
 						targetUl = ul;
 						break;
 					}

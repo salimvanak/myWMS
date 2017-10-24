@@ -22,8 +22,8 @@ import org.mywms.model.StockUnit;
 import org.mywms.model.UnitLoadType;
 import org.mywms.model.User;
 import org.mywms.service.EntityNotFoundException;
+import org.mywms.service.StockUnitService;
 
-import de.linogistix.los.common.exception.LOSExceptionRB;
 import de.linogistix.los.inventory.customization.ManageOrderService;
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
@@ -62,6 +62,8 @@ public class LOSReplenishBusinessBean implements LOSReplenishBusiness {
 	private InventoryGeneratorService inventoryGenerator;
 	@EJB
 	private LOSUnitLoadService unitLoadService;
+	@EJB
+	private StockUnitService stockUnitService;
 	@EJB
 	private ManageOrderService manageOrderService;
 	
@@ -196,7 +198,7 @@ public class LOSReplenishBusinessBean implements LOSReplenishBusiness {
 		
 		for( LOSUnitLoad ul : unitLoadList ) {
 			destinationUnitLoad = ul;
-			for( StockUnit su : ul.getStockUnitList() ) {
+			for( StockUnit su : stockUnitService.getListByUnitLoad(ul) ) {
 				if( !su.getItemData().equals(sourceStock.getItemData()) ) {
 					destinationUnitLoad = null;
 					break;
@@ -248,7 +250,7 @@ public class LOSReplenishBusinessBean implements LOSReplenishBusiness {
 			
 			if( BigDecimal.ZERO.compareTo(sourceStock.getAmount())==0 ) {
 				boolean remove = true;
-				for( StockUnit su : sourceUnitLoad.getStockUnitList() ) {
+				for( StockUnit su : stockUnitService.getListByUnitLoad(sourceUnitLoad)) {
 					if( su.getAmount().compareTo(BigDecimal.ZERO)!=0 ) {
 						remove = false;
 						break;

@@ -10,8 +10,6 @@ package de.linogistix.los.inventory.facade;
 import java.math.BigDecimal;
 import java.util.GregorianCalendar;
 
-import junit.framework.TestCase;
-
 import org.apache.log4j.Logger;
 import org.mywms.model.ItemData;
 import org.mywms.model.StockUnit;
@@ -22,11 +20,13 @@ import de.linogistix.los.inventory.example.TopologyBeanTest;
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.query.StockUnitQueryRemote;
+import de.linogistix.los.inventory.service.QueryStockServiceRemote;
 import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.location.query.LOSStorageLocationQueryRemote;
 import de.linogistix.los.location.query.LOSUnitLoadQueryRemote;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.test.TestUtilities;
+import junit.framework.TestCase;
 
 /**
  *
@@ -147,6 +147,7 @@ public class ManageInventoryFacadeBeanTest extends TestCase {
     public void testTransferStockUnit(){
      	
    	 StockUnitQueryRemote suQuery = TestUtilities.beanLocator.getStateless(StockUnitQueryRemote.class);
+   	 QueryStockServiceRemote suService = TestUtilities.beanLocator.getStateless(QueryStockServiceRemote.class);
    	 
    	 LOSUnitLoadQueryRemote ulQuery = TestUtilities.beanLocator.getStateless(LOSUnitLoadQueryRemote.class);
    	 LOSStorageLocationQueryRemote slQuery = TestUtilities.beanLocator.getStateless(LOSStorageLocationQueryRemote.class);
@@ -164,7 +165,7 @@ public class ManageInventoryFacadeBeanTest extends TestCase {
 		
 		ul = ulQuery.autoCompletion("TransferFromMe").get(0);
 		LOSUnitLoad unitLoad = ulQuery.queryById(ul.getId());
-		StockUnit stockUnit = unitLoad.getStockUnitList().get(0);
+		StockUnit stockUnit = suService.getListByUnitLoad(unitLoad).get(0);
 		su = new BODTO<StockUnit>(stockUnit.getId(), stockUnit.getVersion(), stockUnit.getId());
 		bean.transferStockUnit(su, ul, true, true, "X");
 		

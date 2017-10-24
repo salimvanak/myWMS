@@ -30,6 +30,7 @@ import org.mywms.service.ClientService;
 import org.mywms.service.EntityNotFoundException;
 import org.mywms.service.ItemDataService;
 import org.mywms.service.ItemUnitService;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.inventory.businessservice.LOSAdviceBusiness;
 import de.linogistix.los.inventory.businessservice.LOSInventoryComponent;
@@ -110,6 +111,9 @@ public class ManageInventoryFacadeBean implements ManageInventoryFacade {
 
 	@EJB
   private LOSUnitLoadService ulService;
+
+	@EJB
+  private StockUnitService suService;
 	
 	@PersistenceContext(unitName="myWMS")
 	private EntityManager manager;
@@ -615,7 +619,7 @@ public class ManageInventoryFacadeBean implements ManageInventoryFacade {
 		// Handle fixed locations
 		ItemData itemData = null;
 		boolean isItemDataUnique = true;
-		for( StockUnit su : unitLoad.getStockUnitList() ) {
+		for( StockUnit su : suService.getListByUnitLoad(unitLoad) ) {
 			if( itemData == null ) {
 				itemData = su.getItemData();
 				continue;

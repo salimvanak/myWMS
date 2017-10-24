@@ -19,6 +19,7 @@ import org.mywms.facade.FacadeException;
 
 import de.linogistix.los.crud.BusinessObjectDeleteException;
 import de.linogistix.los.example.CommonTopologyException;
+import de.linogistix.los.inventory.businessservice.LOSInventoryComponent;
 import de.linogistix.los.inventory.model.LOSAdvice;
 import de.linogistix.los.inventory.model.LOSAdviceState;
 import de.linogistix.los.inventory.model.LOSCustomerOrder;
@@ -58,10 +59,16 @@ public class InventoryCleanupFacadeBean implements InventoryCleanupFacade {
 	@EJB
 	private LOSPickingOrderService pickRequestService;
 	
+	@EJB 
+	private LOSInventoryComponent inventoryComponent;
+	
 	@PersistenceContext(unitName = "myWMS")
 	private EntityManager em;
 
 	
+	public long cleanupStockUnitsOnNirwana() throws FacadeException {
+		return inventoryComponent.cleanupStockUnitsOnNirwana();
+	}
 	
 	public void cleanup() throws FacadeException{
 		clearGoodsOutRequest();

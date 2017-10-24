@@ -60,6 +60,16 @@ public interface StockUnitService
     List<StockUnit> getListByUnitLoad(UnitLoad unitLoad);
 
     /**
+     * Searches for StockUnits that are placed on the specified
+     * UnitLoad. 
+     * 
+     * @param unitLoad the UnitLoad the StockUnits should be placed on.
+     * @param limit will only return the first <code>limit</code> number of stock units.
+     * @return list of matching StockUnits, might be empty.
+     */
+    List<StockUnit> getListByUnitLoad(UnitLoad unitLoad, int limit);
+
+    /**
      * Searches for StockUnits of the specified item data. The list is
      * sorted by the created timestamp of the StockUnit.
      * 

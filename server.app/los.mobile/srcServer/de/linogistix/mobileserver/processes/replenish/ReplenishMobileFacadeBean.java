@@ -189,20 +189,20 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		} catch (UnAuthorizedException e) {}
 		if( unitLoad != null ) {
 			// A different unit load has been scanned
-
 			// The location must be the requested
 			if( !unitLoad.getStorageLocation().getName().equals(mOrder.getSourceLocationName()) ) {
 				log.info("The unit load is located on a different location than requested");
 				throw new LOSExceptionRB("MsgUnitLoadOnDifferentLocation", this.getClass());
 			}
 
+			List<StockUnit> stockUnits = stockService.getListByUnitLoad(unitLoad);
 			// The material must be unique
-			if( unitLoad.getStockUnitList().size() != 1 ) {
+			if( stockUnits.size() != 1 ) {
 				log.info("The switch of mixed unit loads is not possible");
 				throw new LOSExceptionRB("MsgSwitchMixedUnitLoadNotAllowed", this.getClass());
 			}
 
-			StockUnit stock = unitLoad.getStockUnitList().get(0);
+			StockUnit stock = stockUnits.get(0);
 			if( !stock.getItemData().getNumber().equals(mOrder.getItemNumber()) ) {
 				log.info("The material is different");
 				throw new LOSExceptionRB("MsgWrongMaterial", this.getClass());
@@ -366,7 +366,7 @@ public class ReplenishMobileFacadeBean implements ReplenishMobileFacade {
 		boolean containsStock = false;
 		List<LOSUnitLoad> unitloads = unitLoadService.getListByLocation(loc);
 		greenCut: for (LOSUnitLoad ul : unitloads) {
-			for(StockUnit su : ul.getStockUnitList()) {
+			for(StockUnit su : stockService.getListByUnitLoad(ul)) {
 				containsStock = true;
 				if (Objects.equals(su.getLot(), pickingLot)) {
 					matchingLotNumbers = true;

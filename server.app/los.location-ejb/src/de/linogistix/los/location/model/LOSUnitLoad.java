@@ -8,9 +8,7 @@
 package de.linogistix.los.location.model;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,13 +17,11 @@ import javax.persistence.Enumerated;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import org.mywms.model.StockUnit;
 import org.mywms.model.UnitLoad;
 
 /**
@@ -47,7 +43,7 @@ public class LOSUnitLoad extends UnitLoad{
 
 	private LOSStorageLocation storageLocation;
 
-	private List<StockUnit> stockUnitList = new ArrayList<StockUnit>();
+	//private List<StockUnit> stockUnitList = new ArrayList<StockUnit>();
 
 	private LOSUnitLoadPackageType packageType = LOSUnitLoadPackageType.OF_SAME_LOT_CONSOLIDATE;
 
@@ -63,7 +59,6 @@ public class LOSUnitLoad extends UnitLoad{
 	private boolean isCarrier = false;
 
 	private LOSUnitLoad carrierUnitLoad;
-	//    private List<LOSUnitLoad> unitLoadList = new ArrayList<LOSUnitLoad>();
 
 	@ManyToOne(optional=false)
 	public LOSStorageLocation getStorageLocation() {
@@ -74,14 +69,15 @@ public class LOSUnitLoad extends UnitLoad{
 		this.storageLocation = storageLocation;
 	}
 
-	@OneToMany(mappedBy="unitLoad")
-	public List<StockUnit> getStockUnitList() {
-		return stockUnitList;
-	}
+	//@OneToMany(mappedBy="unitLoad")
+	//@LazyCollection(LazyCollectionOption.TRUE)
+	//public List<StockUnit> getStockUnitList() {
+	//	return stockUnitList;
+	//}
 
-	public void setStockUnitList(List<StockUnit> stockUnitList) {
-		this.stockUnitList = stockUnitList;
-	}
+	//public void setStockUnitList(List<StockUnit> stockUnitList) {
+	//	this.stockUnitList = stockUnitList;
+	//}
 
 	public void setPackageType(LOSUnitLoadPackageType packageType) {
 		this.packageType = packageType;

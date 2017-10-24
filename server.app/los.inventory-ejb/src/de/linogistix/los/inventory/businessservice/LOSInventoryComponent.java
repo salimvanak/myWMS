@@ -403,6 +403,8 @@ public interface LOSInventoryComponent extends BasicFacade{
 
 	void cleanup() throws FacadeException;
 
+	long cleanupStockUnitsOnNirwana() throws FacadeException;
+
 	/**
 	 * Recalculate the weight of a unit load.
 	 * 

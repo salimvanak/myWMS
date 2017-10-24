@@ -232,7 +232,7 @@ public class InfoFacadeBean implements InfoFacade {
 			}
 		}
 		
-		for( StockUnit su : ul.getStockUnitList() ) {
+		for( StockUnit su : queryStock.getListByUnitLoad(ul) ) {
 			HashSet<LOSCustomerOrder> orderSetSu = new HashSet<LOSCustomerOrder>();
 			HashSet<LOSCustomerOrder> pickSetSu = new HashSet<LOSCustomerOrder>();
 			

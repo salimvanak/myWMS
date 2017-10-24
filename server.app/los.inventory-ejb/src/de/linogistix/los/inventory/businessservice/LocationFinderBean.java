@@ -27,6 +27,7 @@ import org.mywms.model.ItemData;
 import org.mywms.model.StockUnit;
 import org.mywms.model.Zone;
 import org.mywms.service.ClientService;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
@@ -89,6 +90,8 @@ public class LocationFinderBean implements LocationFinder {
 	private LOSStorageStrategyService strategyService;
 	@EJB
 	private LOSUnitLoadService unitLoadService;
+	@EJB
+	private StockUnitService stockUnitService;
 
 	@PersistenceContext(unitName = "myWMS")
 	private EntityManager manager;
@@ -132,7 +135,7 @@ public class LocationFinderBean implements LocationFinder {
 		ItemData itemData = null;
 		if( ! strategy.isMixItem() ) {
 			// Take the first item. If the unit load is mixed, it will not find a really good location with this strategy
-			for( StockUnit su : unitLoad.getStockUnitList() ) {
+			for( StockUnit su : stockUnitService.getListByUnitLoad(unitLoad) ) {
 				itemData = su.getItemData();
 				break;
 			}
@@ -209,7 +212,7 @@ public class LocationFinderBean implements LocationFinder {
 			return pickingLoad.getPickingOrder().getDestination();
 		}
 		// otherwise look for a fixed location.
-		for( StockUnit su : unitLoad.getStockUnitList() ) {
+		for( StockUnit su : stockUnitService.getListByUnitLoad(unitLoad) ) {
 			List<LOSFixedLocationAssignment> locations = fixedAssignmentService.getByItemData(su.getItemData());
 			if (locations != null && !locations.isEmpty()) {
 				for (LOSFixedLocationAssignment l : locations) {
@@ -558,7 +561,7 @@ public class LocationFinderBean implements LocationFinder {
 	private Zone readUnitLoadZone(LOSUnitLoad unitLoad) {
 		Zone zone = null;
 
-		for( StockUnit su : unitLoad.getStockUnitList() ) {
+		for( StockUnit su : stockUnitService.getListByUnitLoad(unitLoad) ) {
 			Zone itemZone = su.getItemData().getZone();
 			if( itemZone != null ) {
 				return itemZone;

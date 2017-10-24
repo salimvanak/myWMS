@@ -44,7 +44,6 @@ public class PickingMobilePos implements Serializable {
 	public long pickingOrderId;
 	public int pickingType;
 	public boolean serialRequired = false;
-	public int countStockUnitsOnUnitLoad = 0;
 	public boolean fixedLocation = false;
 	public BigDecimal amountStock = null;
 	public String locationTypeName = null;
@@ -84,9 +83,9 @@ public class PickingMobilePos implements Serializable {
 			LOSStorageLocation loc = ul.getStorageLocation();
 
 			this.amountStock = su.getAmount();
-			this.countStockUnitsOnUnitLoad = ul.getStockUnitList().size();
 
 //      we will now do this check closer in the PickingMobileData bean 
+//		this.countStockUnitsOnUnitLoad = ul.getStockUnitList().size();
 //			if( loc.getUnitLoads().size()<=1 ) {
 //				if( ul.getStockUnitList().size() == 1 ) {
 //					if( su.getAmount().compareTo(amountStock)<=0 ) {
@@ -122,7 +121,6 @@ public class PickingMobilePos implements Serializable {
 		this.state = pos.state;
 		this.pickingOrderId = pos. pickingOrderId;
 		this.pickingType = pos.pickingType;
-		this.countStockUnitsOnUnitLoad = pos.countStockUnitsOnUnitLoad;
 		this.amountStock = pos.amountStock;
 		this.serialRequired = pos.serialRequired;
 	}

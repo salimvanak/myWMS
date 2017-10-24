@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.globals.DocumentTypes;
 import org.mywms.model.StockUnit;
+import org.mywms.service.StockUnitService;
 
 import de.linogistix.los.common.businessservice.LOSJasperReportGenerator;
 import de.linogistix.los.customization.EntityGenerator;
@@ -57,6 +58,8 @@ public class LOSOrderReceiptReportBean implements LOSOrderReceiptReport {
 	@EJB
 	private LOSPickingUnitLoadService pulService;
 	@EJB
+	private StockUnitService suService;
+	@EJB
 	private OrderReceiptService receiptService;
 	
     @PersistenceContext(unitName = "myWMS")
@@ -87,7 +90,7 @@ public class LOSOrderReceiptReportBean implements LOSOrderReceiptReport {
 
 		for( LOSPickingUnitLoad pul : pulList ) {
 			LOSUnitLoad unitLoad = pul.getUnitLoad();
-			for( StockUnit stock : unitLoad.getStockUnitList() ) {
+			for( StockUnit stock : suService.getListByUnitLoad(unitLoad)) {
 				String key = stock.getItemData().getNumber();
 				if( stock.getLot() != null ) {
 					key+="-LOT-"+stock.getLot().getName();
