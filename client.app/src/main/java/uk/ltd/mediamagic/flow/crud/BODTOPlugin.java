@@ -41,7 +41,6 @@ import uk.ltd.mediamagic.annot.Worker;
 import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
-import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
@@ -62,6 +61,7 @@ import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.fxcommon.UserPermissions;
 import uk.ltd.mediamagic.mywms.BeanDirectory;
 import uk.ltd.mediamagic.mywms.FlowUtils;
+import uk.ltd.mediamagic.mywms.MyWMSMainMenuPlugin;
 import uk.ltd.mediamagic.mywms.common.BeanUtils;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
@@ -79,7 +79,7 @@ import uk.ltd.mediamagic.mywms.common.TableColumnBinding;
  *
  * @param <T>
  */
-public abstract class BODTOPlugin<T extends BasicEntity> extends FxMainMenuPlugin implements Editor<T> {
+public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPlugin implements Editor<T> {
 	
 	protected final Logger log = MLogger.log(this);
 	private final Class<T> boClass;

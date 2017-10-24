@@ -1,7 +1,6 @@
 package uk.ltd.mediamagic.mywms.system;
 
 import java.util.Arrays;
-
 import java.util.List;
 
 import org.mywms.model.Client;

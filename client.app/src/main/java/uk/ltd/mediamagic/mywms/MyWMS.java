@@ -57,7 +57,6 @@ import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.ApplicationService;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxHacks;
-import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.MenuUtils;
 import uk.ltd.mediamagic.fx.Units;
@@ -93,7 +92,7 @@ public class MyWMS extends Application {
 	private MStatusBar statusBar = new MStatusBar(MBindings.asString(loginService, LoginService::getUser));
  	private Spinner<Double> zoomSpinner = new Spinner<>(new SpinnerValueFactory.DoubleSpinnerValueFactory(70, 200, 100, 5));
  	private String serverAddress;
-	private TreeMap<String, FxMainMenuPlugin>	runnerActions	= new TreeMap<String, FxMainMenuPlugin>();
+	private TreeMap<String, MyWMSMainMenuPlugin>	runnerActions	= new TreeMap<>();
 
  	private VBox menuBox;
  	private VBox main = new VBox();
@@ -348,13 +347,13 @@ public class MyWMS extends Application {
     PluginRegistry.compact();
 	}
 
-	List<FxMainMenuPlugin> getActions() {
+	List<MyWMSMainMenuPlugin> getActions() {
 		//PluginRegistry.dump();
 
 		MLogger.log(this).severe("Fetching Plugins");
-		List<FxMainMenuPlugin> list;
+		List<MyWMSMainMenuPlugin> list;
 		try {
-			list = PluginRegistry.getExtentionPoints(FxMainMenuPlugin.class);
+			list = PluginRegistry.getExtentionPoints(MyWMSMainMenuPlugin.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 			list = Collections.emptyList();
@@ -388,8 +387,8 @@ public class MyWMS extends Application {
 	  menuBar.setUseSystemMenuBar(true);
 		menuBar.getMenus().addAll(fileMenu);
 
-    List<FxMainMenuPlugin> runners = getActions();
-    for (FxMainMenuPlugin m : runners) {
+    List<MyWMSMainMenuPlugin> runners = getActions();
+    for (MyWMSMainMenuPlugin m : runners) {
       runnerActions.put(m.getPath(), m);
     }
 

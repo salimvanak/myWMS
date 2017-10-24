@@ -23,7 +23,6 @@ import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.FXCollections;
 import javafx.event.Event;
@@ -38,7 +37,6 @@ import javafx.util.StringConverter;
 import uk.ltd.mediamagic.annot.Worker;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
-import uk.ltd.mediamagic.fx.FxMainMenuPlugin;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
@@ -58,13 +56,14 @@ import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.fxcommon.UserPermissions;
 import uk.ltd.mediamagic.mywms.BeanDirectory;
 import uk.ltd.mediamagic.mywms.FlowUtils;
+import uk.ltd.mediamagic.mywms.MyWMSMainMenuPlugin;
 import uk.ltd.mediamagic.mywms.common.BeanUtils;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.TableColumnBinding;
 
-public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin implements Editor<T> {
+public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlugin implements Editor<T> {
 	private final Class<? extends BusinessObjectQueryRemote<T>> queryBean;
 	private final Class<? extends BusinessObjectCRUDRemote<T>> crudBean;
 	private final Class<T> boClass;
@@ -154,17 +153,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends FxMainMenuPlugin
 		}
 		return null;
 	}
-	
-	@Override
-	protected BooleanBinding createDisableBinding() {
-		return Bindings.createBooleanBinding(() -> false);
-	}
-	
-	@Override
-	protected BooleanBinding createVisibleBinding() {
-		return Bindings.createBooleanBinding(() -> true);
-	}
-	
+		
 	CompletableFuture<Void> save(ContextBase context, T data) {
 		BusinessObjectCRUDRemote<T> query = context.getBean(crudBean);
 		return context.getBean(MExecutor.class).call(() -> {

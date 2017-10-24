@@ -15,15 +15,19 @@ public class MyWMSUserPermissions implements UserPermissions {
 	}
 
 	public static final boolean isAtLeastForeman() {
-		return MyWMS.hasRole("Admin", "Foreman");
+		return MyWMS.hasRole("Foreman", "Operator");
 	}
-	
+
+	public static final BooleanBinding forRoles(String...roles) {
+		return MyWMS.roleBinding(roles);
+	}
+
 	public static final BooleanBinding atLeastForemanUser() {
-		return MyWMS.roleBinding("Admin", "Foreman");
+		return forRoles("Foreman", "Operator");
 	}
 
 	public static final BooleanBinding adminUser() {
-		return MyWMS.roleBinding("Admin", "Foreman");
+		return forRoles("Admin", "Foreman");
 	}
 
 	BooleanBinding isAdmin = MyWMS.roleBinding("Admin");
