@@ -1,24 +1,76 @@
-package uk.ltd.mediamagic.mobile.processes.picking
+package uk.ltd.mediamagic.mobile
 
 import org.apache.log4j.Level
+import org.junit.After
+import org.junit.AfterClass
+import org.junit.BeforeClass
 import org.mywms.facade.MyWMSSpecification
+import org.mywms.globals.SerialNoRecordType
 import org.mywms.model.StockUnit
 
+import de.linogistix.los.crud.ClientCRUDRemote
 import de.linogistix.los.example.CommonTestTopologyRemote
+import de.linogistix.los.example.InventoryTestTopologyRemote
 import de.linogistix.los.example.LocationTestTopologyRemote
+import de.linogistix.los.inventory.crud.ItemDataCRUDRemote
+import de.linogistix.los.inventory.crud.StockUnitCRUDRemote
+import de.linogistix.los.inventory.query.ItemDataQueryRemote
+import de.linogistix.los.inventory.query.StockUnitQueryRemote
 import de.linogistix.los.inventory.query.dto.StockUnitTO
+import de.linogistix.los.location.crud.LOSAreaCRUDRemote
+import de.linogistix.los.location.crud.LOSRackCRUDRemote
+import de.linogistix.los.location.crud.LOSStorageLocationCRUDRemote
+import de.linogistix.los.location.crud.LOSStorageLocationTypeCRUDRemote
+import de.linogistix.los.location.crud.LOSTypeCapacityConstraintCRUDRemote
+import de.linogistix.los.location.crud.UnitLoadCRUDRemote
+import de.linogistix.los.location.crud.UnitLoadTypeCRUDRemote
 import de.linogistix.los.location.model.LOSStorageLocation
 import de.linogistix.los.location.model.LOSStorageLocationType
 import de.linogistix.los.location.model.LOSUnitLoad
+import de.linogistix.los.location.query.LOSAreaQueryRemote
+import de.linogistix.los.location.query.LOSStorageLocationQueryRemote
+import de.linogistix.los.location.query.LOSStorageLocationTypeQueryRemote
+import de.linogistix.los.location.query.LOSTypeCapacityConstraintQueryRemote
+import de.linogistix.los.location.query.RackQueryRemote
+import de.linogistix.los.location.query.UnitLoadQueryRemote
+import de.linogistix.los.location.query.UnitLoadTypeQueryRemote
 import de.linogistix.los.location.query.dto.StorageLocationTO
 import de.linogistix.los.location.query.dto.UnitLoadTO
+import de.linogistix.los.query.ClientQueryRemote
 import groovy.util.logging.Log4j
 import uk.ltd.mediamagic.los.inventory.test.TopologyHelper
 
 @Log4j
-class WMSSpecBase extends MyWMSSpecification {
+trait WMSSpecBase extends MyWMSSpecification {
+	static def ClientCRUDRemote clService;
+	static def ClientQueryRemote clQuery;
 	
-	static def TopologyHelper base;
+	static def LOSStorageLocationTypeQueryRemote slTypeQuery;
+	static def LOSStorageLocationTypeCRUDRemote slTypeService;
+	static def LOSStorageLocationQueryRemote slQuery;
+	static def LOSStorageLocationCRUDRemote slService;
+
+	static def UnitLoadTypeQueryRemote ulTypeQuery;
+	static def UnitLoadTypeCRUDRemote ulTypeService;
+	static def UnitLoadQueryRemote ulQuery;
+	static def UnitLoadCRUDRemote ulService;
+	
+	static def StockUnitQueryRemote suQuery;
+	static def StockUnitCRUDRemote suService;
+	
+	static def LOSTypeCapacityConstraintQueryRemote capacityQuery;
+	static def LOSTypeCapacityConstraintCRUDRemote capacityService;
+	static def LOSAreaQueryRemote areaQuery;
+	static def LOSAreaCRUDRemote areaService;
+	static def RackQueryRemote rackQuery;
+	static def LOSRackCRUDRemote rackService;
+	
+	static def ItemDataCRUDRemote itemService;
+	static def ItemDataQueryRemote itemQuery;
+	
+	static def LocationTestTopologyRemote locTopology;
+	static def InventoryTestTopologyRemote invTopology;
+	static def CommonTestTopologyRemote commonTopology;
 
 	def serialNumber = 1;
 	
@@ -26,27 +78,42 @@ class WMSSpecBase extends MyWMSSpecification {
 	def suList = []
 	def slList = []
 	
-	def setupSpec() {
+	@BeforeClass
+	void setupTestTopology() {
 		log.setLevel(Level.INFO)
-		if (base == null) {
-			base = new TopologyHelper(beanLocator)
-			base.createTestTopology()
-		}
-	}
-	
-	def cleanSpec() {
-		if (base != null) {
-			base.removeTestTopology()
-			base = null;
-		}
-	}
-	
-	def setup() {
+    clService = getBean(ClientCRUDRemote.class);
+  	locTopology = getBean(LocationTestTopologyRemote.class, "los.location-comp");
+    invTopology = getBean(InventoryTestTopologyRemote.class, "los.inventory-comp");
+    commonTopology = getBean(CommonTestTopologyRemote.class, "los.common-comp");
+				
+    slService = getBean(LOSStorageLocationCRUDRemote.class);
+    ulService = getBean(UnitLoadCRUDRemote.class);
+    suService = getBean(StockUnitCRUDRemote.class);
+    ulTypeService = getBean(UnitLoadTypeCRUDRemote.class);
+    slTypeService = getBean(LOSStorageLocationTypeCRUDRemote.class);
+    capacityService = getBean(LOSTypeCapacityConstraintCRUDRemote.class);
+    areaService = getBean(LOSAreaCRUDRemote.class);
+    rackService = getBean(LOSRackCRUDRemote.class);
+		itemService = getBean(ItemDataCRUDRemote.class);
 		
+    clQuery = getBean(ClientQueryRemote.class);
+    slQuery = getBean(LOSStorageLocationQueryRemote.class);
+    ulQuery = getBean(UnitLoadQueryRemote.class);
+    suQuery = getBean(StockUnitQueryRemote.class);
+    ulTypeQuery = getBean(UnitLoadTypeQueryRemote.class);
+    slTypeQuery = getBean(LOSStorageLocationTypeQueryRemote.class);
+    capacityQuery = getBean(LOSTypeCapacityConstraintQueryRemote.class);
+    areaQuery = getBean(LOSAreaQueryRemote.class);
+    rackQuery = getBean(RackQueryRemote.class);
+    itemQuery = getBean(ItemDataQueryRemote.class);
 	}
 	
-	def cleanup() {
-		System.out.println "************** deleting ul " + ulList
+	@AfterClass
+	void cleanTestTopology() {
+	}
+		
+	@After
+	void cleanupTopology() {
 		log.info "Deleting stock units " + suList
 		base.suService.delete(suList)
 		log.info "Deleting unitloads " + ulList
@@ -56,7 +123,7 @@ class WMSSpecBase extends MyWMSSpecification {
 	}
 	
 	private def createLabel(String type, String tag) {
-		serialNumber ++
+		serialNumber = serialNumber + 1
 		return type + "/" + tag +"-" + serialNumber
 	}
 	
