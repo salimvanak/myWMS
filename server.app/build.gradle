@@ -22,7 +22,6 @@ dependencies {
   deploy project(path: 'project-ejb', configuration: 'archives')
 
   earlib group: 'net.sf.jasperreports', name: 'jasperreports', version: '6.4.1'
-//  earlib 'net.sf.jasperreports:jasperreports:4.6.0'
 //  earlib group: 'net.sf.jasperreports', name: 'jasperreports-fonts', version: '4.0.0'
   earlib group: 'net.sourceforge.barbecue', name: 'barbecue', version: '1.5-beta1'
   earlib 'org.apache.commons:commons-lang3:3.4'
@@ -142,13 +141,21 @@ subprojects {
     compile group: 'org.jboss', name: 'jboss-ejb-client', version: '2.1.6.Final'
 
     // The production code uses the SLF4J logging API at compile time
-    compile 'org.slf4j:slf4j-api:1.7.14'
+    compile 'org.slf4j:slf4j-api:1.7.21'
 
-      // We use the latest groovy 2.x version for Spock testing
-    compile 'org.codehaus.groovy:groovy-all:2.4.9'
+    // We use the latest groovy 2.x version for Spock testing
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.12'
 
     // Use the awesome Spock testing and specification framework even with Java
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+    testCompile 'org.hamcrest:hamcrest-core:1.3' // only necessary if Hamcrest matchers are used
+//    testCompile 'com.athaydes:spock-reports:1.3.2', { transitive = false } // only for better reporting.
+
+    // optional dependencies for using Spock
+    testRuntime 'cglib:cglib-nodep:3.2.5'        // enables mocking of classes (in addition to interfaces)
+    testRuntime 'org.objenesis:objenesis:2.6'    // enables mocking of classes without default constructor (together with CGLIB)
+
+    // there are still some legacy tests that will not compile without JUnit
     testCompile 'junit:junit:4.12'
   }
 
