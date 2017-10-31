@@ -149,7 +149,7 @@ subprojects {
     // Use the awesome Spock testing and specification framework even with Java
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     testCompile 'org.hamcrest:hamcrest-core:1.3' // only necessary if Hamcrest matchers are used
-//    testCompile 'com.athaydes:spock-reports:1.3.2', { transitive = false } // only for better reporting.
+    testCompile 'com.athaydes:spock-reports:1.3.2', { transitive = false } // only for better reporting.
 
     // optional dependencies for using Spock
     testRuntime 'cglib:cglib-nodep:3.2.5'        // enables mocking of classes (in addition to interfaces)
