@@ -12,7 +12,10 @@ import de.linogistix.los.query.BODTO
 import de.linogistix.los.query.ClientQueryRemote
 import de.linogistix.los.query.exception.BusinessObjectNotFoundException
 import de.linogistix.los.util.businessservice.LOSSequenceGeneratorServiceRemote
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 
+@CompileStatic
 trait WMSSpecBase extends MyWMSSpecification {
 	static final String TESTCLIENT_NUMBER = "Test Client";	
 	static final String TESTMANDANT_NUMBER = "Test Mandant";
@@ -29,11 +32,12 @@ trait WMSSpecBase extends MyWMSSpecification {
 		cleanupClosures << r;
 	}
 
+	@CompileDynamic
 	@BeforeClass
 	void setupTestTopology() {
-    clService = getBean(ClientCRUDRemote.class);		
-    clQuery = getBean(ClientQueryRemote.class);
-    seqService = getBean(LOSSequenceGeneratorServiceRemote.class);
+    clService = getBean(ClientCRUDRemote.class)
+    clQuery = getBean(ClientQueryRemote.class)
+    seqService = getBean(LOSSequenceGeneratorServiceRemote.class)
 	}
 			
 	@After
@@ -41,7 +45,7 @@ trait WMSSpecBase extends MyWMSSpecification {
 		cleanupClosures.reverse().each { it.run() }
 	}
 		
-	static int nextSeqNumber() {
+	int nextSeqNumber() {
 		return seqService.getNextSequenceNumber("testing-key-sequence");
 	}
 	
@@ -67,10 +71,20 @@ trait WMSSpecBase extends MyWMSSpecification {
 	 * @param obj the object to persist
 	 * @return
 	 */
+	@CompileDynamic
 	public <T> T create(BusinessObjectCRUDRemote<?> service, T obj) {
 		obj = service.create(obj);
 		BODTO<T> bodto = new BODTO<>(obj)
 		addCleanup { service.delete(Collections.singletonList(bodto)) }
+		return obj
+	}
+
+		@CompileDynamic
+	public <T> T create(BusinessObjectCRUDRemote<?> service, T obj, Closure before) {
+		obj = service.create(obj);
+		BODTO<T> bodto = new BODTO<>(obj)
+		addCleanup { service.delete(Collections.singletonList(bodto)) }
+		addCleanup { before(bodto) }
 		return obj
 	}
 }
