@@ -70,7 +70,7 @@ public class StockUnitServiceBean
             manager.createQuery("SELECT su FROM "
                 + StockUnit.class.getSimpleName()
                 + " su "
-                + " WHERE su.unitLoad = :ul");
+                + " WHERE su.unitLoad = :ul ORDER BY su.id");
         query.setParameter("ul", unitLoad);
         return (List<StockUnit>) query.getResultList();
     }

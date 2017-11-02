@@ -9,8 +9,10 @@ package de.linogistix.los.inventory.businessservice;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -266,6 +268,9 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 		//src.setStockUnitList(new ArrayList<StockUnit>());
 	}
 
+	/**
+	 * Consolidates stock units on a unit load where necessary.
+	 */
 	public void consolidate(LOSUnitLoad ul, String activityCode) throws FacadeException {
 
 		HashMap<Lot, StockUnit> lots;
@@ -282,14 +287,20 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 			return;
 		}
 
-		List<Long> suIds = new ArrayList<Long>();
+		LinkedList<Long> suIds = new LinkedList<Long>();
 		for (StockUnit su : sus) {
 			if (su.getSerialNumber() != null) {
 				log.warn("Won't consolidate because has serialnumber: " + su.toShortString());
 			}
-			suIds.add(su.getId());
-		}
-		
+			// we allow StockUnits without a lot number to be consolidated with StockUnits with a lot number.
+			// to allow this behaviour the list of StockUnits needs to be sorted with null lots at the end.
+			if (su.getLot() != null) {
+				suIds.addFirst(su.getId());
+			}
+			else {
+				suIds.addLast(su.getId());				
+			}
+		}		
 		
 		for (Long id : suIds) {
 			StockUnit su = manager.find(StockUnit.class, id);
@@ -505,11 +516,15 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 			if (dest.getLot() != null && su.getLot().equals(dest.getLot())) {
 				destAllowed = true;
 			} else {
+				log.warn(logStr+"Destination not allowed, the lot numbers do not match. atDest="+dest.getLot()+", new="+su.getLot());
 				destAllowed = false;
 			}
-		} else if (su.getItemData().equals(dest.getItemData())) {
+		} 
+		else if (su.getItemData().equals(dest.getItemData())) {
 			destAllowed = true;
-		} else {
+		} 
+		else {
+			log.warn(logStr+"Destination not allowed, cannot mix items on unitload atDest="+dest.getItemData()+", new="+su.getItemData());
 			destAllowed = false;
 		}
 

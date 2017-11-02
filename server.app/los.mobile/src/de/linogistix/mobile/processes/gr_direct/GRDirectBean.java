@@ -1179,7 +1179,7 @@ public class GRDirectBean extends BasicDialogBean {
 			
 			
 		} catch ( FacadeException e) {
-			log.error(logStr+"Error in posting ("+getLocale()+"): "+e.getMessage());
+			log.error(logStr+"Error in posting ("+getLocale()+"): "+e.getMessage(), e);
 			String msg = ((FacadeException) e).getLocalizedMessage( getLocale() );
 			JSFHelper.getInstance().message(msg);
 			return "";
