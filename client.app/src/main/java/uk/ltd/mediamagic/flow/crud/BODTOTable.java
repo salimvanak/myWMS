@@ -115,6 +115,9 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 		else if (r instanceof RowCriterion.Before) {
 			return Collections.singletonList(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_BEFORE, r.getColumnName(), r.getNeedleString()));
 		}
+		else if (r instanceof RowCriterion.Equals) {
+			return Collections.singletonList(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, r.getColumnName(), r.getNeedleString()));
+		}
 		return Collections.emptyList();
 	}
 	
