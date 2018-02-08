@@ -52,7 +52,7 @@ task createSQLScript(dependsOn: ['build']) {
             classname: 'org.hibernate.tool.ant.HibernateToolTask',
             classpath: configurations.hibtools.asPath)
         ant.hibernatetool(destdir: buildDir) {
-        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection.properties'))
+        ant.annotationconfiguration(configurationfile: file('database/hibernate.cfg.xml'), propertyfile: file('database/conection-offline.properties'))
         ant.hbm2ddl(drop: 'false', export: 'false', create: 'true', outputfilename: 'db_create.sql')
     }
   }
