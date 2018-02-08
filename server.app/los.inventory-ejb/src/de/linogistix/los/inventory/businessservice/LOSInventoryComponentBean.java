@@ -9,7 +9,6 @@ package de.linogistix.los.inventory.businessservice;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -743,7 +742,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 			}
 		}
 		LOSUnitLoad old = (LOSUnitLoad) su.getUnitLoad();
-		// Do not actualize stock unit list of container unit loads. This will cause problems in parallel access (Nirwana) 
+		// Do not actualise stock unit list of container unit loads. This will cause problems in parallel access (Nirwana) 
 //TODO check this
 //		if( old.getPackageType() != LOSUnitLoadPackageType.CONTAINER ) {
 //			old.getStockUnitList().remove(su);
@@ -751,7 +750,7 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 
 		// add to destination
 		su.setUnitLoad(dest);
-		// Do not actualize stock unit list of container unit loads. This will cause problems in parallel access (Nirwana) 
+		// Do not actualise stock unit list of container unit loads. This will cause problems in parallel access (Nirwana) 
 //		if( dest.getPackageType() != LOSUnitLoadPackageType.CONTAINER ) {
 //			dest.getStockUnitList().add(su);
 //		}
@@ -1248,7 +1247,8 @@ public class LOSInventoryComponentBean extends BasicFacadeBean implements LOSInv
 					for( LOSGoodsOutRequestPosition gOutPos : gOutPosList ) {
 						LOSGoodsOutRequest oreq = gOutPos.getGoodsOutRequest();
 						oreq = manager.find(LOSGoodsOutRequest.class, oreq.getId());
-						oreq.getPositions().remove(oreq);
+						//oreq.getPositions().remove(oreq); // looks like a big here 2018-02-08
+						oreq.getPositions().remove(gOutPos);
 						outPosCRUD.delete(gOutPos);
 						if (oreq.getPositions().isEmpty()) {
 							outCRUD.delete(oreq);

@@ -50,18 +50,26 @@ trait WMSSpecBase extends MyWMSSpecification {
 	}
 	
 	Client getClient() {
-		assert clQuery != null;
 		Client testClient;
 		try {
 			testClient = clQuery.getByNumberIgnoreCase(TESTCLIENT_NUMBER)
-		} catch (BusinessObjectNotFoundException ex) {
+			if (testClient == null) {
+				testClient = new Client()
+				testClient.name = TESTCLIENT_NUMBER
+				testClient.number = TESTCLIENT_NUMBER
+				testClient.code = TESTCLIENT_NUMBER
+				testClient = create(clService, testClient)
+			}
+		} 
+		catch (BusinessObjectNotFoundException ex) {
 			testClient = new Client()
 			testClient.name = TESTCLIENT_NUMBER
 			testClient.number = TESTCLIENT_NUMBER
 			testClient.code = TESTCLIENT_NUMBER
 			testClient = create(clService, testClient)
 		}
-		return testClient;
+		assert testClient != null
+		return testClient
 	}	
 
 	
