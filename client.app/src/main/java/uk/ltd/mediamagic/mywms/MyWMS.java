@@ -51,8 +51,8 @@ import javafx.stage.Stage;
 import res.R;
 import uk.ltd.mediamagic.common.utils.MArrays;
 import uk.ltd.mediamagic.concurrent.ThreadPool;
-import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.flow.crud.JNIBeanFactory;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.ApplicationService;
 import uk.ltd.mediamagic.fx.FxExceptions;
@@ -112,7 +112,6 @@ public class MyWMS extends Application {
 	}
 	
  	public static Consumer<ApplicationContext> onLoadComplete = null;
- 	
 	private ApplicationService applicationService = new ApplicationService() {
 		public void setMessage(String message) {
 			statusBar.setText(message);

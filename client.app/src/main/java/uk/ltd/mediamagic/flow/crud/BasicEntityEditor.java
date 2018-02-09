@@ -48,7 +48,6 @@ import javafx.stage.PopupWindow;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.control.DelayedChangeListener;
@@ -115,6 +114,12 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 
 	final private ReadOnlyBooleanWrapper showPopup = new ReadOnlyBooleanWrapper(false);
 
+	public static <T extends BasicEntity> BasicEntityEditor<T> create(ContextBase context, Class<T> boClass) {
+		BasicEntityEditor<T> e = new BasicEntityEditor<T>();
+		e.configure(context, boClass);
+		return e;
+	}
+	
 	public BasicEntityEditor() {
 		super();
 		getStyleClass().addAll("combo-box-base", "combo-box");
@@ -344,7 +349,7 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 	
 		public void loadList(String s) {
 			//if (!Strings.isEmpty(s)) {
-			System.out.println("************ FETCHING " + s);
+			//System.out.println("************ FETCHING " + s);
 				Function<String, CompletableFuture<List<BODTO<T>>>> get = control.getFetchCompleteions();
 				if (get != null) {
 					completionItems.clear();

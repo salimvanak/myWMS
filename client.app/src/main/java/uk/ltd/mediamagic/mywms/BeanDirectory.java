@@ -25,7 +25,7 @@ import de.linogistix.los.user.crud.RoleCRUDRemote;
 import de.linogistix.los.user.crud.UserCRUDRemote;
 import de.linogistix.los.user.query.RoleQueryRemote;
 import de.linogistix.los.user.query.UserQueryRemote;
-import uk.ltd.mediamagic.debug.MLogger;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.mywms.common.ClassLookup;
 
 public class BeanDirectory {

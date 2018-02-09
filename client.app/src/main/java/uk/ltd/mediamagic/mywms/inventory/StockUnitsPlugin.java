@@ -23,7 +23,6 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -223,7 +222,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	protected void refresh(BODTOTable<StockUnit> source, ViewContextBase context) {
 		TemplateQuery template = source.createQueryTemplate();
 		QueryDetail detail = source.createQueryDetail();
-		source.setItems(null);
+		source.clearTable();
 		
 		StockUnitFilter filterValue = QueryUtils.getFilter(source, StockUnitFilter.Available);
 		TemplateQueryFilter filter = template.addNewFilter();
@@ -245,8 +244,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 		}
 		
 		getListData(context, detail, template)
-			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-			.thenAccept(source::setItems);					
+			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}
 	
 	@Override

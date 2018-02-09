@@ -31,7 +31,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.common.utils.Strings;
-import uk.ltd.mediamagic.debug.MLogger;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.EnumConverter;

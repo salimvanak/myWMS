@@ -21,7 +21,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-import uk.ltd.mediamagic.debug.MLogger;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 
 /**
  * Automatically create a set of columns for the dataset with the DataSetTableView.

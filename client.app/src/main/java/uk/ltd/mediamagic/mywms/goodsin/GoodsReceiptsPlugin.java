@@ -23,7 +23,6 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.util.StringConverter;
@@ -100,10 +99,9 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 
 		QueryDetail detail = source.createQueryDetail();
 
-		source.setItems(null);
+		source.clearTable();
 		getListData(context, detail, template)
-			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-			.thenAccept(source::setItems);			
+			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}
 
 	@Override

@@ -42,7 +42,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import res.R;
-import uk.ltd.mediamagic.debug.MLogger;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.Utils;

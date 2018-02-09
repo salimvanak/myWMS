@@ -11,7 +11,6 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import de.linogistix.los.stocktaking.model.LOSStocktakingRecord;
 import de.linogistix.los.stocktaking.model.LOSStocktakingState;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
@@ -74,7 +73,7 @@ public class StockTakingRecordsPlugin extends CRUDPlugin<LOSStocktakingRecord> {
 	protected void refresh(CrudTable<LOSStocktakingRecord> source, ViewContextBase context) {
 		TemplateQuery template = source.createQueryTemplate();
 		QueryDetail detail = source.createQueryDetail();
-		source.setItems(null);
+		source.clearTable();
 		
 		StockTakingFilter filterValue = QueryUtils.getFilter(source, StockTakingFilter.Open);
 		TemplateQueryFilter filter = template.addNewFilter();
@@ -98,8 +97,7 @@ public class StockTakingRecordsPlugin extends CRUDPlugin<LOSStocktakingRecord> {
 		}
 		
 		getListData(context, detail, template)
-			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-			.thenAccept(source::setItems);					
+			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);					
 	}
 	
 	@Override

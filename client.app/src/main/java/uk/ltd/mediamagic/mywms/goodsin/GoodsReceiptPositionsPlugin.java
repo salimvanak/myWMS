@@ -13,7 +13,6 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.util.StringConverter;
 import res.R;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
@@ -84,10 +83,9 @@ public class GoodsReceiptPositionsPlugin  extends BODTOPlugin<LOSGoodsReceiptPos
 		if (detail.getOrderBy().size() == 0) {
 			detail.getOrderBy().add(new OrderByToken("created", false));
 		}
-		source.setItems(null);
+		source.clearTable();
 		getListData(context, detail, template)
-			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-			.thenAccept(source::setItems);			
+			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}
 	
 	@Override

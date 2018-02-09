@@ -19,12 +19,12 @@ import de.linogistix.los.crud.BusinessObjectCRUDRemote;
 import de.linogistix.los.entityservice.BusinessObjectLockState;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.BusinessObjectQueryRemote;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.collections.FXCollections;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -167,7 +167,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlu
 		query.delete(data);
 	}
 
-	public CompletableFuture<List<T>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
+	public CompletableFuture<LOSResultList<T>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
 		BusinessObjectQueryRemote<T> query = context.getBean(queryBean);
 		template.setBoClass(boClass);
 		return context.getBean(MExecutor.class).call(() -> query.queryByTemplate(detail,template));
@@ -219,10 +219,9 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlu
 	}
 
 	protected	void refresh(CrudTable<T> source, ViewContextBase context) {
-		source.setItems(null);
+		source.clearTable();;
 		getListData(context, source.createQueryDetail(), source.createQueryTemplate())
-		.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-		.thenAccept(source::setItems);			
+		.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}
 
 	@SuppressWarnings("unchecked")

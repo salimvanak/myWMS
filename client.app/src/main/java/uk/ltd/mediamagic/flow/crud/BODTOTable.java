@@ -8,10 +8,12 @@ import java.util.stream.Collectors;
 import org.mywms.model.BasicEntity;
 
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.beans.InvalidationListener;
+import javafx.collections.FXCollections;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
@@ -19,7 +21,7 @@ import javafx.scene.control.TableView;
 import javafx.util.Callback;
 import uk.ltd.mediamagic.common.data.RowCriterion;
 import uk.ltd.mediamagic.fx.binding.ListContentBinding;
-import uk.ltd.mediamagic.fx.binding.SimpleObservable;
+import uk.ltd.mediamagic.fx.binding.SimpleObservableRelay;
 import uk.ltd.mediamagic.fx.control.TableKeySelectable;
 import uk.ltd.mediamagic.fx.controller.FxTableController;
 import uk.ltd.mediamagic.fx.data.TableKey;
@@ -27,18 +29,42 @@ import uk.ltd.mediamagic.fx.table.ProjectPanelBase;
 
 public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D>> implements TableKeySelectable {
 
-	private final SimpleObservable queryChanged = new SimpleObservable();
+	private final SimpleObservableRelay queryChanged = new SimpleObservableRelay();
 	protected final Callback<TableView<BODTO<D>>, Boolean> QUERY_SORT_POLICY = t -> { queryChanged.invalidate(); return true; };
+	private Pager pager;
 	
 	public BODTOTable() {
 		this(null);
-		getTable().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 	}
 
 	public BODTOTable(String saveSettingsUID) {
 		super(saveSettingsUID);
-		queryChanged.bind(getProjectPanel().filterProperty());
 		getTable().setSortPolicy(QUERY_SORT_POLICY);
+		getTable().getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		queryChanged.bind(getProjectPanel().filterProperty());
+		getPager().setPageSize(100);
+		getPager().setPageNumber(1);
+		getPager().pageNumberProperty().addListener(l -> queryChanged.invalidate());
+	}
+	
+	public void clearTable() {
+		setItems(null);
+	}
+	
+	public void setLOSResultList(LOSResultList<BODTO<D>> list) {		
+		int pageSize = getPager().getPageSize();
+		
+		long pageMax = (list.getResultSetSize() / pageSize) 
+				+ (((list.getResultSetSize() % pageSize) == 0) ? 0 : 1);
+		
+		getPager().setPageNumber((int) (list.getStartResultIndex() / pager.getPageSize())+1);
+		getPager().setMaxPage((int) pageMax);
+		setItems(FXCollections.observableList(list));
+		queryChanged.validate();
+	}
+	
+	public void setMaxPages(int max) {
+		pager.setMaxPage(max);
 	}
 	
 	public void addQueryListener(InvalidationListener listener) {
@@ -62,10 +88,15 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 				.collect(Collectors.toList());
 	}
 		
+	protected Pager getPager() {
+		if (pager == null) pager = new Pager();
+		return pager;
+	}
 	
 	@Override
 	protected ProjectPanelBase createProjectPanel() {
 		ProjectPanelBase pp = new ProjectPanelBase();
+		pp.getChildren().add(getPager());
 		ListContentBinding.bind(pp.columnsProperty(), getTable().getVisibleLeafColumns(), ProjectPanelBase::toPair);
 
 		// the identity of the first argument, as we test all matching operations with a string.
@@ -75,7 +106,9 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	}
 
 	public QueryDetail createQueryDetail() {
-		QueryDetail q = new QueryDetail(0, 100);
+		int pageSize = pager.getPageSize();
+		int start = pageSize * (pager.getPageNumber()-1);
+		QueryDetail q = new QueryDetail(start, pageSize);
 		for (TableColumn<?,?> col : getTable().getSortOrder()) {
 			SortType type = col.getSortType();
 			q.addOrderByToken(col.getId(), type == SortType.ASCENDING);

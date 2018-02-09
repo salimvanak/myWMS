@@ -17,7 +17,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.TextFieldListCell;
 import uk.ltd.mediamagic.common.utils.MArrays;
 import uk.ltd.mediamagic.common.utils.Strings;
-import uk.ltd.mediamagic.debug.MLogger;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder.Row;
 import uk.ltd.mediamagic.fx.controller.list.CellWrappers;

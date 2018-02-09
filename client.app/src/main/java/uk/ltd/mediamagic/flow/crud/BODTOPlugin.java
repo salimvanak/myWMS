@@ -28,7 +28,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.collections.FXCollections;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -38,7 +37,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.annot.Worker;
-import uk.ltd.mediamagic.debug.MLogger;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
@@ -257,7 +256,11 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	public CompletableFuture<LOSResultList<BODTO<T>>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
 		BusinessObjectQueryRemote<T> query = context.getBean(queryBean);
 		template.setBoClass(boClass);
-		return context.getBean(MExecutor.class).call(() -> query.queryByTemplateHandles(detail,template));
+		return context.getBean(MExecutor.class).call(() -> {
+			LOSResultList<BODTO<T>> r = query.queryByTemplateHandles(detail,template);
+			
+			return r;
+		});
 	}
 	
 	/**
@@ -322,10 +325,9 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	protected	void refresh(BODTOTable<T> source, ViewContextBase context) {
 		TemplateQuery template = source.createQueryTemplate();
 		QueryDetail detail = source.createQueryDetail();
-		source.setItems(null);
+		source.clearTable();
 		getListData(context, detail, template)
-			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-			.thenAccept(source::setItems);			
+			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}
 
 	/**

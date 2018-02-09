@@ -7,13 +7,15 @@ import java.util.stream.Collectors;
 
 import org.mywms.model.BasicEntity;
 
+import de.linogistix.los.query.LOSResultList;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.beans.InvalidationListener;
+import javafx.collections.FXCollections;
 import uk.ltd.mediamagic.common.data.RowCriterion;
 import uk.ltd.mediamagic.fx.binding.ListContentBinding;
-import uk.ltd.mediamagic.fx.binding.SimpleObservable;
+import uk.ltd.mediamagic.fx.binding.SimpleObservableRelay;
 import uk.ltd.mediamagic.fx.control.TableKeySelectable;
 import uk.ltd.mediamagic.fx.controller.FxTableController;
 import uk.ltd.mediamagic.fx.data.TableKey;
@@ -21,18 +23,41 @@ import uk.ltd.mediamagic.fx.table.ProjectPanelBase;
 
 public class CrudTable<D extends BasicEntity> extends FxTableController<D> implements TableKeySelectable {
 
-	private final SimpleObservable queryChanged = new SimpleObservable();
+	private final SimpleObservableRelay queryChanged = new SimpleObservableRelay();
+	private Pager pager;
 
 	public CrudTable() {
 		super();
 		queryChanged.bind(getProjectPanel().filterProperty());
+		pager.setPageSize(100);
+		pager.setPageNumber(1);
+		pager.pageNumberProperty().addListener(l -> queryChanged.invalidate());
 	}
 
 	public CrudTable(String saveSettingsUID) {
 		super(saveSettingsUID);
 		queryChanged.bind(getProjectPanel().filterProperty());
+		pager.setPageSize(100);
+		pager.setPageNumber(1);
+		pager.pageNumberProperty().addListener(l -> queryChanged.invalidate());
+	}
+
+	public void clearTable() {
+		setItems(null);
 	}
 	
+	public void setLOSResultList(LOSResultList<D> list) {		
+		int pageSize = getPager().getPageSize();
+		
+		long pageMax = (list.getResultSetSize() / pageSize) 
+				+ (((list.getResultSetSize() % pageSize) == 0) ? 0 : 1);
+		
+		getPager().setPageNumber((int) (list.getStartResultIndex() / pageSize)+1);
+		getPager().setMaxPage((int) pageMax);
+		setItems(FXCollections.observableList(list));
+		queryChanged.validate();
+	}
+
 	public void addQueryListener(InvalidationListener listener) {
 		queryChanged.addListener(listener);
 	}
@@ -55,9 +80,15 @@ public class CrudTable<D extends BasicEntity> extends FxTableController<D> imple
 				.collect(Collectors.toList());
 	}	
 	
+	protected Pager getPager() {
+		if (pager == null) pager = new Pager();
+		return pager;
+	}
+	
 	@Override
 	protected ProjectPanelBase createProjectPanel() {
 		ProjectPanelBase pp = new ProjectPanelBase();
+		pp.getChildren().add(getPager());
 		ListContentBinding.bind(pp.columnsProperty(), getTable().getVisibleLeafColumns(), ProjectPanelBase::toPair);
 
 		// the identity of the first argument, as we test all matching operations with a string.

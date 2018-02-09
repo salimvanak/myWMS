@@ -12,7 +12,6 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.scene.control.SelectionMode;
 import res.R;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
@@ -59,10 +58,9 @@ public class StorageRequestsPlugin  extends BODTOPlugin<LOSStorageRequest> {
 		
 		QueryDetail detail = source.createQueryDetail();
 		detail.addOrderByToken("created", false);
-		source.setItems(null);
+		source.clearTable();
 		getListData(context, detail, template)
-			.thenApplyAsync(FXCollections::observableList, Platform::runLater)
-			.thenAccept(source::setItems);			
+			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}
 
 	/**

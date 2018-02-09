@@ -26,7 +26,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.TextFormatter.Change;
 import javafx.util.StringConverter;
-import uk.ltd.mediamagic.debug.MLogger;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.binding.AutoFill;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.controller.editor.EditorBase;

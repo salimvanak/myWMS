@@ -34,6 +34,11 @@ dependencies {
   compile group: 'javax', name: 'javaee-api', version: '7.0'
   compile fileTree(dir: 'lib', include: '*.jar')
 
+  compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+  compile group: 'org.slf4j', name: 'slf4j-ext', version: '1.7.25'
+
+  runtime group: 'org.slf4j', name: 'slf4j-jdk14', version: '1.7.25'
+
   compile project(path: ':server.app:mywms.as')
   compile project(path: ':server.app:los.common-ejb')
   compile project(path: ':server.app:los.location-ejb')
@@ -53,12 +58,12 @@ task collect(type: Copy) {
   rename { f -> f + '.raw'}
   eachFile { f ->
     ant.jar(update: "true", destfile: new File(buildDir, f.getPath().substring(0, f.getPath().length()-4))) {
-        zipfileset(src: f.file) {
-          exclude(name: 'META-INF/INDEX.LIST')
-          exclude(name: 'META-INF/*.SF')
-          exclude(name: 'META-INF/*.DSA')
-          exclude(name: 'META-INF/*.RSA')
-          exclude(name: 'META-INF/MANIFEST.MF')
+      zipfileset(src: f.file) {
+        exclude(name: 'META-INF/INDEX.LIST')
+        exclude(name: 'META-INF/*.SF')
+        exclude(name: 'META-INF/*.DSA')
+        exclude(name: 'META-INF/*.RSA')
+        exclude(name: 'META-INF/MANIFEST.MF')
         }
     }
   }
@@ -85,7 +90,6 @@ task signAll {
 		def output = new ByteArrayOutputStream()
 		exec {
       commandLine 'javapackager', '-signjar', '-keystore', keyStoreFile, '-storepass', keyStorePassword, '-alias', keyAlias
-      //commandLine 'javapackager', '-signjar', '-keystore', '/home/slim/.keystore', '-storepass', 'mediamagic', '-alias', 'mediamagic'
 			args '-srcdir', libsDir
 			args '-outdir', webstartDir
 			standardOutput = output
