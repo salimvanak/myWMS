@@ -31,7 +31,6 @@ import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
-import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.MDialogs;
@@ -49,6 +48,7 @@ import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
+import uk.ltd.mediamagic.mywms.transactions.UnitLoadRecordAction;
 
 @SubForm(
 		title="Main", columns=1, 
@@ -68,7 +68,7 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 	enum UnitLoadFilter {All, Available, Empty, Carrier, Goods_out};
 
 	private enum Action {
-		LOCK, SEND_TO_NIRWANA, TRANSFER, STOCK_UNIT_LOG
+		LOCK, SEND_TO_NIRWANA, TRANSFER, STOCK_UNIT_LOG, UNIT_LOAD_LOG
 	}
 	
 	public UnitsLoadsPlugin() {
@@ -109,7 +109,6 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 				filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "lock", LOSUnitLoadLockState.NOT_LOCKED.getLock()));
 				break;
 			case Empty:
-  			//FIXME the stockUnitList dose not exist anymore.
   			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_MANUAL, 
   					"NOT EXISTS(FROM " + StockUnit.class.getSimpleName() + " su WHERE su.unitLoad = o)"));
 				filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_FALSE, "carrier", 0));				
@@ -228,6 +227,7 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 			.withSelection(Action.LOCK, this::lock)
 			.withSelection(Action.TRANSFER, this::transfer)
 			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
+			.withSelection(Action.UNIT_LOAD_LOG, UnitLoadRecordAction.forUnitLoad())
 			.withSelection(Action.STOCK_UNIT_LOG, StockUnitRecordAction.forUnitLoad())
 		.end();
 		return flow;
@@ -238,22 +238,15 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 		super.configureCommands(command);
 		command
 		.begin(RootCommand.MENU)
+			.add(AC.id(Action.LOCK).text("Lock"))
+			.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
+			.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
+			.seperator()
+			.add(AC.id(Action.UNIT_LOAD_LOG).text("Unit Load Log"))
 			.add(AC.id(Action.STOCK_UNIT_LOG).text("Stock Unit Log"))
 		.end();
 	}
 	
-	@Override
-	protected MyWMSEditor<LOSUnitLoad> getEditor(ContextBase context, TableKey key) {
-		MyWMSEditor<LOSUnitLoad> editor = super.getEditor(context, key);
-		editor.getCommands()
-			.begin(RootCommand.MENU)
-				.add(AC.id(Action.LOCK).text("Lock"))
-				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
-				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
-			.end()
-		.end();
-		return editor;
-	}
 	
 	/**
 	 * Generate the table layout for table selectors.
@@ -265,13 +258,6 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 		BODTOTable<LOSUnitLoad> table = super.getTable(context);
 		Runnable refreshData = () -> refresh(table, context);
 		QueryUtils.addFilter(table, UnitLoadFilter.Available, refreshData);
-		table.getCommands()
-			.begin(RootCommand.MENU)
-				.add(AC.id(Action.LOCK).text("Lock"))
-				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
-				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
-				.end()
-		.end();
 		return table;
 	}
 

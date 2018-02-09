@@ -73,6 +73,7 @@ public class UnitLoadLogPlugin extends BODTOPlugin<LOSUnitLoadRecord> {
 	public CompletableFuture<LOSResultList<BODTO<LOSUnitLoadRecord>>> 
 	getListData(ContextBase context, QueryDetail detail, TemplateQuery template) {
 		if (!Strings.isEmpty(value)) {
+			System.out.println("VALUE " + value  + " type " + type);
 			TemplateQueryFilter filter = template.addNewFilter();
 			for (String field : type.getFields()) {
 				filter.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(

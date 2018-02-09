@@ -106,7 +106,6 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "adviceState", LOSAdviceState.OVERLOAD));
 			filter.addWhereToken(new TemplateQueryWhereToken(
 					TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "adviceState", LOSAdviceState.FINISHED));
-			filter.getWhereTokens().forEach(t -> t.setLogicalOperator(TemplateQueryWhereToken.OPERATOR_OR));
 		}
 		else if (filterValue == AdviceFilter.Overload) {
 			TemplateQueryFilter filter = template.addNewFilter();
