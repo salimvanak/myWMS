@@ -33,22 +33,27 @@ public class UnitLoadRecordAction implements WithSelection<Object> {
 	}
 	
 	public static UnitLoadRecordAction forActivityCode(String prefix) {
-		return new UnitLoadRecordAction(t -> prefix + " " + t.get("name"), StockUnitLogPlugin::withActivityCode);
+		return new UnitLoadRecordAction(t -> prefix + " " + t.get("name"), 
+				StockUnitLogPlugin::withActivityCode);
 	}
 
 	public static UnitLoadRecordAction forActivityCode() {
-		return new UnitLoadRecordAction(t -> t.get("name"), (s,c) -> UnitLoadLogPlugin.with(QueryType.ACTIVITY, s, c));
+		return new UnitLoadRecordAction(t -> t.get("name"), 
+				(s,c) -> UnitLoadLogPlugin.with(QueryType.ACTIVITY, s, c));
 	}
 
 	public static UnitLoadRecordAction forUnitLoad() {
-		return new UnitLoadRecordAction(t -> t.get("name"), (s,c) -> UnitLoadLogPlugin.with(QueryType.UNIT_LOAD, s, c));
+		return new UnitLoadRecordAction(t -> t.get("name"), 
+				(s,c) -> UnitLoadLogPlugin.with(QueryType.UNIT_LOAD, s, c));
 	}
 
 	public static UnitLoadRecordAction forStorageLocation() {
-		return new UnitLoadRecordAction(t -> t.get("name"), (s,c) -> UnitLoadLogPlugin.with(QueryType.LOCATION, s, c));
+		return new UnitLoadRecordAction(t -> t.get("name"), 
+				(s,c) -> UnitLoadLogPlugin.with(QueryType.LOCATION, s, c));
 	}
 
 	public static UnitLoadRecordAction forOperator() {
-		return new UnitLoadRecordAction(t -> t.get("name"), (s,c) -> UnitLoadLogPlugin.with(QueryType.OPERATOR, s, c));
+		return new UnitLoadRecordAction(t -> t.get("name"), 
+				(s,c) -> UnitLoadLogPlugin.with(QueryType.OPERATOR, s, c));
 	}
 }

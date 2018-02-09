@@ -23,7 +23,7 @@ import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class UnitLoadLogPlugin extends BODTOPlugin<LOSUnitLoadRecord> {
 	enum QueryType {
-		LOCATION("fromStorageLocation", "toStorageLocations"),
+		LOCATION("fromLocation", "toLocation"),
 		ACTIVITY("activityCode"),
 		UNIT_LOAD("label"),
 		OPERATOR("operator");

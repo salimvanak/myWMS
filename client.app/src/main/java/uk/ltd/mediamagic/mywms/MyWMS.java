@@ -184,8 +184,10 @@ public class MyWMS extends Application {
 			context.register(Stage.class, primaryStage);
 			context.register(Application.class, this);
 			context.register(ApplicationService.class, applicationService);
-			context.register(HostServices.class, getHostServices());
-
+			try {	
+				context.register(HostServices.class, getHostServices());
+			}
+			catch (Exception e) {}
 			context.autoInjectBean(statusBar);
 
 			Robot robot = com.sun.glass.ui.Application.GetApplication().createRobot();

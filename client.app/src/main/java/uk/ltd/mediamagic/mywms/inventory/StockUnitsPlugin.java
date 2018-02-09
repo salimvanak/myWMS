@@ -274,6 +274,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 				.add(AC.id(Action.TRANSFER).text("Transfer stock unit"))
 				.add(AC.id(Action.CHANGE_AMOUNT).text("Change amount"))
 				.add(AC.id(Action.SEND_TO_NIRWANA).text("Send to Nirwana"))
+				.seperator()
 				.add(AC.id(Action.TRANSACTION_LOG).text("Transaction Log"))
 			.end()
 		.end();

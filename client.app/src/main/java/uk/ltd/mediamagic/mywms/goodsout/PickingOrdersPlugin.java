@@ -137,11 +137,12 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 		t.getCommands()
 			.delete(ObservableConstant.TRUE, ObservableConstant.of(!MyWMSUserPermissions.isAtLeastForeman()))
 			.menu(RootCommand.MENU)
-			.add(AC.id(Action.ViewLog).text("View Transaction Records"))
 			.add(AC.id(Action.Release).text("Release for picking"))
 			.add(AC.id(Action.Halt).text("Halt picking"))
 			.add(AC.id(Action.Properties).text("Change properties"))
 			.add(AC.id(Action.Finish).text("Finish"))
+			.seperator()
+			.add(AC.id(Action.ViewLog).text("View Transaction Log"))
 			.end()
 		.end();
 		GoodsOutUtils.addOpenFilter(t, () -> refresh(t, t.getContext()));
