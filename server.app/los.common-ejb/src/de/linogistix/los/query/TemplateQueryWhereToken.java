@@ -13,13 +13,15 @@ package de.linogistix.los.query;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 /**
  * Helper to formulize <code>WHERE</code> clauses in TemplateQuery.
  * 
  * @author <a href="http://community.mywms.de/developer.jsp">Andreas Trautmann</a>
  */
 public class TemplateQueryWhereToken implements Serializable {
-
+	
 	private static final long serialVersionUID = 1L;
 	public final static String OPERATOR_EQUAL = "=";
 	public final static String OPERATOR_NOT_EQUAL = "<>";
@@ -65,6 +67,14 @@ public class TemplateQueryWhereToken implements Serializable {
 	 * Creates a new instance of TemplateQueryWhereToken
 	 */
 	public TemplateQueryWhereToken() {
+	}
+
+	public TemplateQueryWhereToken(String operator, String parameter) {
+		useValue = false;
+		setValue(null);
+		setOperator(operator);
+		setParameter(parameter);
+		setParameterName(null);
 	}
 
 	public TemplateQueryWhereToken(String operator, String parameter, Object value) {
@@ -124,7 +134,7 @@ public class TemplateQueryWhereToken implements Serializable {
 	}
 
 	public void setParameterName(String parameterName) {
-		if( parameterName.contains(".") ) {
+		if(parameterName == null || parameterName.contains(".") ) {
 			useValue = false;
 		}
 		this.parameterName = toParameterName(parameterName);
@@ -135,6 +145,7 @@ public class TemplateQueryWhereToken implements Serializable {
 	}
 
 	public String toParameterName(String parameter) {
+		if (parameter == null) return null;
 		String ret = parameter.replaceAll("\\.", "");
 		if (getValue() == null) {
 			return ret;

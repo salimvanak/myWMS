@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
+import org.mywms.model.StockUnit;
+
 import de.linogistix.los.inventory.facade.ManageInventoryFacade;
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
 import de.linogistix.los.location.crud.LOSUnitLoadCRUDRemote;
@@ -108,7 +110,9 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 				filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "lock", LOSUnitLoadLockState.NOT_LOCKED.getLock()));
 				break;
 			case Empty:
-				filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_ISEMPTY, "stockUnitList", 0));				
+  			//FIXME the stockUnitList dose not exist anymore.
+  			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_MANUAL, 
+  					"NOT EXISTS(FROM " + StockUnit.class.getSimpleName() + " su WHERE su.unitLoad = o)"));
 				filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_FALSE, "carrier", 0));				
 				// the original software contained this constraint, but i cannot see where 
 				// this would be true as 9 is not a valid lock value for UnitLoads

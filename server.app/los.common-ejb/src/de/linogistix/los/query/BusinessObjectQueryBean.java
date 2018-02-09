@@ -335,13 +335,15 @@ public abstract class BusinessObjectQueryBean<T extends BasicEntity> implements
 								columnSumQuery.setParameter(wt.getParameterName()+"2", cal24.getTime());
 							}
 						}
-						else{
-							q.setParameter(wt.getParameterName(), wt.getValue());
-							if( countQuery != null ) {
-								countQuery.setParameter(wt.getParameterName(), wt.getValue());
-							}
-							if (columnSumQuery != null){
-								columnSumQuery.setParameter(wt.getParameterName(), wt.getValue());
+						else {
+							if (wt.getParameterName() != null) {
+								q.setParameter(wt.getParameterName(), wt.getValue());
+								if( countQuery != null ) {
+									countQuery.setParameter(wt.getParameterName(), wt.getValue());
+								}
+								if (columnSumQuery != null){
+									columnSumQuery.setParameter(wt.getParameterName(), wt.getValue());
+								}
 							}
 						}
 					}

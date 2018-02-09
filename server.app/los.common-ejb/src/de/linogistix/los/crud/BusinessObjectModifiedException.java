@@ -8,6 +8,7 @@
 package de.linogistix.los.crud;
 
 import javax.ejb.ApplicationException;
+
 import org.mywms.facade.FacadeException;
 import org.mywms.model.BasicEntity;
 

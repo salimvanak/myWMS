@@ -20,6 +20,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
+import org.mywms.model.StockUnit;
 
 import de.linogistix.los.location.constants.LOSUnitLoadLockState;
 import de.linogistix.los.location.model.LOSStorageLocation;
@@ -128,7 +129,8 @@ public class LOSUnitLoadQueryBean
   			ret.add(token);
   		}
   		if( "EMPTY".equals(filterString) ) {
-  			token = new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_ISEMPTY, "stockUnitList", "");
+  			token = new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_MANUAL, 
+  					"NOT EXISTS(FROM " + StockUnit.class.getSimpleName() + " WHERE unitLoad = ul)");
   			token.setLogicalOperator(TemplateQueryWhereToken.OPERATOR_AND);
   			ret.add(token);
   			token = new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_FALSE, "carrier", 0);

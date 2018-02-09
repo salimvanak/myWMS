@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.mywms.facade.FacadeException;
 import org.mywms.globals.ServiceExceptionKey;
 import org.mywms.model.Client;
+import org.mywms.model.StockUnit;
 import org.mywms.model.UnitLoadType;
 import org.mywms.service.BasicServiceBean;
 import org.mywms.service.ClientService;
@@ -156,7 +157,7 @@ public class LOSUnitLoadServiceBean
         Query query = manager.createQuery(
                             "SELECT ul FROM "+LOSUnitLoad.class.getSimpleName()+" ul "
                             +"WHERE ul.storageLocation=:sl "
-        					+" AND ul.stockUnitList IS EMPTY ");
+        					+" AND NOT EXISTS(FROM " + StockUnit.class.getSimpleName() + " WHERE unitLoad = ul)");
         query.setParameter("sl", sl);
                 
         return (List<LOSUnitLoad>)query.getResultList();
