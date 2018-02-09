@@ -15,6 +15,7 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+
 import javax.persistence.EntityManager;
 
 import org.mywms.model.BasicEntity;

@@ -13,8 +13,6 @@ package de.linogistix.los.query;
 import java.io.Serializable;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
-
 /**
  * Helper to formulize <code>WHERE</code> clauses in TemplateQuery.
  * 
