@@ -3,10 +3,11 @@ package uk.ltd.mediamagic.mywms.inventory;
 import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.mywms.model.StockUnit;
 
@@ -32,6 +33,7 @@ import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
+import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
@@ -89,10 +91,10 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	public Flow createNewFlow(ApplicationContext context) {
 		Flow flow = super.createNewFlow(context);
 		flow.globalWithSelection()
-			.withSelection(Action.LOCK, this::lock)
+			.withMultiSelection(Action.LOCK, this::lock)
 			.withSelection(Action.TRANSFER, this::transfer)
 			.withSelection(Action.CHANGE_AMOUNT, this::changeAmount)
-			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
+			.withMultiSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
 			.withSelection(Action.TRANSACTION_LOG, StockUnitRecordAction.forStockUnit())
 		.end();
 		return flow;
@@ -125,20 +127,23 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 		});
 	}
 
-	private void sendToNirwana(Object source, Flow flow, ViewContext context, TableKey key) {
-		final long id = key.get("id");
+	private void sendToNirwana(Object source, Flow flow, ViewContext context, Collection<TableKey> keys) {
+		if (keys.isEmpty()) {
+			FXErrors.selectionError(context.getRootNode());
+			return;
+		}
 		
 		boolean ok = MDialogs.create(context.getRootNode())
-				.masthead("Send stock unit " + id + " to Nirwana")
+				.masthead("Send stock selected units to Nirwana")
 				.showYesNo(MDialogs.Yes3);
 		
 		if (!ok) return;
+		
+		List<BODTO<StockUnit>> stockUnits = keys.stream().map(k -> (StockUnitTO) CRUDKeyUtils.getTO(k)).collect(Collectors.toList());
 	
-		StockUnitCRUDRemote suCrud = context.getBean(StockUnitCRUDRemote.class);
 		ManageInventoryFacade manageInventory = context.getBean(ManageInventoryFacade.class);
 		context.getExecutor().call(() -> {
-			StockUnit su = suCrud.retrieve(id);
-			manageInventory.sendStockUnitsToNirwana(Collections.singletonList(new StockUnitTO(su)));
+			manageInventory.sendStockUnitsToNirwana(stockUnits);
 			return null;
 		});
 	}
@@ -163,7 +168,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 			});
 	}
 	
-	private void lock(Object source, Flow flow, ViewContext context, TableKey key) {
+	private void lock(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
 		ComboBox<Integer> lockStateField = QueryUtils.lockStateCombo(StockUnitLockState.class);
 		TextArea causeField = new TextArea();
 		causeField.setPromptText("Reason");
@@ -183,12 +188,11 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 		}
 		
 		StockUnitCRUDRemote crud = context.getBean(StockUnitCRUDRemote.class);
-		long id = key.get("id");
-		context.getExecutor().run(() -> {
+		withMultiSelectionTO(context, key, k -> {
+			long id = k.getId();
 			StockUnit su = crud.retrieve(id);
-			crud.lock(su, lock, lockCause);
-		})
-		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+			crud.lock(su, lock, lockCause);			
+		});
 	}
 
 	
