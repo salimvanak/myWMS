@@ -73,7 +73,7 @@ import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 	)
 public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	
-	enum StockUnitFilter {All, Available, Quality_fault, Goods_out}
+	enum StockUnitFilter {All, Available, Locked, Quality_fault, Goods_out}
 	private enum Action {
 		LOCK, SEND_TO_NIRWANA, CHANGE_AMOUNT, TRANSFER, TRANSACTION_LOG 
 	}
@@ -226,13 +226,18 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	protected void refresh(BODTOTable<StockUnit> source, ViewContextBase context) {
 		TemplateQuery template = source.createQueryTemplate();
 		QueryDetail detail = source.createQueryDetail();
-		source.clearTable();
 		
 		StockUnitFilter filterValue = QueryUtils.getFilter(source, StockUnitFilter.Available);
 		TemplateQueryFilter filter = template.addNewFilter();
 		switch (filterValue) {
 		case Available:
 			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "lock", 0));
+			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "unitLoad.lock", 0));
+			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_GREATER, "amount", BigDecimal.ZERO));
+			break;
+		case Locked:
+			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_NOT_IN, "lock", 
+					Arrays.asList(0, StockUnitLockState.PICKED_FOR_GOODSOUT.getLock(), StockUnitLockState.QUALITY_FAULT.getLock())));
 			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "unitLoad.lock", 0));
 			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_GREATER, "amount", BigDecimal.ZERO));
 			break;
@@ -247,6 +252,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 		case All: default:
 		}
 		
+		source.clearTable();
 		getListData(context, detail, template)
 			.thenAcceptAsync(source::setLOSResultList, Platform::runLater);			
 	}

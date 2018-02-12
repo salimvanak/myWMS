@@ -111,6 +111,7 @@ public class Pager extends Control {
 			pageValueFactory.valueProperty().bindBidirectional(pager.pageNumber);
 
 			Spinner<Integer> page = new Spinner<>(pageValueFactory);
+			page.setEditable(true);
 			page.setPrefWidth(Units.em(8));
 			page.setMinWidth(Units.em(8));
 			TextFormatter<Integer> pageSize = new TextFormatter<>(new IntegerConverter(), pager.getPageSize(), Filters.numeric());

@@ -39,6 +39,8 @@ public class TemplateQueryWhereToken implements Serializable {
 	public final static String OPERATOR_AND = "AND";
 	public final static String OPERATOR_OR = "OR";
 	public final static String OPERATOR_MANUAL = "MANUAL";
+	public final static String OPERATOR_IN = "IN";
+	public final static String OPERATOR_NOT_IN = "NOT IN";
 	//    public final static String OPERATOR_MEMBEROF = "MEMBER OF";
 	//    public final static String OPERATOR_NOTMEMBEROF = "NOT MEMBER OF";
 

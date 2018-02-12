@@ -76,20 +76,20 @@ public interface LOSStocktakingFacade {
 	 * With the given parameters all matching locations are selected and for every matching
 	 * location an order is generated.
 	 * 
-	 * @param execute
-	 * @param clientId
-	 * @param areaId
-	 * @param rackId
-	 * @param locationId
-	 * @param locationName
-	 * @param itemId
-	 * @param itemNo
-	 * @param invDate
-	 * @param enableEmptyLocations
-	 * @param enableFullLocations
-	 * @param clientModeLocations
-	 * @param clientModeItemData
-	 * @return
+	 * @param execute true if the orders are actually generated, false if only a location count is returned.
+	 * @param clientId or null for all clients
+	 * @param areaId or null for all areas
+	 * @param rackId or null for all racks
+	 * @param locationId or null for all locations
+	 * @param locationName a <code>like</code> pattern for the location name
+	 * @param itemId or null for all items
+	 * @param itemNo a <code>like</code> pattern for the item name or description
+	 * @param invDate where last stock take was before this date or if there has never been a count. 
+	 * @param enableEmptyLocations true if empty locations are considered
+	 * @param enableFullLocations true if only non empty locations are considered
+	 * @param clientModeLocations true if the only locations matching this client are considered
+	 * @param clientModeItemData true if only items matching this client are considered
+	 * @return the number of locations/orders that were or will be generated.
 	 */
 	public int generateOrders( 
 			boolean execute, 

@@ -233,6 +233,7 @@ public class StockUnitQueryBean extends BusinessObjectQueryBean<StockUnit>
 		resultList = new LOSResultList<BODTO<StockUnit>>(q.getResultList());
 
 		if( count ) {
+			resultList.setStartResultIndex(detail.getStartResultIndex());
 			resultList.setResultSetSize((Long) countQuery.getSingleResult());
 		}
 		return resultList;

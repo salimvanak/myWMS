@@ -54,11 +54,14 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	public void setLOSResultList(LOSResultList<BODTO<D>> list) {		
 		int pageSize = getPager().getPageSize();
 		
+		long startIndex = list.getStartResultIndex();
+		long currentPage = (startIndex / pageSize)+1;
 		long pageMax = (list.getResultSetSize() / pageSize) 
 				+ (((list.getResultSetSize() % pageSize) == 0) ? 0 : 1);
 		
-		getPager().setPageNumber((int) (list.getStartResultIndex() / pager.getPageSize())+1);
+		//System.out.println("@("+startIndex+") "+currentPage+" Max " + list.getResultSetSize() + "(" + pageMax + ") pagesize :" + pageSize);
 		getPager().setMaxPage((int) pageMax);
+		getPager().setPageNumber((int) currentPage);
 		setItems(FXCollections.observableList(list));
 		queryChanged.validate();
 	}
@@ -108,6 +111,7 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	public QueryDetail createQueryDetail() {
 		int pageSize = pager.getPageSize();
 		int start = pageSize * (pager.getPageNumber()-1);
+		System.out.println("Start " + start + " pagesize :" + pageSize);
 		QueryDetail q = new QueryDetail(start, pageSize);
 		for (TableColumn<?,?> col : getTable().getSortOrder()) {
 			SortType type = col.getSortType();

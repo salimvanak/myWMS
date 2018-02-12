@@ -259,6 +259,7 @@ public class MagicStockQueryBean implements MagicStockQuery {
 		for (QueryInventoryTO inv : queryInventory.getInventoryByArticle(clientNumber, itemNumber, false, true)) {
 			StockUnitResult r = new StockUnitResult(inv.lotRef, inv.articleRef);
 			r.setInStock(inv.inStock);
+			r.setLocked(inv.locked);
 			r.setAvailable(inv.available);
 			r.setReserved(inv.reserved);
 			r.setLot(inv.lotRef);
