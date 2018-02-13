@@ -18,3 +18,11 @@ jar {
     exclude 'META-INF/persistence.xml'
   }
 }
+
+// modify the eclipse build path to remove missing tests.
+eclipse.classpath.file {
+	whenMerged { cp ->
+		def testResources = cp.entries.findAll { e -> e.path.endsWith("/resources/test")}
+		cp.entries.removeAll(testResources)
+	}
+}

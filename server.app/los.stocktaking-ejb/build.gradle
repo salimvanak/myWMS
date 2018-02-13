@@ -4,7 +4,7 @@ sourceSets {
     resources.srcDir 'src'
   }
   test {
-    java.srcDir 'test'
+    java.srcDir 'test/groovy'
     resources.srcDir 'src'
   }
 }

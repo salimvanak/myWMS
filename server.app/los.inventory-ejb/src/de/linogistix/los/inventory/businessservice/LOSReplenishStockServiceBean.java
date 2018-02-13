@@ -144,7 +144,7 @@ public class LOSReplenishStockServiceBean implements LOSReplenishStockService {
 		
 		if( ret == null || ret.size()==0 ) {
 			log.debug("No Stock found: QUERY="+sb.toString());
-		}
+		}		
 		
 		return ret;
 	}

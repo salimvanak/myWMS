@@ -64,7 +64,7 @@ public interface ManageLocationFacade {
 	/**
 	 * Recalculates the reservations on the given LOSStorageLocations.
 	 * @param locations a list of locations
-	 * @throws FacadeException if an error is dectected.
+	 * @throws FacadeException if an error is detected.
 	 */
 	void recalculateReservations(List<BODTO<LOSStorageLocation>> locations) throws FacadeException;
 

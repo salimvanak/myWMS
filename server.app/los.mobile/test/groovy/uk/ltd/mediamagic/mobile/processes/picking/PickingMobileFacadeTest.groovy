@@ -3,27 +3,40 @@ package uk.ltd.mediamagic.mobile.processes.picking
 
 import static org.junit.Assert.*
 
-import de.linogistix.los.common.exception.LOSExceptionRB
-import de.linogistix.los.example.InventoryTestTopologyRemote
-import de.linogistix.los.example.LocationTestTopologyRemote
-import de.linogistix.mobileserver.processes.picking.PickingMobileFacade
-import spock.lang.Unroll
+import org.mywms.facade.FacadeException
 
-class PickingMobileFacadeTest extends WMSSpecBase {
-	static def PickingMobileFacade pickingFacade;
+import de.linogistix.mobileserver.processes.picking.PickingMobileFacade
+import groovy.util.logging.Log4j
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Unroll
+import uk.ltd.mediamagic.los.inventory.test.ItemDataSpec
+import uk.ltd.mediamagic.los.inventory.test.StockUnitSpec
+import uk.ltd.mediamagic.los.inventory.test.StorageLocationSpec
+import uk.ltd.mediamagic.los.inventory.test.UnitLoadSpec
+import uk.ltd.mediamagic.los.inventory.test.WMSSpecBase
+
+@Log4j
+class PickingMobileFacadeTest extends Specification 
+	implements WMSSpecBase, UnitLoadSpec, StockUnitSpec, ItemDataSpec, StorageLocationSpec {
 	
-	def setupSpec() {
-		pickingFacade = beanLocator.getStateless(PickingMobileFacade.class)
+	@Shared PickingMobileFacade pickingFacade;
+	
+	void setupSpec() {
+		pickingFacade = getBean(PickingMobileFacade.class)
 	}
 		
 	@Unroll
 	def "Check location scan for #unitloads ULs, #stockunits SUs"() {
 		when:
-			def sl = createStorageLocation("NON-SYSTEM", LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME)
-			createUnitLoadsWithStockUnits(sl, unitloads, stockunits, InventoryTestTopologyRemote.ITEM_A1_NUMBER, 10)
+			def sl = createPickingLocation("NON-SYSTEM")
+			def itemData = createItemData()
+			createUnitLoadsOnLocation(sl, unitloads).each {
+				createStockUnitsOnUnitLoad(it, stockunits, itemData, 10)
+			}
 			pickingFacade.checkLocationScan(sl.name)
 		then:
-			notThrown(LOSExceptionRB)
+			notThrown(FacadeException.class)
 			
 		where: 
 			unitloads | stockunits 
@@ -36,11 +49,14 @@ class PickingMobileFacadeTest extends WMSSpecBase {
 	@Unroll
 	def "Check FAILED location scan for #unitloads ULs, #stockunits SUs"() {
 		when:
-			def sl = createStorageLocation("NON-SYSTEM", LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME)
-			createUnitLoadsWithStockUnits(sl, unitloads, stockunits, InventoryTestTopologyRemote.ITEM_A1_NUMBER, 10)
+			def sl = createPickingLocation("NON-SYSTEM")
+			def itemData = createItemData()
+			createUnitLoadsOnLocation(sl, unitloads).each {
+				createStockUnitsOnUnitLoad(it, stockunits, itemData, 10)
+			}
 			pickingFacade.checkLocationScan(sl.name)
 		then:
-			def ex = thrown(LOSExceptionRB)
+			def ex = thrown(FacadeException.class)
 			ex.key == "LocationNotUnique"
 			
 		where: 
@@ -61,29 +77,31 @@ class PickingMobileFacadeTest extends WMSSpecBase {
 			thrown(Exception)			
 	}
 
-	
 	@Unroll
-	def "Is location count indicated for #unitloads ULs, #stockunits SUs on location type #slTypeName"() {
+	def "Is location count indicated for #unitloads ULs, #stockunits SUs on location type #slType"() {
 		given:
-			def sl = createStorageLocation("NON-SYSTEM", slTypeName)
-			createUnitLoadsWithStockUnits(sl, unitloads, stockunits, InventoryTestTopologyRemote.ITEM_A1_NUMBER, 10)
+			def sl = createStorageLocation("NON-SYSTEM", slType)
+			def itemData = createItemData()
+			createUnitLoadsOnLocation(sl, unitloads).each {
+				createStockUnitsOnUnitLoad(it, stockunits, itemData, 10)
+			}
 		expect:
 			pickingFacade.isLocationCountIndicated(sl.name) == locationCountAllowed;
 		where:
-			slTypeName                                            | unitloads | stockunits | locationCountAllowed 
-			LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME |         0 |          0 | true
-			LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME |         1 |          0 | true
-			LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME |         1 |          1 | true
-			LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME |         1 |          2 | false
-			LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME |         2 |          1 | false
-			LocationTestTopologyRemote.PICKING_LOCATION_TYPE_NAME |         2 |          2 | false
+			slType                          | unitloads | stockunits | locationCountAllowed 
+			getDefaultStorageLocationType() |         0 |          0 | true
+			getDefaultStorageLocationType() |         1 |          0 | true
+			getDefaultStorageLocationType() |         1 |          1 | true
+			getDefaultStorageLocationType() |         1 |          2 | false
+			getDefaultStorageLocationType() |         2 |          1 | false
+			getDefaultStorageLocationType() |         2 |          2 | false
 			// we do not count system locations
-			LocationTestTopologyRemote.SYSTEM_LOCATION_TYPE_NAME  |         0 |          0 | false
-			LocationTestTopologyRemote.SYSTEM_LOCATION_TYPE_NAME  |         1 |          0 | false
-			LocationTestTopologyRemote.SYSTEM_LOCATION_TYPE_NAME  |         1 |          1 | false
-			LocationTestTopologyRemote.SYSTEM_LOCATION_TYPE_NAME  |         1 |          2 | false
-			LocationTestTopologyRemote.SYSTEM_LOCATION_TYPE_NAME  |         2 |          1 | false
-			LocationTestTopologyRemote.SYSTEM_LOCATION_TYPE_NAME  |         2 |          2 | false
+			getSystemLocationType()         |         0 |          0 | false
+			getSystemLocationType()         |         1 |          0 | false
+			getSystemLocationType()         |         1 |          1 | false
+			getSystemLocationType()         |         1 |          2 | false
+			getSystemLocationType()         |         2 |          1 | false
+			getSystemLocationType()         |         2 |          2 | false
 	}
 
 }

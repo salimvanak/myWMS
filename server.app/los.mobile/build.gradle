@@ -1,4 +1,14 @@
+apply plugin: 'groovy'
 apply plugin: 'war'
+
+// add this property into your ~/.gradle/gradle.properties if you are using firefox for testing.
+// webdriver.gecko.driver=PATH TO GECKO DRIVER EXE"
+
+ext {
+  // The drivers we want to use
+  drivers = ["firefox", "chrome"]
+  seleniumVersion = "3.5.3"
+}
 
 sourceSets {
   server {
@@ -21,10 +31,14 @@ webAppDirName = 'WebContent'
 dependencies {
   serverCompile project(':server.app:los.stocktaking-ejb')
   serverCompile group: 'javax.faces', name: 'jsf-api', version: '2.1'
-	
+
   providedCompile sourceSets.server.output
   providedCompile project(':server.app:los.stocktaking-ejb')
-  
+
+  // Geb dependancies
+  testCompile "org.gebish:geb-spock:2.0-rc-1"
+  testRuntime "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
+
   testCompile project(':server.app:mywms.as').sourceSets.test.output
   testCompile project(':server.app:los.inventory-ejb').sourceSets.test.output
   testRuntime group: 'postgresql', name: 'postgresql', version: '9.4.1208-jdbc42-atlassian-hosted'
@@ -41,4 +55,40 @@ war {
 
 artifacts {
     archives war
+}
+
+drivers.each { driver ->
+  task "${driver}Test"(type: Test) {
+    dependencies {
+      testCompile "org.seleniumhq.selenium:selenium-$driver-driver:$seleniumVersion"
+    }
+//    systemProperty 'com.athaydes.spockframework.report.showCodeBlocks', true
+    systemProperty "geb.env", driver
+		systemProperty "webdriver.gecko.driver", webdriverGeckoDriver
+		systemProperty "webdriver.chrome.driver", webdriverChromeDriver
+    systemProperty "geb.build.baseUrl", "http://127.0.0.1:8080/"
+  }
+}
+
+// only runs test that are annotated with current test.
+drivers.each { driver ->
+  task "${driver}TestCurrent"(type: Test) {
+    dependencies {
+      testCompile "org.seleniumhq.selenium:selenium-$driver-driver:$seleniumVersion"
+    }
+//    systemProperty 'com.athaydes.spockframework.report.showCodeBlocks', true
+    systemProperty "geb.env", driver
+    systemProperty "geb.build.baseUrl", "http://127.0.0.1:8080/"
+		systemProperty "webdriver.gecko.driver", webdriverGeckoDriver
+		systemProperty "webdriver.chrome.driver", webdriverChromeDriver
+    systemProperty 'spock.configuration', 'test/groovy/SpockConfigCurrentOnly.groovy'
+  }
+}
+
+// modify the eclipse build path to remove missing tests.
+eclipse.classpath.file {
+  whenMerged { cp ->
+    def genClasses = cp.entries.findAll { e -> e.path.endsWith("/java/test")}
+    cp.entries.removeAll(genClasses)
+  }
 }

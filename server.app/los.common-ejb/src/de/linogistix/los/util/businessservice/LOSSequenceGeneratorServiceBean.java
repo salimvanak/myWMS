@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 
 @Stateless
 public class LOSSequenceGeneratorServiceBean implements
-		LOSSequenceGeneratorService {
+		LOSSequenceGeneratorService, LOSSequenceGeneratorServiceRemote {
 
 	@EJB 
 	private LOSSequenceTransactionService sequenceEngine;

@@ -370,7 +370,9 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		String logStr = "processLocationStart ";
 		sl = manager.find(LOSStorageLocation.class, sl.getId());
 
-		checkStocktakingAllowed(sl);
+		// 2018-02-13, salim We are going to differ this check until the count is accepted
+		// and requires a change to be made to the stock unit.
+		// checkStocktakingAllowed(sl);
 		
 		List<LOSStocktakingOrder> soList;
 		soList = queryStOrderService.getListByLocationAndState(sl.getName(),
@@ -729,6 +731,16 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 			allFinished = false;
 		}
 		
+		try {
+			// check if something is locked or preventing the stock take.
+			checkStocktakingAllowed(sl);
+		}
+		catch (LOSStockTakingException e ) {
+			// if stock taking is not allowed we want to keep a record of the count but
+			// we cannot update anything until stock take is allowed.
+			allFinished = false;
+		}
+		
 		if (allFinished) {
 
 			// avoid lazily initialize exception
@@ -781,7 +793,6 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		String methodName = "acceptOrder ";
 		log.info(methodName + "Start (" + orderId + ")");
 		
-		
 
 		LOSStocktakingOrder stOrder = manager.find(LOSStocktakingOrder.class, Long.valueOf(orderId) );
 		if( stOrder == null ) {
@@ -806,6 +817,10 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 			throw new LOSStockTakingException(LOSStockTakingExceptionKey.UNKNOWN_LOCATION, new Object[]{stOrder.getLocationName()});
 		}
 		sl = manager.find(LOSStorageLocation.class, sl.getId());
+		
+		//This is the differed check to see if the stock take 
+		//is allowed.
+		checkStocktakingAllowed(sl);
 
 		HashMap<String, List<ResolvedStockTakingRecord>> ulLabelRecMap;
 		try {
@@ -830,7 +845,6 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 //			}
 			
 			for (ResolvedStockTakingRecord res : records) {
-
 				if( BigDecimal.ZERO.compareTo(res.countedQuantity) < 0 ) {
 					hasNewStock = true;
 					break;
@@ -1096,8 +1110,6 @@ public class LOSStockTakingProcessCompBean implements LOSStockTakingProcessComp 
 		if (!su.getClient().equals(res.client)){
 			throw new LOSStockTakingException(LOSStockTakingExceptionKey.CLIENT_MISMATCH, new String[]{res.client.toUniqueString(), su.getClient().toUniqueString()});
 		}
-		
-		
 	}
 	private HashMap<String, List<ResolvedStockTakingRecord>> sortRecords(
 			List<LOSStocktakingRecord> recordList, LOSStorageLocation sl)

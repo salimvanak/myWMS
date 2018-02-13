@@ -28,10 +28,11 @@ public interface LOSStorageRequestService	extends BasicService<LOSStorageRequest
      * @return
      * @throws de.linogistix.los.inventory.exception.InventoryException
      */
-    public LOSStorageRequest getRawOrCreateByLabel(Client c, String label) throws InventoryException, EntityNotFoundException;
+  public LOSStorageRequest getRawOrCreateByLabel(Client c, String label) throws InventoryException, EntityNotFoundException;
     
-    public List<LOSStorageRequest> getListByLabelId(String label);
-	public List<LOSStorageRequest> getListByUnitLoad(LOSUnitLoad unitLoad);
+  public List<LOSStorageRequest> getListByLabelId(String label);
+
+  public List<LOSStorageRequest> getListByUnitLoad(LOSUnitLoad unitLoad);
     
 	public List<LOSStorageRequest> getActiveListByDestination(LOSStorageLocation destination);
 

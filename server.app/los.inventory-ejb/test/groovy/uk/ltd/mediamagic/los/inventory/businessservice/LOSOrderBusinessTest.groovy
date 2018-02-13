@@ -8,14 +8,15 @@ import org.mywms.facade.MyWMSSpecification
 import de.linogistix.los.inventory.crud.LOSPickingOrderCRUDRemote
 import de.linogistix.los.inventory.facade.LOSOrderFacade
 import de.linogistix.los.inventory.facade.LOSPickingFacade
+import de.linogistix.los.inventory.facade.OrderPositionTO
 import de.linogistix.los.inventory.model.LOSCustomerOrder
 import de.linogistix.los.inventory.model.LOSPickingOrder
 import de.linogistix.los.model.Prio
 import de.linogistix.los.model.State
-import de.linogistix.los.inventory.facade.OrderPositionTO
 import spock.lang.Ignore
+import spock.lang.Specification
 
-class LOSOrderBusinessTest extends MyWMSSpecification {
+class LOSOrderBusinessTest extends Specification implements MyWMSSpecification {
 	
 	static def LOSPickingOrderCRUDRemote pickQuery
 	static def LOSPickingFacade pickFacade
@@ -24,22 +25,22 @@ class LOSOrderBusinessTest extends MyWMSSpecification {
 	
 	def LOSPickingOrder pick
 	
-	def setupSpec() {
-		pickQuery = beanLocator.getStateless(LOSPickingOrderCRUDRemote.class)
-		pickFacade = beanLocator.getStateless(LOSPickingFacade.class)
-		orderFacade = beanLocator.getStateless(LOSOrderFacade.class);
+  void setupSpec() {
+		pickQuery = getBean(LOSPickingOrderCRUDRemote.class)
+		pickFacade = getBean(LOSPickingFacade.class)
+		orderFacade = getBean(LOSOrderFacade.class);
 		order = orderFacade.order(null, null, new OrderPositionTO[0], null, null, null, null, null, Prio.NORMAL, false, false, null);
 	}
 	
-	def cleanupSpec() {
+	void cleanupSpec() {
 		orderFacade.removeOrder((Long) order.getId())
 	}
 	
-	def setup() {
+	void setup() {
 		pick = pickFacade.createNewPickingOrder(order.getNumber(), "TEST", true)
 	}
 	
-	def cleanup() {
+	void cleanup() {
 		pickFacade.removeOrder(pick.getId())
 	}
 

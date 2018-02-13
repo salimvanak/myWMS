@@ -23,3 +23,11 @@ jar {
     include 'META-INF/*'
   }
 }
+
+// modify the eclipse build path to remove missing tests.
+eclipse.classpath.file {
+  whenMerged { cp ->
+    def genClasses = cp.entries.findAll { e -> e.path.endsWith("/test")}
+    cp.entries.removeAll(genClasses)
+  }
+}

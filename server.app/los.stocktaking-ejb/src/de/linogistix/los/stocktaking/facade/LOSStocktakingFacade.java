@@ -29,6 +29,7 @@ public interface LOSStocktakingFacade {
 
 	/**
 	 * Accepting an order.
+	 * If there are locks, it will throw an exception
 	 * 
 	 * @param orderId
 	 * @throws LOSStockTakingException
@@ -109,13 +110,18 @@ public interface LOSStocktakingFacade {
 
 	/**
 	 * Start the counting of a location.
-	 * First, the location is checked. If there are open requests or locks, it will throw an exception.
+	 * First, the location is checked.
+	 * If there are open requests, it will throw an exception
 	 * The location will be locked for stock-taking.
+	 * 
+	 * This behaviour is designed to allow the counting of stock
+	 * but not allow updates on locked stock.  Audits sometimes require
+	 * counting of locked stock.
 	 * 
 	 * @param location
 	 * @throws LOSStockTakingException
 	 * @throws UnAuthorizedException
-	 */
+	 */	
 	public void processLocationStart(LOSStorageLocation location) throws LOSStockTakingException, UnAuthorizedException;
 	
 	/**
@@ -131,6 +137,7 @@ public interface LOSStocktakingFacade {
 	
 	/**
 	 * Finish the counting of a location.
+	 * If there are locks, it will throw an exception
 	 * The counting-order and -records are marked as COUNTED.
 	 * If all records are automatically finished. the order is accepted and the location is unlocked.
 	 *  

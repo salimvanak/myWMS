@@ -27,3 +27,4 @@ jar {
     include 'META-INF/*'
   }
 }
+

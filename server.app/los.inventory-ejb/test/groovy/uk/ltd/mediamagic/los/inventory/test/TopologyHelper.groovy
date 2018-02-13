@@ -31,6 +31,14 @@ import de.linogistix.los.query.ClientQueryRemote;
 import de.linogistix.los.query.exception.BusinessObjectNotFoundException;
 import de.linogistix.los.test.TestUtilities;
 
+/**
+ * @deprecated
+ * do not use this class. The new test case are design to be independent of state so that 
+ * test can be executed concurrently, using this class will prevent concurrent tests from working. 
+ * @author slim
+ *
+ */
+@Deprecated
 public class TopologyHelper {
   BeanLocator beanLocator;
   
@@ -38,14 +46,14 @@ public class TopologyHelper {
 	ClientQueryRemote clQuery;
 	
   LOSStorageLocationTypeQueryRemote slTypeQuery;
-	LOSStorageLocationTypeCRUDRemote slTypeService;
+	LOSStorageLocationTypeCRUDRemote slTypeCRUD;
 	LOSStorageLocationQueryRemote slQuery;
-  LOSStorageLocationCRUDRemote slService;
+  LOSStorageLocationCRUDRemote slCRUD;
 
   UnitLoadTypeQueryRemote ulTypeQuery;
 	UnitLoadTypeCRUDRemote ulTypeService;
   UnitLoadQueryRemote ulQuery;
-	UnitLoadCRUDRemote ulService;
+	UnitLoadCRUDRemote ulCRUD;
 	
   StockUnitQueryRemote suQuery;
 	StockUnitCRUDRemote suService;	
@@ -73,11 +81,11 @@ public class TopologyHelper {
     invTopology = getBeanLocator().getStateless(InventoryTestTopologyRemote.class, "los.inventory-comp");
     commonTopology = getBeanLocator().getStateless(CommonTestTopologyRemote.class, "los.common-comp");
 				
-    slService = getBeanLocator().getStateless(LOSStorageLocationCRUDRemote.class);
-    ulService = getBeanLocator().getStateless(UnitLoadCRUDRemote.class);
+    slCRUD = getBeanLocator().getStateless(LOSStorageLocationCRUDRemote.class);
+    ulCRUD = getBeanLocator().getStateless(UnitLoadCRUDRemote.class);
     suService = getBeanLocator().getStateless(StockUnitCRUDRemote.class);
     ulTypeService = getBeanLocator().getStateless(UnitLoadTypeCRUDRemote.class);
-    slTypeService = getBeanLocator().getStateless(LOSStorageLocationTypeCRUDRemote.class);
+    slTypeCRUD = getBeanLocator().getStateless(LOSStorageLocationTypeCRUDRemote.class);
     capacityService = getBeanLocator().getStateless(LOSTypeCapacityConstraintCRUDRemote.class);
     areaService = getBeanLocator().getStateless(LOSAreaCRUDRemote.class);
     rackService = getBeanLocator().getStateless(LOSRackCRUDRemote.class);

@@ -25,6 +25,7 @@ public enum LOSStorageLocationLockState implements BusinessObjectLock{
 	NOT_LOCKED(0),
 	GENERAL(1),
 	GOING_TO_DELETE(2),
+	STOCK_TAKE(7),
 	STORAGE(300),
 	RETRIEVAL(301),
 	CLEARING(302);
@@ -44,6 +45,7 @@ public enum LOSStorageLocationLockState implements BusinessObjectLock{
 		case 0: return NOT_LOCKED;
 		case 1: return GENERAL;
 		case 2: return GOING_TO_DELETE;
+		case 7: return STOCK_TAKE;
 		case 300: return STORAGE;
 		case 301: return RETRIEVAL;
 		case 302: return CLEARING;
@@ -72,7 +74,7 @@ public enum LOSStorageLocationLockState implements BusinessObjectLock{
                 return formatString;
             }
             catch (MissingResourceException ex) {
-                return name() + "(" + lock + ")";
+                return name().replace('_', ' ') + " (" + lock + ")";
             }
 	}
 

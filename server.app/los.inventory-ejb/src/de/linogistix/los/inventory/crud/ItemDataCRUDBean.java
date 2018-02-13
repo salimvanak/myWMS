@@ -46,10 +46,10 @@ public class ItemDataCRUDBean extends BusinessObjectCRUDBean<ItemData> implement
 			throws BusinessObjectExistsException,
 			BusinessObjectCreationException, BusinessObjectSecurityException {
 		
-		if (entity.getNumber() == null || entity.getNumber().length() == 0) throw new BusinessObjectCreationException("missing name", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"number"}, BundleResolver.class);
-		if (entity.getClient() == null ) throw new BusinessObjectCreationException("missing name", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"client"}, BundleResolver.class);
+		if (entity.getNumber() == null || entity.getNumber().length() == 0) throw new BusinessObjectCreationException("missing number", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"number"}, BundleResolver.class);
+		if (entity.getClient() == null ) throw new BusinessObjectCreationException("missing client", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"client"}, BundleResolver.class);
 		if (entity.getName() == null || entity.getName().length() == 0) throw new BusinessObjectCreationException("missing name", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"name"}, BundleResolver.class);
-		if (entity.getHandlingUnit() == null) throw new BusinessObjectCreationException("missing name", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"handlingUnit"}, BundleResolver.class);
+		if (entity.getHandlingUnit() == null) throw new BusinessObjectCreationException("missing handling unit", BusinessObjectCreationException.MISSING_FIELD_KEY, new String[]{"handlingUnit"}, BundleResolver.class);
 				
 		return super.create(entity);
 	}
