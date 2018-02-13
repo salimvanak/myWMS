@@ -21,7 +21,6 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import uk.ltd.mediamagic.fx.flow.FXErrors;
 
 public class LoginPreloader extends Preloader {
     public static interface CredentialsConsumer {
@@ -122,7 +121,6 @@ public class LoginPreloader extends Preloader {
       String password = passwordBox.getText();
       
       CompletableFuture.supplyAsync(() -> lookupBeanLocator(username, password))
-      .exceptionally(e -> { FXErrors.exception(e); return null; })
       .thenAcceptAsync(b -> {
       	if (b != null) {
       		consumer.setBeanLocator(b);	

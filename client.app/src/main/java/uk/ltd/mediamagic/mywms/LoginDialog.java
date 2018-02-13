@@ -2,12 +2,12 @@ package uk.ltd.mediamagic.mywms;
 
 import java.net.URL;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
 import org.mywms.ejb.BeanLocator;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -23,11 +23,11 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import res.R;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.Units;
-import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 
@@ -68,8 +68,14 @@ public class LoginDialog {
 		passwordField.setPromptText("Password");
 
 		Label errorField = new Label();
-		errorField.textProperty().bind(MBindings.asString(app.loginErrorProperty(), 
-				e -> Optional.ofNullable(e).map(s->"Login Failed").orElse("")));
+		PauseTransition wipeErrorField = new PauseTransition(Duration.seconds(3));
+		wipeErrorField.setOnFinished(e -> errorField.setText(""));
+		app.loginErrorProperty().addListener((v,o,n) -> {
+			if (n != null) {
+				errorField.setText("Login Failed");
+				wipeErrorField.playFromStart();
+			}
+		});
 
 		HBox buttons = new HBox(10, quit, login);
 		buttons.setAlignment(Pos.BASELINE_RIGHT);
@@ -127,6 +133,7 @@ public class LoginDialog {
   		checkLogin(username, password);
   	}
   	else if (!loginStage.isShowing()) {
+  		loginStage.initOwner(stage);
   		loginStage.setScene(new Scene(main));
   		loginStage.initStyle(StageStyle.UNDECORATED);
   		loginStage.getScene().getStylesheets().addAll(R.getDefaultStyleSheets());
@@ -134,7 +141,7 @@ public class LoginDialog {
   		loginStage.centerOnScreen();
   		loginStage.requestFocus();  
   		loginStage.toFront();
-  		loginStage.setAlwaysOnTop(true);
+  		//loginStage.setAlwaysOnTop(true);
   	}
   }
 
@@ -157,11 +164,11 @@ public class LoginDialog {
   	int myPort = port;
   	
 		CompletableFuture.supplyAsync(() -> lookupBeanLocator(myServer, myPort, user, pass))
-    .exceptionally(e -> { 
-    	FXErrors.exception(e);
-    	loginForm.setDisable(false);
-    	return null; 
-    })
+//    .exceptionally(e -> { 
+//    	FXErrors.exception(e);
+//    	loginForm.setDisable(false);
+//    	return null; 
+//    })
     .thenAcceptAsync(b -> {
     	if (b != null) {
     		beanLocator.set(b);	

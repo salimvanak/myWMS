@@ -102,7 +102,7 @@ public class StorageLocationPlugin extends BODTOPlugin<LOSStorageLocation> imple
 	
 	@Override
 	protected StringConverter<?> getConverter(PropertyDescriptor property) {
-		if ("entity_lock".equals(property.getName())) {
+		if ("lock".equals(property.getName())) {
 			return new LockStateConverter<>(LOSStorageLocationLockState.class);
 		}
 		else if ("allocation".equals(property.getName())) {
@@ -182,6 +182,6 @@ public class StorageLocationPlugin extends BODTOPlugin<LOSStorageLocation> imple
 	
 	@Override
 	public List<String> getTableColumns() {
-		return Arrays.asList("name", "client", "type", "area", "zone", "entity_lock");
+		return Arrays.asList("name", "client", "type", "area", "zone", "lock");
 	}
 }

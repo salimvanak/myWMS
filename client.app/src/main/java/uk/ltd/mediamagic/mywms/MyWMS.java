@@ -57,7 +57,6 @@ import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.ApplicationService;
 import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.FxHacks;
-import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.MenuUtils;
 import uk.ltd.mediamagic.fx.Units;
 import uk.ltd.mediamagic.fx.Utils;
@@ -149,32 +148,35 @@ public class MyWMS extends Application {
 	};
 	private LoginDialog login;
 	
+	
 	@Override
 	public void init() throws Exception {
 		super.init();
 		application = this;
 		System.setSecurityManager(null);
-		
-		
-		
+			
 		lastLoginError.addListener((v,o,n)-> {
 			log.log(Level.SEVERE,"While logging in", n);
-			boolean yes = MDialogs.create(this, "Login Error")
-					.masthead(n.getLocalizedMessage())
-					.message("Retry login").showYesNo();
-			
-			if (yes && login != null) {
-				login.showLogin(primaryStage);
+			for (Throwable t : n.getSuppressed()) {
+				System.out.println(MLogger.format(t));
 			}
+//			boolean yes = MDialogs.create(login, "Login Error")
+//					.modality(Modality.APPLICATION_MODAL)
+//					//.message(n.getLocalizedMessage())
+//					.masthead("Retry login").showYesNo();
+			
+//			if (yes && login != null) {
+//				login.showLogin(primaryStage);
+//			}
 		});
 		ThreadPool.startup();
 		registerPlugins(context.getBean(MExecutor.class), new String[] {"MasterDataModule"});
-		//Thread.sleep(5000);
 	}
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		try {
+			System.setSecurityManager(null);
 			this.primaryStage = primaryStage;
 			this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
 			MLogger.setLevel(Level.INFO);
@@ -445,7 +447,7 @@ public class MyWMS extends Application {
 		loginService.setAuthentification(auth);
 		loginService.processUser(user);
 		loginService.setState(LoginState.AUTENTICATED);
-		
+			
 		return loginService;
 	}
 	

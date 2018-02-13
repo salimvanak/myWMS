@@ -75,13 +75,41 @@ task collect(type: Copy) {
 
 jar {
   dependsOn collect
-	baseName = 'MyWMS-client'
+  baseName = 'MyWMS-client'
   manifest {
-		attributes("Permissions": "all-permissions", "Codebase": "*")
+	attributes("Permissions": "all-permissions", "Codebase": "*")
+  }
+}
+
+/**
+ * This task remove digital signatures from the jar file.
+ * Sometimes out of date signatures in jars will cause security 
+ * exceptions when using Java Web Start
+ */
+task fixJars {
+	dependsOn jar
+	FileTree  jarFiles = fileTree(libsDir)
+	jarFiles.include 'bcpkix*.jar'
+	doLast {
+		jarFiles.visit { f ->
+			println 'Unsigning: ' + f
+			File destFile = new File(libsDir, f.getPath()+'.fixed')
+    		ant.jar(update: "true", destfile: destFile) {
+   				zipfileset(src: f.file) {
+					exclude(name: 'META-INF/INDEX.LIST')
+       				exclude(name: 'META-INF/*.SF')
+       				exclude(name: 'META-INF/*.DSA')
+       				exclude(name: 'META-INF/*.RSA')
+       				exclude(name: 'META-INF/MANIFEST.MF')
+   				}
+			}
+			destFile.renameTo(f.file)
+		}
 	}
 }
 
 task signAll {
+	dependsOn fixJars
 	dependsOn jar
 	inputs.dir libsDir
 	outputs.dir webstartDir

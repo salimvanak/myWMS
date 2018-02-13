@@ -2,6 +2,7 @@ package uk.ltd.mediamagic.flow.crud;
 
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
@@ -73,6 +74,16 @@ public class MyWMSEditor<T extends BasicEntity> extends PoJoEditor<T> {
 		@Override
 		public ObservableBooleanValue getEditableProperty(String id, ObservableValue<?> property) {
 			return super.getEditableProperty(id, property);
+		}
+		
+		@Override
+		public Collection<?> getValuesList(String id, ObservableValue<?> property) {
+			if ("lock".equals(id)) {
+				return Arrays.asList(0,1);
+			}
+			else {
+				return super.getValuesList(id, property);
+			}
 		}
 
 		@Override
