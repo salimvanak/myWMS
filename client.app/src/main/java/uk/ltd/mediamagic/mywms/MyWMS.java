@@ -22,6 +22,7 @@ import de.linogistix.los.user.query.UserQueryRemote;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.application.Preloader.PreloaderNotification;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.DoubleExpression;
 import javafx.beans.property.ObjectProperty;
@@ -97,9 +98,9 @@ public class MyWMS extends Application {
  	private VBox main = new VBox();
 	private Stage primaryStage;
  	
- 	private BeanLocator beanLocator = null;
- 	private ObjectProperty<Throwable> lastLoginError = new SimpleObjectProperty<>();
- 	public ObjectProperty<Throwable> loginErrorProperty() { return lastLoginError; }
+ 	final private ObjectProperty<BeanLocator> beanLocator = new SimpleObjectProperty<>();
+ 	final private ObjectProperty<Throwable> lastLoginError = new SimpleObjectProperty<>();
+ 	final public ObjectProperty<Throwable> loginErrorProperty() { return lastLoginError; }
  	
  	
 	public static final BooleanBinding roleBinding(String... roles) {
@@ -145,29 +146,17 @@ public class MyWMS extends Application {
 		public String getServerAddress() {
 			return serverAddress;
 		};
-	};
-	private LoginDialog login;
-	
+	};	
 	
 	@Override
 	public void init() throws Exception {
 		super.init();
 		application = this;
-		System.setSecurityManager(null);
-			
 		lastLoginError.addListener((v,o,n)-> {
-			log.log(Level.SEVERE,"While logging in", n);
-			for (Throwable t : n.getSuppressed()) {
-				System.out.println(MLogger.format(t));
+			if (n != null) {
+				log.log(Level.SEVERE,"While logging in", n);
+				System.out.println(MLogger.format(n));
 			}
-//			boolean yes = MDialogs.create(login, "Login Error")
-//					.modality(Modality.APPLICATION_MODAL)
-//					//.message(n.getLocalizedMessage())
-//					.masthead("Retry login").showYesNo();
-			
-//			if (yes && login != null) {
-//				login.showLogin(primaryStage);
-//			}
 		});
 		ThreadPool.startup();
 		registerPlugins(context.getBean(MExecutor.class), new String[] {"MasterDataModule"});
@@ -176,7 +165,6 @@ public class MyWMS extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		try {
-			System.setSecurityManager(null);
 			this.primaryStage = primaryStage;
 			this.primaryStage.getIcons().add(new Image(MyWMS.class.getResourceAsStream("/logo.png")));
 			MLogger.setLevel(Level.INFO);
@@ -245,8 +233,7 @@ public class MyWMS extends Application {
 			primaryStage.setScene(scene);
 			primaryStage.show();
 			
-			login = new LoginDialog(this);
-			login.showLogin(primaryStage);
+			notifyPreloader(new StageVisibleNotification());
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
@@ -426,15 +413,15 @@ public class MyWMS extends Application {
   }
 
 	public static void main(String[] args) {
+		// we remove the security manager here to make sure the app has all permissions.
+		// This must be done on the main thread, so that all threads created in the connection pool
+		// have the same security manager.
+		System.setSecurityManager(null);
+		System.setProperty("javafx.preloader", LoginPreloader.class.getName());
 		Thread.setDefaultUncaughtExceptionHandler((t,e) -> {
 			Logger.getGlobal().log(Level.SEVERE, "Unhandeled Exception", e);
 		});
-		try {
-			launch(args); 
-		}
-		catch (Throwable e) {
-			e.printStackTrace();
-		}
+		launch(args); 
 	}
 	
 	public LoginService createLoginService(BeanLocator beanLocator) throws BusinessObjectNotFoundException {
@@ -452,7 +439,7 @@ public class MyWMS extends Application {
 	}
 	
 	public void setBeanLocator(BeanLocator beanLocator) {
-		this.beanLocator = beanLocator;
+		this.beanLocator.set(beanLocator);
 		CompletableFuture.supplyAsync(() -> beanLocator)
 			.thenCompose(BgFunction.bind(this::createLoginService))
 			.handleAsync((l, e) -> {
@@ -463,7 +450,7 @@ public class MyWMS extends Application {
 	}
 
 	public BeanLocator getBeanLocator() {
-		return beanLocator;
+		return beanLocator.get();
 	}
 
 	public final ObjectProperty<LoginService> loginServiceProperty() {
@@ -480,4 +467,6 @@ public class MyWMS extends Application {
 		this.loginServiceProperty().set(loginService);
 	}
 
+	class StageVisibleNotification implements PreloaderNotification {
+	}
 }

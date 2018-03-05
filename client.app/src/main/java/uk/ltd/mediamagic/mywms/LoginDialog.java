@@ -1,6 +1,7 @@
 package uk.ltd.mediamagic.mywms;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
@@ -9,13 +10,20 @@ import org.mywms.ejb.BeanLocator;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -26,39 +34,79 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import res.R;
 import uk.ltd.mediamagic.common.utils.Strings;
+import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.AwesomeIcon;
+import uk.ltd.mediamagic.fx.FXUtils;
 import uk.ltd.mediamagic.fx.Units;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 
 public class LoginDialog {
 
+	private final PauseTransition wipeErrorField = new PauseTransition(Duration.seconds(3));
+
 	private SimpleFormBuilder loginForm = new SimpleFormBuilder();
+	private Label errorField = new Label();
 	private TextField usernameField = new TextField();
 	private PasswordField passwordField = new PasswordField();
 	private Button login = new Button("Login");
 	private Button quit = new Button("Quit");
-	private Map<String,String> parameters;
-	private Stage loginStage = new Stage();
+	private Stage loginStage = null;
+
+	private ObjectProperty<MyWMS> app = new SimpleObjectProperty<>();
+	final private ObjectBinding<Map<String,String>> parameters;
 	
 	private AnchorPane main = new AnchorPane();
 	
-	final ObjectProperty<BeanLocator> beanLocator = new SimpleObjectProperty<>();
+	final ObjectProperty<BeanLocator> beanLocator = new SimpleObjectProperty<BeanLocator>() {
+		protected void invalidated() {
+			if (get() != null && app.get() != null) app.get().setBeanLocator(get());
+		}
+	};
 	
+  private final ChangeListener<Object> hideLoginStage = (v,o,n) -> hideStageOnComplete();
+
+	private final ChangeListener<Throwable> errorMessageListener = (v,o,n) -> {
+		if (n != null) {
+			errorField.setText("Login Failed");
+			wipeErrorField.playFromStart();
+  		loginForm.setDisable(false);
+		}
+	};
+
+  public LoginDialog(ObservableValue<MyWMS> app) {
+  	this();
+  	this.app.bind(app);
+  }
+  
   public LoginDialog(MyWMS app) {
+  	this();
+  	this.app.set(app);
+  }
+  	
+  private LoginDialog() {
 		super();
-		this.parameters = app.getParameters().getNamed();
-		loginStage.initOwner(app.getPrimaryStage());
+		this.parameters = Bindings.createObjectBinding(() -> {
+			if (app.get() == null) {
+				return Collections.emptyMap();
+			}
+			else {
+				return app.get().getParameters().getNamed();
+			}
+		}, app);
 		
-		beanLocator.addListener((v,o,n) -> { 
+		this.parameters.addListener((v,o,n) ->  {
 			if (n != null) {
-				app.setBeanLocator(n);
+				String username = n.get("user");
+				String password = n.get("password");
+				
+				if (!Strings.isEmpty(username) && !Strings.isEmpty(password)) {
+					checkLogin(username, password);
+				}
 			}
 		});
 		
-		app.loginServiceProperty().addListener((v,o,n) -> {
-			if (n != null) loginStage.hide();
-		});
+		app.addListener(this::onAppChanged);	
 		
 		String osUserName = System.getProperty("user.name");
 		usernameField.setText(osUserName);
@@ -67,15 +115,7 @@ public class LoginDialog {
 
 		passwordField.setPromptText("Password");
 
-		Label errorField = new Label();
-		PauseTransition wipeErrorField = new PauseTransition(Duration.seconds(3));
 		wipeErrorField.setOnFinished(e -> errorField.setText(""));
-		app.loginErrorProperty().addListener((v,o,n) -> {
-			if (n != null) {
-				errorField.setText("Login Failed");
-				wipeErrorField.playFromStart();
-			}
-		});
 
 		HBox buttons = new HBox(10, quit, login);
 		buttons.setAlignment(Pos.BASELINE_RIGHT);
@@ -114,47 +154,76 @@ public class LoginDialog {
 		}
 		Label versionLabel = new Label("MyWMS v1.8.1");
 		AnchorPane.setRightAnchor(versionLabel, Units.em(1));
-		AnchorPane.setBottomAnchor(versionLabel, Units.em(1));
+		AnchorPane.setTopAnchor(versionLabel, Units.em(1));
 		
 		AnchorPane.clearConstraints(loginForm);
 		AnchorPane.setRightAnchor(loginForm, Units.em(1));
 		AnchorPane.setBottomAnchor(loginForm, Units.em(3));
 
 		main.getChildren().add(loginForm);
-		main.getChildren().add(versionLabel);
-		
+		main.getChildren().add(versionLabel);		
 	}
+  
+  public void hideStageOnComplete() {
+  	MyWMS appValue = app.get();
+  	if (appValue == null) return;
+  	if (appValue.getPrimaryStage() == null) return;
+  	if (!appValue.getPrimaryStage().isShowing()) return;
+  	if (appValue.getLoginService() == null) return; 
+  	loginStage.hide();  	
+  }
+  
+	private void onAppChanged(Observable v, MyWMS o, MyWMS n) {
+		if (o != null) {
+			o.loginServiceProperty().removeListener(hideLoginStage);
+			o.loginErrorProperty().removeListener(errorMessageListener);
+		}
+
+  	if (n != null) {
+			n.loginServiceProperty().addListener(new WeakChangeListener<>(hideLoginStage));
+			n.loginErrorProperty().addListener(new WeakChangeListener<>(errorMessageListener));
+		}
+  }
 
   public void showLogin(Stage stage) {
-  	String username = parameters.get("user");
-  	String password = parameters.get("password");
-  
-  	if (!Strings.isEmpty(username) && !Strings.isEmpty(password)) {
-  		checkLogin(username, password);
-  	}
-  	else if (!loginStage.isShowing()) {
-  		loginStage.initOwner(stage);
-  		loginStage.setScene(new Scene(main));
-  		loginStage.initStyle(StageStyle.UNDECORATED);
-  		loginStage.getScene().getStylesheets().addAll(R.getDefaultStyleSheets());
-  		loginStage.show();
-  		loginStage.centerOnScreen();
-  		loginStage.requestFocus();  
-  		loginStage.toFront();
-  		//loginStage.setAlwaysOnTop(true);
-  	}
+  	showLogin(stage, null);
+  }
+
+  public void showLogin(Stage stage, ProgressBar progress) {
+  	if (loginStage != null) throw new IllegalStateException("Second call to showLogin");
+  	loginStage = stage;
+  	loginStage.setScene(new Scene(main));
+ 		loginStage.initStyle(StageStyle.UNDECORATED);
+ 		loginStage.getScene().getStylesheets().addAll(R.getDefaultStyleSheets());
+ 		loginStage.show();
+ 		loginStage.centerOnScreen();
+ 		loginStage.requestFocus();  
+ 		loginStage.toFront();
+ 		loginStage.setAlwaysOnTop(true);
+ 		
+ 		if (progress != null) {
+ 			AnchorPane.clearConstraints(progress);
+ 			AnchorPane.setLeftAnchor(progress, Units.em(3));
+ 			AnchorPane.setRightAnchor(progress, Units.em(3));
+ 			AnchorPane.setBottomAnchor(progress, Units.em(1));
+ 			main.getChildren().add(progress);
+ 		}
   }
 
 
   private void checkLogin(String user, String pass) {
 		loginForm.setDisable(true);
-
-		String server = parameters.get("server");
-		if (Strings.isEmpty(server)) server = "localhost";
+		FXUtils.executeOnceWhenPropertyIsNonNull(this.parameters, p -> {
+			doLogin(p, user, pass);
+		});
+  }
+  
+  private void doLogin(Map<String,String> params, String user, String pass) {
+		String server = params.getOrDefault("server", "localhost");
   	Integer port;
   	
   	try {
-			port = Integer.parseInt(parameters.get("port"));
+			port = Integer.parseInt(params.get("port"));
 		} 
   	catch (NumberFormatException e1) {
   		port = 8080;
@@ -164,22 +233,23 @@ public class LoginDialog {
   	int myPort = port;
   	
 		CompletableFuture.supplyAsync(() -> lookupBeanLocator(myServer, myPort, user, pass))
-//    .exceptionally(e -> { 
-//    	FXErrors.exception(e);
-//    	loginForm.setDisable(false);
-//    	return null; 
-//    })
+    .exceptionally(e -> { 
+			System.out.println(MLogger.format(e));
+			System.err.println(MLogger.format(e));
+    	FXErrors.exception(e);
+    	loginForm.setDisable(false);
+    	return null; 
+    })
     .thenAcceptAsync(b -> {
     	if (b != null) {
     		beanLocator.set(b);	
-    		loginForm.setDisable(false);
+    		//loginForm.setDisable(false);
     	}
     	else {
     		FXErrors.error("Login failed", "Login failed");
     		loginForm.setDisable(false);
     	}
     }, Platform::runLater);
-		
 	}
 	
 	public static BeanLocator lookupBeanLocator(String server, int port, String username, String password) {
