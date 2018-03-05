@@ -116,7 +116,9 @@ public class TreatOrderController extends GoodsOutEditController<LOSCustomerOrde
 					.message("Release all picking orders?")
 					.showYesNo()) return;
 				
-				if (model != null) model.startPicking(getView());
+				if (model != null) {
+					model.startPicking(getView());
+				}
 			}))
 		.end();
 	}

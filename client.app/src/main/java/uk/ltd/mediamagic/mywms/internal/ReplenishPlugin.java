@@ -13,6 +13,7 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.SelectionMode;
 import javafx.util.StringConverter;
 import res.R;
@@ -40,6 +41,10 @@ public class ReplenishPlugin  extends BODTOPlugin<LOSReplenishOrder> {
 		super(LOSReplenishOrder.class);
 	}
 
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
+	}
 
 	@Override
 	public String getPath() {

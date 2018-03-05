@@ -17,10 +17,10 @@ repositories {
 }
 
 
-apply plugin: 'java'
+apply plugin: 'application'
 apply plugin: 'eclipse'
 
-version = '0.0.1'
+version = '1.8.2'
 
 sourceSets {
   main {
@@ -77,7 +77,7 @@ jar {
   dependsOn collect
   baseName = 'MyWMS-client'
   manifest {
-	attributes("Permissions": "all-permissions", "Codebase": "*")
+		attributes("Permissions": "all-permissions", "Codebase": "*")
   }
 }
 
@@ -89,14 +89,18 @@ jar {
 task fixJars {
 	dependsOn jar
 	FileTree  jarFiles = fileTree(libsDir)
-	jarFiles.include 'bcpkix*.jar'
+	//jarFiles.include '*.jar'
+	//jarFiles.exclude 'MyWMS*.jar'
 	doLast {
 		jarFiles.visit { f ->
 			println 'Unsigning: ' + f
 			File destFile = new File(libsDir, f.getPath()+'.fixed')
     		ant.jar(update: "true", destfile: destFile) {
+					manifest {
+						attributes("Permissions": "all-permissions", "Codebase": "*")
+					}
    				zipfileset(src: f.file) {
-					exclude(name: 'META-INF/INDEX.LIST')
+						  exclude(name: 'META-INF/INDEX.LIST')
        				exclude(name: 'META-INF/*.SF')
        				exclude(name: 'META-INF/*.DSA')
        				exclude(name: 'META-INF/*.RSA')
@@ -109,7 +113,7 @@ task fixJars {
 }
 
 task signAll {
-	dependsOn fixJars
+	//dependsOn fixJars
 	dependsOn jar
 	inputs.dir libsDir
 	outputs.dir webstartDir
@@ -150,4 +154,9 @@ task generateJnlp(dependsOn: [signAll]) {
 
 task webstart {
   dependsOn generateJnlp
+}
+
+startScripts {
+	mainClassName = "uk.ltd.mediamagic.mywms.MyWMS"
+	applicationName = 'MyWMS Client'
 }

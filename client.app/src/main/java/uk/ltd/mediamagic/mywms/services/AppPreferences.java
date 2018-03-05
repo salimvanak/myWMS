@@ -8,7 +8,6 @@ package uk.ltd.mediamagic.mywms.services;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +28,7 @@ public class AppPreferences {
 	private static final String PROPERTIES_EXTENSION =  "properties";
 	private String settingsFolder;
 	private URL settingsFile;
-	private URI lock;
+//	private URI lock;
 	private Properties settings;
 	private String[] noStoreProps = new String[0];
 

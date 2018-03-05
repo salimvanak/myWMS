@@ -81,7 +81,7 @@ public class StockUnitsPlugin extends BODTOPlugin<StockUnit> {
 	public StockUnitsPlugin() {
 		super(StockUnit.class);
 	}
-	
+
 	@Override
 	public String getPath() {
 		return "{1, _Inventory} -> {1, _Stock Units}";

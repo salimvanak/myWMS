@@ -12,6 +12,7 @@ import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
@@ -19,6 +20,7 @@ import uk.ltd.mediamagic.fx.ApplicationService;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class UnitLoadLogPlugin extends BODTOPlugin<LOSUnitLoadRecord> {
@@ -56,6 +58,11 @@ public class UnitLoadLogPlugin extends BODTOPlugin<LOSUnitLoadRecord> {
 		this.type = type;
 		this.value = value;
 		if (Strings.isEmpty(value)) Objects.requireNonNull(type); 
+	}
+	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
 	}
 	
 	@Override

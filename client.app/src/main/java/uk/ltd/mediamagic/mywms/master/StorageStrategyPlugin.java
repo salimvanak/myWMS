@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.linogistix.los.inventory.model.LOSStorageStrategy;
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -16,6 +17,11 @@ public class StorageStrategyPlugin extends BODTOPlugin<LOSStorageStrategy> {
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
 	}
 	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
+	}
+
 	@Override
 	public String getPath() {
 		return "{1, _Master Data} -> {1, _Strategies} -> {1, _Storage Strategy}";

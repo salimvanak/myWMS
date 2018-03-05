@@ -9,6 +9,7 @@ import org.mywms.model.ItemData;
 
 import de.linogistix.los.inventory.query.dto.ItemDataTO;
 import de.linogistix.los.query.BODTO;
+import javafx.beans.binding.BooleanBinding;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
@@ -45,6 +46,11 @@ public class ItemDataPlugin extends BODTOPlugin<ItemData> implements Editor<Item
 	public ItemDataPlugin() {
 		super(ItemData.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+	}
+	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
 	}
 	
 	@Override

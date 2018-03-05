@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.linogistix.los.location.model.LOSStorageLocationType;
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -23,6 +24,11 @@ public class StorageLocationTypesPlugin extends CRUDPlugin<LOSStorageLocationTyp
 	@Override
 	public String getPath() {
 		return "{1, _Master Data} -> {1, _Location} -> {2, _Storage location types}";
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
 	}
 
 	@Override

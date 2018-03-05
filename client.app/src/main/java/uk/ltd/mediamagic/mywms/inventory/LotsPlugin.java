@@ -10,6 +10,7 @@ import org.mywms.model.Lot;
 import de.linogistix.los.inventory.query.dto.LotTO;
 import de.linogistix.los.inventory.service.LotLockState;
 import de.linogistix.los.query.BODTO;
+import javafx.beans.binding.BooleanBinding;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
@@ -22,6 +23,7 @@ import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
+import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
 
 @SubForm(
@@ -40,6 +42,11 @@ public class LotsPlugin extends BODTOPlugin<Lot> {
 
 	public LotsPlugin() {
 		super(Lot.class);
+	}
+	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
 	}
 	
 	@Override

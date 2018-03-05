@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.mywms.model.Zone;
 
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -15,6 +16,11 @@ public class ZonePlugin extends CRUDPlugin<Zone> {
 	public ZonePlugin() {
 		super(Zone.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
 	}
 
 	@Override

@@ -68,7 +68,7 @@ public class StorageLocationPlugin extends BODTOPlugin<LOSStorageLocation> imple
 		super(LOSStorageLocation.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
 	}
-		
+			
 	@Override
 	public String getPath() {
 		return "{1, _Master Data} -> {1, _Location} -> {1, _Locations}";

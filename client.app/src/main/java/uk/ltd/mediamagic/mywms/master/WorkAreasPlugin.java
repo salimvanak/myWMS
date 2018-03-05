@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.linogistix.los.location.model.LOSWorkingArea;
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -14,6 +15,11 @@ public class WorkAreasPlugin extends CRUDPlugin<LOSWorkingArea> {
 	public WorkAreasPlugin() {
 		super(LOSWorkingArea.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
 	}
 
 	@Override

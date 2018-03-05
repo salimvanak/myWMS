@@ -11,6 +11,7 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import de.linogistix.los.stocktaking.model.LOSStocktakingRecord;
 import de.linogistix.los.stocktaking.model.LOSStocktakingState;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.Node;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
@@ -19,6 +20,7 @@ import uk.ltd.mediamagic.fx.AwesomeIcon;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.mywms.stocktaking.StockTakingOrdersPlugin.StockTakingFilter;
 
@@ -28,6 +30,11 @@ public class StockTakingRecordsPlugin extends CRUDPlugin<LOSStocktakingRecord> {
 		super(LOSStocktakingRecord.class);
 	}
 	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
+	}
+
 	@Override
 	public String getPath() {
 		return "{2, _Internal Orders} -> {2, _Stock Taking Records}";

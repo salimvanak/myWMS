@@ -37,6 +37,7 @@ import uk.ltd.mediamagic.mywms.master.UnitLoadTypesPlugin;
 import uk.ltd.mediamagic.mywms.master.WorkAreasPlugin;
 import uk.ltd.mediamagic.mywms.master.WorkAreasPositionsPlugin;
 import uk.ltd.mediamagic.mywms.master.ZonePlugin;
+import uk.ltd.mediamagic.mywms.transactions.StockUnitAdjustments;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitLogPlugin;
 import uk.ltd.mediamagic.mywms.transactions.UnitLoadLogPlugin;
 import uk.ltd.mediamagic.plugin.AbstractPluginSet;
@@ -101,6 +102,8 @@ public class MasterDataModule extends AbstractPluginSet {
     m.put(FixedLocationsPlugin.class);
     m.put(LOSFixedLocationAssignment.class, FixedLocationsPlugin.class);
         
+    m.put(StockUnitAdjustments.class);
+
     m.put(StockUnitLogPlugin.class);
     m.put(LOSStockUnitRecord.class, StockUnitLogPlugin.class);
         

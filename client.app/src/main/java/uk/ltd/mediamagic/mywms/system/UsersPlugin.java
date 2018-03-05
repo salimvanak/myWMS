@@ -10,6 +10,7 @@ import org.mywms.model.User;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.user.crud.UserCRUDRemote;
 import de.linogistix.los.user.query.RoleQueryRemote;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import uk.ltd.mediamagic.common.utils.Strings;
@@ -32,6 +33,11 @@ public class UsersPlugin  extends CRUDPlugin<User> {
 		super(User.class);
 		setCreateAllowed(true);
 		setUserPermissions(new MyWMSUserPermissions.ForSystemData());
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.adminUser();
 	}
 
 	@Override

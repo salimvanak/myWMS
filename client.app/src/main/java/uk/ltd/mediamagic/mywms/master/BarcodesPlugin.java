@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.mywms.model.ItemDataNumber;
 
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -17,6 +18,11 @@ public class BarcodesPlugin extends BODTOPlugin<ItemDataNumber> {
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
 	}
 
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
+	}
+	
 	@Override
 	public String getPath() {
 		return "{1, _Master Data} -> {1, _Inventory} -> {1, _Barcodes}";

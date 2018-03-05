@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import de.linogistix.los.crud.LOSJasperReportCRUDRemote;
 import de.linogistix.los.model.LOSJasperReport;
+import javafx.beans.binding.BooleanBinding;
 import javafx.stage.FileChooser;
 import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
@@ -23,6 +24,7 @@ import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
+import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.userlogin.LoginService;
 
 @SubForm(title="hidden", columns=0, properties={"compiledDocument"})
@@ -35,6 +37,11 @@ public class JasperReportsPlugin extends CRUDPlugin<LOSJasperReport> {
 		setCreateAllowed(true);
 	}
 	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.adminUser();
+	}
+
 	@Override
 	protected void createAction(CrudTable<LOSJasperReport> source, Flow flow, ViewContext context) {
 		LOSJasperReportCRUDRemote crud = context.getBean(LOSJasperReportCRUDRemote.class);

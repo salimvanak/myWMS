@@ -12,6 +12,7 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.scene.control.SelectionMode;
 import res.R;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
@@ -35,6 +36,11 @@ public class StorageRequestsPlugin  extends BODTOPlugin<LOSStorageRequest> {
 
 	public StorageRequestsPlugin() {
 		super(LOSStorageRequest.class);
+	}
+	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
 	}
 
 	@Override

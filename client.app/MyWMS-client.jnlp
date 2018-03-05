@@ -20,11 +20,11 @@
     <all-permissions/>
   </security>
   <resources>
-    <j2se version="" initial-heap-size="128m" max-heap-size="512m"/>
-    <extension href="MyWMS-client-comp.jnlp"/>
+    <j2se version="1.8+" initial-heap-size="128m" max-heap-size="512m"/>
+    <extension href="build/webstart/MyWMS-client-0.0.1.jnlp"/>
   </resources>
   <application-desc main-class="uk.ltd.mediamagic.mywms.MyWMS">
-    <argument>--server=wildfly.localdomain</argument>
+    <argument>--server=localhost</argument>
     <argument>--port=8080</argument>
   </application-desc>  
 </jnlp>

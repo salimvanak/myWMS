@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.mywms.model.Client;
 
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
@@ -13,6 +14,11 @@ public class ClientsPlugin  extends CRUDPlugin<Client> {
 	public ClientsPlugin() {
 		super(Client.class);
 		setUserPermissions(new MyWMSUserPermissions.ForSystemData());
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.adminUser();
 	}
 
 	@Override

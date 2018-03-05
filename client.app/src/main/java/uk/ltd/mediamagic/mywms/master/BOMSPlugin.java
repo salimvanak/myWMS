@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.linogistix.los.inventory.model.LOSBom;
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -14,6 +15,11 @@ public class BOMSPlugin extends BODTOPlugin<LOSBom> {
 	public BOMSPlugin() {
 		super(LOSBom.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
 	}
 
 	@Override

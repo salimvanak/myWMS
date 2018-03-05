@@ -91,6 +91,7 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 	
 	public OrderStatusPane() {
 		super();
+		setView(view);
 		view.setCenter(hbox);
 		view.setBottom(detail);
 		
@@ -167,12 +168,7 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		GridPane.setVgrow(t, Priority.ALWAYS);
 		return t;
 	}
-	
-	@Override
-	public Node getView() {
-		return view;
-	}
-		
+			
 	@Override
 	public TableKey getSelectedKey() {
 		BODTO<LOSCustomerOrder> d = selection.getSelectedItem();

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.mywms.model.UnitLoadType;
 
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -19,6 +20,11 @@ public class UnitLoadTypesPlugin extends CRUDPlugin<UnitLoadType> {
 	public UnitLoadTypesPlugin() {
 		super(UnitLoadType.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+	}
+
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
 	}
 
 	@Override

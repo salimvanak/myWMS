@@ -27,7 +27,6 @@ import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.exception.BusinessObjectNotFoundException;
 import javafx.beans.binding.StringBinding;
 import javafx.event.Event;
-import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.RadioButton;
@@ -41,7 +40,7 @@ import uk.ltd.mediamagic.fx.FxExceptions;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.binding.BigDecimalBinding;
 import uk.ltd.mediamagic.fx.binding.MBindings;
-import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
+import uk.ltd.mediamagic.fx.control.FormBuilder;
 import uk.ltd.mediamagic.fx.controller.ControllerCommandBase;
 import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
 import uk.ltd.mediamagic.fx.converters.Filters;
@@ -86,11 +85,12 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 	
 	DataCheck dataCheck = DataCheck.with(Collections.emptyMap());
 	
-	SimpleFormBuilder form = new SimpleFormBuilder();
+	FormBuilder form = new FormBuilder();
 	
 	public CreateGoodsReceiptPosition(LOSGoodsReceipt goodsReceipt, LOSAdvice advice) {
 		this.goodsReceipt = goodsReceipt;
 		this.advice.setValue(advice);
+		setView(form);
 		
 		adviceDescription = MBindings.asString(this.advice.valueProperty(), l -> Strings.format("Remaining {0}", l.getDiffAmount()));
 		lotDescription = MBindings.asString(lot.valueProperty(), Lot::getName);
@@ -104,10 +104,10 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 		
 		form.sub("Stock Item Data")
 			.doubleRow()
-				.label("Advice").fieldNode(this.advice).field(adviceDescription)
+				.label("Advice").fieldNode(this.advice).text("").readonly(adviceDescription)
 			.end()
 			.doubleRow()
-				.label("Item Data").fieldNode(itemData).field(itemDataDescription)
+				.label("Item Data").fieldNode(itemData).text("").readonly(itemDataDescription)
 			.end()
 		.end();
 		form.doubleRow()
@@ -120,14 +120,14 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 		form.doubleRow()
 			.label("Qty per unit load").fieldNode(Filters.of(unitLoadAmount, 6))
 			.label("No of unit loads").fieldNode(Filters.of(unitLoadCount, 6))
-			.label("Remaining").fieldNode(Filters.of(remainingAmount, 6))
+			.label("Remaining").fieldNode(Filters.of(remainingAmount, 6)).readonly()
 		.end();
 		form.sub("Lot Information")
 			.row()
 				.fieldNode(noLotAssignment).fieldNode(useExistingLot).fieldNode(createNewLot)
 			.end()
 			.doubleRow()
-				.label("Lot").fieldNode(lot).field(lotDescription)
+				.label("Lot").fieldNode(lot).text("").readonly(lotDescription)
 			.end()
 			.doubleRow()
 				.label("Lot Number").fieldNode(lotName)
@@ -151,6 +151,7 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 		this.advice.setDisable(true);
 		
 		itemData.valueProperty().bind(MBindings.get(this.advice.valueProperty(), LOSAdvice::getItemData));
+		
 		
 		remainingAmount.valueProperty().bind(BigDecimalBinding.create(this::calculateAmountRemaining, 
 				unitLoadAmount.valueProperty(),
@@ -187,8 +188,12 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 		BigDecimal amount = unitLoadAmount.getValue();
 		Integer count = unitLoadCount.getValue();
 		BigDecimal diffAmount = this.advice.getValue().getDiffAmount();
-		
-		return diffAmount.subtract(amount.multiply(new BigDecimal(count)));		
+		if (amount != null && count != null && diffAmount != null) {
+			return diffAmount.subtract(amount.multiply(new BigDecimal(count)));
+		}
+		else {
+			return null;
+		}
 	}
 	
 	private CompletableFuture<List<BODTO<Lot>>> fetchLotsList(String s) {
@@ -196,12 +201,7 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 		ItemDataTO itemData = new ItemDataTO(this.itemData.getValue());
 		return getExecutor().call(() -> facade.getAllowedLots(s, client, itemData));
 	}
-	
-	@Override
-	public Node getView() {
-		return form;
-	}
-	
+		
 	private void okPressed(Event e) {
 		try {
 			DataCheck.with(Collections.emptyMap())
@@ -219,7 +219,7 @@ public class CreateGoodsReceiptPosition extends ControllerCommandBase {
 	
 		BigDecimal amount = unitLoadAmount.getValue();
 		Integer count = unitLoadCount.getValue();
-		BigDecimal diffAmount = this.advice.getValue().getDiffAmount();
+		//BigDecimal diffAmount = this.advice.getValue().getDiffAmount();
 		BigDecimal remainingAmount = calculateAmountRemaining();
 		if (remainingAmount.compareTo(BigDecimal.ZERO) < 0) {
 			boolean yes = MDialogs.create(getView(), "Over received")

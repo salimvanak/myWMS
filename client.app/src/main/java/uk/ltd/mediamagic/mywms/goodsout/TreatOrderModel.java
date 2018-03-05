@@ -60,7 +60,6 @@ public class TreatOrderModel {
 	@AutoInject public LOSPickingOrderCRUDRemote pickingOrderCrud;
 	@AutoInject public LOSCompatibilityFacade pickManager;
 	@AutoInject public LOSPickingFacade pickingFacade;
-  
 	
 	private ListProperty<LOSPickingPosition> pickingPositions = new SimpleListProperty<>(FXCollections.emptyObservableList());
 	private ReadOnlyListWrapper<LOSPickingOrder> pickingOrders = new ReadOnlyListWrapper<>(FXCollections.emptyObservableList());
@@ -81,6 +80,7 @@ public class TreatOrderModel {
 	}
 	
 	public void startPicking(Node anchor) {
+
 		List<Long> pickIds = pickingOrders.stream()
 				.filter(p -> p.getState() < State.STARTED)
 				.map(LOSPickingOrder::getId).collect(Collectors.toList());
@@ -90,8 +90,11 @@ public class TreatOrderModel {
 			for (long id : pickIds) {
 				pickingFacade.releaseOrder(id);
 				p.step();
+				
 			}
+			
 			return null;
+			
 		});
 	}
 	

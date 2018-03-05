@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.linogistix.los.location.model.LOSFixedLocationAssignment;
+import javafx.beans.binding.BooleanBinding;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
@@ -21,6 +22,11 @@ public class FixedLocationsPlugin extends BODTOPlugin<LOSFixedLocationAssignment
 		return "{1, _Master Data} -> {1, _Location} -> {1, _Fixed locations}";
 	}
 
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
+	}
+	
 	@Override
 	protected List<String> getTableColumns() {
 		return Arrays.asList("id", "name AS itemData.number", "storageLocation AS assignedLocation.name", "itemDataName AS itemData.name", "amount as desiredAmount");

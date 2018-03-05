@@ -25,7 +25,7 @@ public class StockUnitRecordAction implements WithSelection<Object> {
 		this.getValue = t -> t.get("name");
 		this.run = run;
 	}
-
+		
 	@Override
 	public void execute(Object source, Flow flow, ViewContext context, TableKey key) {		
 		String value = getValue.apply(key);

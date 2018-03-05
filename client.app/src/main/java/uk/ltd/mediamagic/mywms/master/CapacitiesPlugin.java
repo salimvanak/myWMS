@@ -7,6 +7,7 @@ import java.util.List;
 import javax.persistence.Column;
 
 import de.linogistix.los.location.model.LOSTypeCapacityConstraint;
+import javafx.beans.binding.BooleanBinding;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
@@ -29,6 +30,11 @@ public class CapacitiesPlugin extends BODTOPlugin<LOSTypeCapacityConstraint> {
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
 	}
 
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastForeman();
+	}
+	
 	@Override
 	protected StringConverter<?> getConverter(PropertyDescriptor property) {
 		if ("allocation".equals(property.getName())) {

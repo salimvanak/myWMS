@@ -21,6 +21,7 @@ import de.linogistix.los.stocktaking.facade.LOSStocktakingFacade;
 import de.linogistix.los.stocktaking.model.LOSStocktakingOrder;
 import de.linogistix.los.stocktaking.model.LOSStocktakingState;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
@@ -32,13 +33,14 @@ import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
 import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.CrudTable;
+import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
 import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
-import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.control.FormBuilder;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
+import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
@@ -57,7 +59,11 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 		super(LOSStocktakingOrder.class);
 	}
 	
-	
+	@Override
+	protected BooleanBinding createVisibleBinding() {
+		return MyWMSUserPermissions.atLeastInventory();
+	}
+
 	@Override
 	public String getPath() {
 		return "{2, _Internal Orders} -> {2, _Stock Taking Orders}";
@@ -85,6 +91,7 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 		case Open:
 			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "state", LOSStocktakingState.CANCELLED));
 			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "state", LOSStocktakingState.FINISHED));
+			filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_NOT_EQUAL, "state", LOSStocktakingState.FINISHED_NO_UPDATE));
 			break;
 		case Waiting:			
 			filter.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "state", "state1", LOSStocktakingState.CREATED)));
@@ -97,6 +104,7 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 		case Finished:			
 			filter.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "state", "state1", LOSStocktakingState.CANCELLED)));
 			filter.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "state", "state2", LOSStocktakingState.FINISHED)));
+			filter.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_EQUAL, "state", "state2", LOSStocktakingState.FINISHED_NO_UPDATE)));
 			break;
 		case All: default:
 		}
@@ -192,6 +200,19 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 	}
 
 	@Override
+	protected MyWMSEditor<LOSStocktakingOrder> getEditor(ContextBase context, TableKey key) {
+		MyWMSEditor<LOSStocktakingOrder> e = super.getEditor(context, key);
+		e.getCommands()
+			.begin("actions")
+				.add(AC.id(Action.AcceptCount).text("Accept Count").description("Accept the stock count and adjust unit loads."))			
+				.add(AC.id(Action.Recount).text("Recount").description("Order a recount on this location."))
+				.add(AC.id(Action.RemoveOrder).icon(R.icons.delete()).disable(MyWMSUserPermissions.adminUser().not()).description("Remove this storage request"))
+			.end()
+		.end();
+		return e;
+	}
+	
+	@Override
 	protected CrudTable<LOSStocktakingOrder> getTable(ViewContextBase context) {
 		CrudTable<LOSStocktakingOrder> table = super.getTable(context);
 		QueryUtils.addFilter(table, StockTakingFilter.Open, () -> refresh(table, context));
@@ -212,16 +233,6 @@ public class StockTakingOrdersPlugin extends CRUDPlugin<LOSStocktakingOrder> {
 				.global()
 					.action(Action.CreateOrder, this::createOrdersAction)
 				.end();
-	}
-	
-	@Override
-	protected void configureCommands(RootCommand command) {
-		super.configureCommands(command);
-		command.begin("actions")
-			.add(AC.id(Action.AcceptCount).text("Accept Count").description("Accept the stock count and adjust unit loads."))			
-			.add(AC.id(Action.Recount).text("Recount").description("Order a recount on this location."))
-			.add(AC.id(Action.RemoveOrder).icon(R.icons.delete()).disable(MyWMSUserPermissions.adminUser().not()).description("Remove this storage request"))
-		.end();
 	}
 		
 }
