@@ -9,13 +9,12 @@ package de.linogistix.los.query;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class TemplateQueryFilter implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-    protected List<TemplateQueryWhereToken> whereTokens = new ArrayList<TemplateQueryWhereToken>();
+  protected List<TemplateQueryWhereToken> whereTokens = new ArrayList<TemplateQueryWhereToken>();
 
 	public List<TemplateQueryWhereToken> getWhereTokens() {
 		return whereTokens;
@@ -35,9 +34,7 @@ public class TemplateQueryFilter implements Serializable {
     	
         if (getWhereTokens() != null && getWhereTokens().size() > 0) {
         	where.append(" ( ");
-            for (Iterator<TemplateQueryWhereToken> it = getWhereTokens().iterator(); it.hasNext();) {
-                TemplateQueryWhereToken t = (TemplateQueryWhereToken) it.next();
-                
+        	for (TemplateQueryWhereToken t : getWhereTokens()) {
                 if( isNew ) {
                 	isNew = false;
                 }
