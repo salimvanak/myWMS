@@ -50,9 +50,9 @@ public class SessionExpiredFilter implements Filter {
 			if (session.getAttribute("AUTHORIZED") == null) {
 
 				String url = null;
-//			try {
+			try {
 					// dgrys portierung wildfly 8.2 - add login method
-					//req.login(request.getParameter("j_username2"), request.getParameter("j_password2"));
+					req.login(request.getParameter("j_username2"), request.getParameter("j_password2"));
 					
 					session.setAttribute("AUTHORIZED", "TRUE");
 					session.setAttribute("AUTHORIZED_FIRST", "TRUE");
@@ -62,13 +62,13 @@ public class SessionExpiredFilter implements Filter {
 //							+ java.net.URLEncoder.encode(request.getParameter("j_password2"), "UTF-8");
 					//workaround to login if authentication successful
 					url="/los-mobile/faces/pages/processes/controller/MainMenu.jsp";
-//			}
+			}
 
-//				catch (ServletException e) {
-//					log.error(logStr + e.getMessage());
-//					//workaround to login if authentication failed
-//					url="/los-mobile/faces/login.jsp?errors=true";
-//				}
+				catch (ServletException e) {
+					log.error(logStr + e.getMessage());
+					//workaround to login if authentication failed
+					url="/los-mobile/faces/login.jsp?errors=true";
+				}
 			
 				res.sendRedirect(res.encodeRedirectURL(url));
 
