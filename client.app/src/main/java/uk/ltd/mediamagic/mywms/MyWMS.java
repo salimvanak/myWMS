@@ -393,13 +393,26 @@ public class MyWMS extends Application {
     return box;
 	}
 	
+	public double getDpiScaleFactor() {
+		Screen screen = Utils.getScreen(this.primaryStage);
+		double dpi = screen.getDpi();
+		double scale;
+		if (dpi <= 96) {
+			scale = 1;
+		}
+		else {
+			scale = (dpi / 96);
+		}
+		return scale;
+	}
+
 	private Integer getDefaultZoom() {
 		String zoomStr = getParameters().getNamed().get("zoom");
 		if (zoomStr != null) {
 			return Integer.parseInt(zoomStr);
 		}
 		else {
-			return 100;
+			return (int)(getDpiScaleFactor() * 100);
 		}
 	}
 
