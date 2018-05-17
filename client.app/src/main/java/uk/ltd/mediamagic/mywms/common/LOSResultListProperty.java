@@ -65,7 +65,31 @@ public class LOSResultListProperty<T> extends ObjectPropertyBase<LOSResultList<T
 		if (r == null) return 0;
 		return r.getResultSetSize();
 	}
-	
+
+	public long computeStartPage(long pageSize) {		
+		//		System.out.println("@("+startIndex+") "+currentPage+" Max " + list.getResultSetSize() + "(" + pageMax + ") pagesize :" + pageSize);
+
+		LOSResultList<?> r = get();
+		if (r == null) return 1;
+
+		long startIndex = r.getStartResultIndex();
+
+		long currentPage = (startIndex / pageSize)+1;
+		return currentPage;
+	}
+
+	public long computeMaxPage(long pageSize) {		
+		LOSResultList<?> r = get();
+		if (r == null) return 0;
+
+		long totalSize = r.getResultSetSize(); 
+		
+		long pageMax = (totalSize / pageSize) 
+				+ (((totalSize % pageSize) == 0) ? 0 : 1);
+
+		return pageMax;
+	}
+
 	public LongBinding resultSizeProperty() {
 		return resultSize;
 	}

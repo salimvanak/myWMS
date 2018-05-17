@@ -73,7 +73,7 @@ public class StockTakingRecordsPlugin extends CRUDPlugin<LOSStocktakingRecord> {
 
 	@Override
 	public List<String> getTableColumns() {
-		return Arrays.asList("created", "locationName", "itemNo", "plannedQuantity", "countedQuantity", "state");
+		return Arrays.asList("created", "unitLoadLabel", "locationName", "itemNo", "plannedQuantity", "countedQuantity", "state");
 	}
 	
 	@Override

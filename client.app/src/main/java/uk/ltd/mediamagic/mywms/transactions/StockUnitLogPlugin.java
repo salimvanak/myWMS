@@ -32,7 +32,7 @@ import uk.ltd.mediamagic.mywms.common.QueryUtils;
 
 public class StockUnitLogPlugin extends BODTOPlugin<LOSStockUnitRecord> {
 	enum QueryType {
-		LOCATION("fromStorageLocation", "toStorageLocations"),
+		LOCATION("fromStorageLocation", "toStorageLocation"),
 		ACTIVITY("activityCode"),
 		ITEM_DATA("itemData"),
 		STOCK_UNIT("toStockUnitIdentity", "fromStockUnitIdentity"),
