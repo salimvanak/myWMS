@@ -47,15 +47,20 @@ public class CrudTable<D extends BasicEntity> extends FxTableController<D> imple
 	}
 	
 	public void setLOSResultList(LOSResultList<D> list) {		
+		queryChanged.validate();
 		int pageSize = getPager().getPageSize();
 		
+		long startIndex = list.getStartResultIndex();
+		long currentPage = (startIndex / pageSize)+1;
 		long pageMax = (list.getResultSetSize() / pageSize) 
 				+ (((list.getResultSetSize() % pageSize) == 0) ? 0 : 1);
 		
-		getPager().setPageNumber((int) (list.getStartResultIndex() / pageSize)+1);
+		System.out.println("@("+startIndex+") "+currentPage+" Max " + list.getResultSetSize() + "(" + pageMax + ") pagesize :" + pageSize);
+
+		System.out.println("@("+startIndex+") "+currentPage+" Max " + list.getResultSetSize() + "(" + pageMax + ") pagesize :" + pageSize);
 		getPager().setMaxPage((int) pageMax);
+		getPager().setPageNumber((int) currentPage);
 		setItems(FXCollections.observableList(list));
-		queryChanged.validate();
 	}
 
 	public void addQueryListener(InvalidationListener listener) {

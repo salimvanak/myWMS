@@ -37,9 +37,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.annot.Worker;
-import uk.ltd.mediamagic.flow.crud.MLogger;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
+import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
@@ -57,6 +57,7 @@ import uk.ltd.mediamagic.fx.flow.FlowContext;
 import uk.ltd.mediamagic.fx.flow.FlowLifeCycle;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.fxcommon.ObservableConstant;
 import uk.ltd.mediamagic.fxcommon.UserPermissions;
 import uk.ltd.mediamagic.mywms.BeanDirectory;
 import uk.ltd.mediamagic.mywms.FlowUtils;
@@ -112,7 +113,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 		this.crudBean = mycrudBean;
 		this.toClass = myToClass;
 	}
-	
+		
 	/**
 	 * Gets the bean info object for this plugin
 	 * @return
@@ -222,16 +223,39 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	protected BooleanBinding createVisibleBinding() {
 		return Bindings.createBooleanBinding(() -> true);
 	}
-	
+
+	protected ObservableBooleanValue createAllowedBinding() {
+		SubForm[] subForms = getClass().getAnnotationsByType(SubForm.class);
+		boolean create = Arrays.stream(subForms)
+				.filter(SubForm::isRequired)
+				.findAny().isPresent();
+		
+		return ObservableConstant.of(create);
+	}
+
+	protected ObservableBooleanValue deleteAllowedBinding() {
+		return ObservableConstant.FALSE;
+	}
+
 	/**
 	 * A method that is call outside of the GUI thread to save the data.
 	 * @param context the context to lookup information
 	 * @param data the data to save
 	 * @throws Exception if an error occurs.
 	 */
-	CompletableFuture<Void> save(ContextBase context, T data) {
+	CompletableFuture<T> save(ContextBase context, T data) {
 		BusinessObjectCRUDRemote<T> query = context.getBean(crudBean);
-		return context.getBean(MExecutor.class).run(() -> query.update(data));
+		if (data.getId() == null) {
+			return context.getBean(MExecutor.class).call(() -> {
+				return query.create(data);
+			});			
+		}
+		else {			
+			return context.getBean(MExecutor.class).call(() -> {
+				query.update(data);
+				return data;
+			});
+		}
 	}
 
 	/**
@@ -240,7 +264,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	 * @param data the data to save
 	 * @throws Exception if an error occurs.
 	 */
-	CompletableFuture<Void> delete(ContextBase context, T data) {
+	CompletableFuture<Void> delete(ContextBase context, List<BODTO<T>> data) {
 		BusinessObjectCRUDRemote<T> query = context.getBean(crudBean);
 		return context.getBean(MExecutor.class).run(() -> query.delete(data));
 	}
@@ -346,7 +370,9 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 			.alias(Flow.CANCEL_ACTION, Flow.BACK_ACTION)
 		.end()
 		.with(BODTOTable.class)
-			.withSelection(Flow.EDIT_ACTION, this::getEditor)
+			.put(Flow.CREATE_ACTION, this::create)
+			.withSelection(Flow.EDIT_ACTION, (s,f,c,k) -> getEditor((BODTOTable<T>) s,f,c,k))
+			.withMultiSelection(Flow.DELETE_ACTION, (s,f,c,k) -> delete((BODTOTable<T>) s,f,c,k))
 			.alias(Flow.TABLE_SELECT_ACTION, Flow.EDIT_ACTION)
 			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((BODTOTable<T>)s, c))
 		.end()
@@ -356,7 +382,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 		.end();		
 		return flow;
 	}
-	
+
 	/**
 	 * Creates an editor for this object type.
 	 * @param context the current context
@@ -375,8 +401,9 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 			
 			@Override
 			public boolean saveState(ViewContextBase context) {
-				CompletableFuture<Void> r = save(controller.getContext(), controller.getData());
-				context.getExecutor().executeAndWait(context.getRootNode(), () -> r.get());
+				CompletableFuture<T> r = save(controller.getContext(), controller.getData());
+				T data = context.getExecutor().executeAndWait(context.getRootNode(), () -> r.get());
+				controller.setData(data);
 				return true;
 			}
 			
@@ -394,7 +421,43 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 		initialiseEditController(context, key, controller);
 		return controller;
 	}
-	
+
+	/**
+	 * Creates an editor for this object type.
+	 * @param context the current context
+	 * @param key the key form the table view for the object to be edited.
+	 * @return an appropriate editor
+	 */
+	protected MyWMSEditor<T> getCreateEditor(Flow flow, ViewContext context) {
+		MyWMSEditor<T> controller = new MyWMSEditor<>(getBeanInfo(), this::getConverter);
+		controller.addFlowLifecycle(new FlowLifeCycle() {
+			@Override
+			public boolean saveState(ViewContextBase context) {
+				return true;
+			}
+			
+			@Override
+			public void restoreState(ViewContextBase context, boolean force) {
+			}
+			
+			@Override
+			public boolean isSaveRequired() {
+				return false;
+			}
+		});
+		context.autoInjectBean(controller);
+		initialiseCreateController(context, controller);
+		controller.getCommands().clear();
+		controller.getCommands().okCancel(e -> {
+			save(controller.getContext(), controller.getData())
+				.thenAccept(d -> {
+					flow.back(false);
+					MyWMSEditor<T> editor = getEditor(context, CRUDKeyUtils.createKey(d));
+					FlowUtils.showNext(flow, context, MyWMSEditor.class, editor);
+				});
+		}).end();
+		return controller;
+	}
 	
 	protected void initialiseEditController(ContextBase context, TableKey key, MyWMSEditor<T> controller) {		
 		Long id = key.get("id");
@@ -419,7 +482,31 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 		}
 		getData(context, id).thenAcceptAsync(controller::setData, Platform::runLater);
 	}
-	
+
+	protected void initialiseCreateController(ContextBase context, MyWMSEditor<T> controller) {		
+		URL url = getClass().getResource(boClass.getSimpleName() + ".create.fxml");
+		controller.setUserPermissions(getUserPermissions());
+
+		if (url == null) {
+			SubForm[] subForms = getClass().getAnnotationsByType(SubForm.class);
+			List<SubForm> subFormsList = Arrays.stream(subForms)
+					.filter(SubForm::isRequired)
+					.collect(Collectors.toList());
+
+			PojoForm form = new MyWMSForm(getBeanInfo(), subFormsList, false);
+			form.bindController(controller);
+		}
+		else {
+			MFXMLLoader.loadFX(url, controller);
+		}
+		try {
+			controller.setData(boClass.newInstance());
+		} 
+		catch (InstantiationException | IllegalAccessException e) {
+			log.log(Level.SEVERE, "While creating object", e);
+		}
+	}
+
 	
 	/**
 	 * This is the flow action that is used to move to the editing state.
@@ -429,11 +516,36 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	 * @param context the new context for the target state
 	 * @param key selected item from the previous state.
 	 */
-	void getEditor(BODTOTable<T> source, Flow flow, ViewContext context, TableKey key) {
+	protected void getEditor(BODTOTable<T> source, Flow flow, ViewContext context, TableKey key) {
 		MyWMSEditor<T> controller = getEditor(context, key);
 		context.setActiveBean(MyWMSEditor.class, controller);
 		flow.next(context);
 	}
+	
+	protected void create(BODTOTable<T> table, Flow flow, ViewContext context) {
+		MyWMSEditor<?> editor = getCreateEditor(flow, context);
+		FlowUtils.showPopup("Create", context, editor);
+	}
+
+	protected void delete(BODTOTable<T> source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		if (key.isEmpty()) {
+			FXErrors.selectionError(source.getTable());
+			return;
+		}
+
+		boolean yes = MDialogs.create(context.getRootNode(), "Delete selected items")
+			.masthead("Delete items, are you sure?")
+			.showYesNo();
+		
+		if (!yes) return;
+		List<BODTO<T>> delList = key.stream().map(CRUDKeyUtils::<T>getBOTO).collect(Collectors.toList());
+		delete(context, delList)
+			.thenRunAsync(() -> source.saveAndRefresh(), MExecutor.UI)
+			.whenComplete((v, x) -> {
+				if (x != null) FxExceptions.exceptionThrown(x);
+			});
+	}
+
 	
 	/**
 	 * A list of property names for display in the table view.
@@ -464,7 +576,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 		Bindings.bindContent(table.getTable().getColumns(), tcb);
 
 		table.getCommands()
-			.cru()
+			.crud(createAllowedBinding().get(), true, true, false, deleteAllowedBinding().get())
 		.end();
 				
 		refresh(table, context);
@@ -484,7 +596,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 		Flow flow = createNewFlow(context);
 
 		if (flow == null) return; // opperation canceled
-		flow.start(BODTOTable.class, parent, (c) -> getTable(c));
+		flow.start(BODTOTable.class, parent, c -> getTable(c));
 		flow.setOnDisplayNode(showNode);
 				
 		configureFlowNode(parent, flow);

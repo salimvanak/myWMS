@@ -10,7 +10,8 @@ import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"number", "itemData", "index", "manufacturerName"})
+@SubForm(title="Main", isRequired= true, properties={"client", "number", "itemData"})
+@SubForm(title="Details", isRequired= true, properties={"index", "manufacturerName"})
 public class BarcodesPlugin extends BODTOPlugin<ItemDataNumber> {
 	
 	public BarcodesPlugin() {
@@ -30,7 +31,7 @@ public class BarcodesPlugin extends BODTOPlugin<ItemDataNumber> {
 
 	@Override
 	protected List<String> getTableColumns() {
-		return Arrays.asList("id", "number", "itemData", "index");
+		return Arrays.asList("id", "name AS number", "itemDataNumber AS itemData.number", "itemDataName AS itemData.name");
 	}
 
 }

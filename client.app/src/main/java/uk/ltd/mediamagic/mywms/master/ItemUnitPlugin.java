@@ -10,12 +10,14 @@ import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"name", "unitType", "baseFactor", "baseUnit"})
+@SubForm(title="Main", isRequired=true, properties={"unitName", "unitType"})
+@SubForm(title="Details", properties={"baseFactor", "baseUnit"})
 public class ItemUnitPlugin extends CRUDPlugin<ItemUnit> {
 	
 	public ItemUnitPlugin() {
 		super(ItemUnit.class);
 		setUserPermissions(new MyWMSUserPermissions.ForMasterData());
+		setDeleteAllowed(true);
 	}
 
 	@Override
@@ -30,7 +32,7 @@ public class ItemUnitPlugin extends CRUDPlugin<ItemUnit> {
 	
 	@Override
 	protected List<String> getTableColumns() {
-		return Arrays.asList("id", "name");
+		return Arrays.asList("id", "unitName", "unitType");
 	}
 
 }

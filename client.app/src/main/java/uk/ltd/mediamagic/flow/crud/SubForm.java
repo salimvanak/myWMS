@@ -11,6 +11,11 @@ import java.lang.annotation.Target;
 @Repeatable(SubForms.class)
 public @interface SubForm {
 	String title();
+	/**
+	 * true if this subform is required for a create operation.
+	 * @return
+	 */
+	boolean isRequired() default false;
 	String[] properties();
 	int columns() default 1;
 }

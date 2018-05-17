@@ -9,7 +9,8 @@ import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"name", "assignedLocation", "itemData", "desiredAmount"})
+@SubForm(title="Main", isRequired=true, properties={"name", "assignedLocation", "itemData"})
+@SubForm(title="Extra", properties={"desiredAmount"})
 public class FixedLocationsPlugin extends BODTOPlugin<LOSFixedLocationAssignment> {
 	
 	public FixedLocationsPlugin() {
@@ -21,7 +22,7 @@ public class FixedLocationsPlugin extends BODTOPlugin<LOSFixedLocationAssignment
 	public String getPath() {
 		return "{1, _Master Data} -> {1, _Location} -> {1, _Fixed locations}";
 	}
-
+	
 	@Override
 	protected BooleanBinding createVisibleBinding() {
 		return MyWMSUserPermissions.atLeastInventory();

@@ -17,10 +17,12 @@ import de.linogistix.los.query.QueryDetail;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -40,6 +42,7 @@ import javafx.scene.control.SkinBase;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -75,6 +78,12 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 	public final ObjectProperty<T> valueProperty() { return this.value; }
 	public final T getValue() {	return this.valueProperty().get(); }
 	public final void setValue(final T value) {	this.valueProperty().set(value); }
+
+	final private BooleanProperty clearButtonVisible = new SimpleBooleanProperty(this, "clear");
+	/** The ture if a clear button is displayed */
+	public final BooleanProperty clearButtonVisibleProperty() { return this.clearButtonVisible; }
+	public final boolean isClearButtonVisible() {	return this.clearButtonVisibleProperty().get(); }
+	public final void setClearButtonVisible(final boolean value) {	this.clearButtonVisibleProperty().set(value); }
 
 	private ObjectProperty<StringConverter<T>> converter = new SimpleObjectProperty<>();
 	/** A String converter for the text representation of the value */
@@ -224,6 +233,7 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 		private Label valueField = new Label();
 		private TextField textField = new TextField();
 		private AwesomeIcon arrowButton = new AwesomeIcon(AwesomeIcon.caret_down, AwesomeIcon.SMALL_SIZE);
+		private AwesomeIcon clearButton = new AwesomeIcon(AwesomeIcon.times_circle_alt, AwesomeIcon.SMALL_SIZE);
 	
 		private PopupWindow popup;
 	
@@ -279,7 +289,17 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 			});
 	
 			arrowButton.getStyleClass().addAll("arrow-button");
-	
+			
+			clearButton.getStyleClass().add("arrow-button");
+			clearButton.managedProperty().bind(clearButton.visibleProperty());
+			clearButton.visibleProperty().bind(control.clearButtonVisibleProperty());
+			clearButton.setOnMouseClicked(e -> {
+				if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
+					control.setValue(null);
+					e.consume();
+				}
+			});
+			
 			valueField.visibleProperty().bind(control.showPopupProperty().not());
 			textField.visibleProperty().bind(control.showPopupProperty());
 	
@@ -294,8 +314,10 @@ public class BasicEntityEditor<T extends BasicEntity> extends Control {
 			//HBox.setHgrow(textField, Priority.ALWAYS);
 			HBox.setHgrow(sp, Priority.ALWAYS);
 			HBox.setHgrow(arrowButton, Priority.NEVER);
+			HBox.setHgrow(clearButton, Priority.NEVER);
 			HBox.setMargin(arrowButton, new Insets(5));
-			hbox.getChildren().addAll(sp, arrowButton);
+			HBox.setMargin(clearButton, new Insets(5,10,5,5));
+			hbox.getChildren().addAll(sp, arrowButton, clearButton);
 			getChildren().add(hbox);
 	
 		}

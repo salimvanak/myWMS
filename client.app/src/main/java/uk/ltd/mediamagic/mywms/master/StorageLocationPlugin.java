@@ -35,14 +35,19 @@ import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.BeanUtils;
 import uk.ltd.mediamagic.mywms.common.Editor;
+import uk.ltd.mediamagic.mywms.common.LockStateAction;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.mywms.transactions.UnitLoadRecordAction;
 
 @SubForm(
-		title="Main", columns=2, 
-		properties={"name", "scanCode", "type", "area", "cluster", "zone", "rack", "field", "XPos", "YPos", "ZPos", "fieldIndex", "orderIndex"}
+		title="Main", columns=2, isRequired=true, 
+		properties={"client", "name", "type"}
+	)
+@SubForm(
+		title="Details", columns=2, isRequired=true, 
+		properties={"scanCode", "area", "cluster", "zone", "rack", "field", "XPos", "YPos", "ZPos", "fieldIndex", "orderIndex"}
 	)
 @SubForm(
 		title="Allocation", columns=2, 
@@ -60,7 +65,7 @@ import uk.ltd.mediamagic.mywms.transactions.UnitLoadRecordAction;
 
 public class StorageLocationPlugin extends BODTOPlugin<LOSStorageLocation> implements Editor<LOSStorageLocation> {
 
-	private enum Actions {RecalculateAllocations, StockTake, UnitLoadLog}
+	private enum Actions {RecalculateAllocations, StockTake, UnitLoadLog, Lock}
 	
 	public enum AllocationFilter {All_Locations, Empty_locations, Locations_with_stock, Locked_locations, All}
 
@@ -80,6 +85,7 @@ public class StorageLocationPlugin extends BODTOPlugin<LOSStorageLocation> imple
 	public Flow createNewFlow(ApplicationContext context) {
 		return super.createNewFlow(context)
 				.globalWithSelection()
+					.withSelection(Actions.Lock, new LockStateAction<>(LOSStorageLocation.class, LOSStorageLocationLockState.class))
 					.withMultiSelection(Actions.RecalculateAllocations, this::recalculateAllocation)
 					.withMultiSelection(Actions.StockTake, this::createStockTakeOrders)
 					.withSelection(Actions.UnitLoadLog, UnitLoadRecordAction.forStorageLocation())
@@ -94,6 +100,8 @@ public class StorageLocationPlugin extends BODTOPlugin<LOSStorageLocation> imple
 				.description("Recalculates the allocation of selected storage locations"))
 		.add(AC.id(Actions.StockTake).text("Stock Take")
 				.description("Creates a stock taking order for the selected location"))
+		.add(AC.id(Actions.Lock).text("Lock location")
+				.description("Locks a storage location"))
 		.seperator()
 		.add(AC.id(Actions.UnitLoadLog).text("Transaction Log")
 				.description("Diaplays the unit load log for this location"))

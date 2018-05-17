@@ -52,6 +52,7 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	}
 	
 	public void setLOSResultList(LOSResultList<BODTO<D>> list) {		
+		queryChanged.validate();
 		int pageSize = getPager().getPageSize();
 		
 		long startIndex = list.getStartResultIndex();
@@ -59,11 +60,10 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 		long pageMax = (list.getResultSetSize() / pageSize) 
 				+ (((list.getResultSetSize() % pageSize) == 0) ? 0 : 1);
 		
-		//System.out.println("@("+startIndex+") "+currentPage+" Max " + list.getResultSetSize() + "(" + pageMax + ") pagesize :" + pageSize);
+//		System.out.println("@("+startIndex+") "+currentPage+" Max " + list.getResultSetSize() + "(" + pageMax + ") pagesize :" + pageSize);
 		getPager().setMaxPage((int) pageMax);
 		getPager().setPageNumber((int) currentPage);
 		setItems(FXCollections.observableList(list));
-		queryChanged.validate();
 	}
 	
 	public void setMaxPages(int max) {
@@ -81,6 +81,7 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	@Override
 	public TableKey getSelectedKey() {
 		BODTO<D> sel = getSelectedItem();
+		if (sel == null) return null;
 		return CRUDKeyUtils.createKey(sel);
 	}
 	
@@ -109,9 +110,8 @@ public class BODTOTable<D extends BasicEntity> extends FxTableController<BODTO<D
 	}
 
 	public QueryDetail createQueryDetail() {
-		int pageSize = pager.getPageSize();
-		int start = pageSize * (pager.getPageNumber()-1);
-		System.out.println("Start " + start + " pagesize :" + pageSize);
+		int pageSize = getPager().getPageSize();
+		int start = pageSize * (getPager().getPageNumber()-1);
 		QueryDetail q = new QueryDetail(start, pageSize);
 		for (TableColumn<?,?> col : getTable().getSortOrder()) {
 			SortType type = col.getSortType();

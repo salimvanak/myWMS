@@ -16,12 +16,13 @@ import uk.ltd.mediamagic.mywms.common.BeanUtils;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
 @SubForm(
-		title="Main", 
-		properties={"locationType", "unitLoadType","type", "allocation", "orderIndex"}
+		title="Main",
+		isRequired=true,
+		properties={"locationType", "unitLoadType", "storageLocationType", "allocation"}
 	)
 @SubForm(
-		title="Measurment", columns=2, 
-		properties={"height", "width", "depth", "weight"}
+		title="Details",
+		properties={"orderIndex", "allocationType"}
 	)
 public class CapacitiesPlugin extends BODTOPlugin<LOSTypeCapacityConstraint> {
 	

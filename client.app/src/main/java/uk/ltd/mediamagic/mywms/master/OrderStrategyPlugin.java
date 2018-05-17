@@ -9,7 +9,7 @@ import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"name", "defaultDestination", "manualCreationIndex"})
+@SubForm(title="Main", isRequired=true, properties={"client", "name", "defaultDestination", "manualCreationIndex"})
 @SubForm(title="Processing", properties={"createGoodsOutOrder", "createFollowUpPicks"})
 @SubForm(title="Stock Selection", properties={"useLockedStock", "useLockedLot", "preferUnopened", "preferMatchingStock"})
 public class OrderStrategyPlugin extends BODTOPlugin<LOSOrderStrategy> {

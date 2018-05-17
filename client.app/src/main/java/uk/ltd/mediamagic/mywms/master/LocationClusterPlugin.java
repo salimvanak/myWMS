@@ -9,7 +9,7 @@ import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"name", "level"})
+@SubForm(title="Main", isRequired=true, properties={"name", "level"})
 public class LocationClusterPlugin extends CRUDPlugin<LOSLocationCluster> {
 	
 	public LocationClusterPlugin() {

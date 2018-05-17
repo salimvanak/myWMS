@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.mywms.model.BasicEntity;
@@ -34,9 +35,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.StringConverter;
-import uk.ltd.mediamagic.annot.Worker;
 import uk.ltd.mediamagic.fx.ApplicationPane;
 import uk.ltd.mediamagic.fx.FxExceptions;
+import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.MFXMLLoader;
 import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
@@ -64,6 +65,7 @@ import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.common.TableColumnBinding;
 
 public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlugin implements Editor<T> {
+	private static final java.util.logging.Logger log = MLogger.log(CRUDPlugin.class);
 	private final Class<? extends BusinessObjectQueryRemote<T>> queryBean;
 	private final Class<? extends BusinessObjectCRUDRemote<T>> crudBean;
 	private final Class<T> boClass;
@@ -78,6 +80,10 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlu
 		this.crudBean = BeanDirectory.getCRUD(boClass);
 		this.boClass = boClass;
 		this.beanInfo = BeanUtils.getBeanInfo(boClass);
+		SubForm[] subForms = getClass().getAnnotationsByType(SubForm.class);
+		setCreateAllowed(Arrays.stream(subForms)
+				.filter(SubForm::isRequired)
+				.findAny().isPresent());
 	}
 
 	public boolean isCreateAllowed() {
@@ -154,17 +160,27 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlu
 		return null;
 	}
 		
-	CompletableFuture<Void> save(ContextBase context, T data) {
+	CompletableFuture<T> save(ContextBase context, T data) {
 		BusinessObjectCRUDRemote<T> query = context.getBean(crudBean);
-		return context.getBean(MExecutor.class).call(() -> {
-			query.update(data);
-			return null;
-		});
+		if (data.getId() == null) {
+			return context.getBean(MExecutor.class).call(() -> {
+				return query.create(data);
+			});			
+		}
+		else {			
+			return context.getBean(MExecutor.class).call(() -> {
+				query.update(data);
+				return data;
+			});
+		}
 	}
 
-	@Worker void delete(ContextBase context, T data) throws Exception {
+	CompletableFuture<Void> delete(ContextBase context, T data) {
 		BusinessObjectCRUDRemote<T> query = context.getBean(crudBean);
-		query.delete(data);
+		return context.getBean(MExecutor.class).call(() -> {
+			query.delete(data);
+			return null;
+		});
 	}
 
 	public CompletableFuture<LOSResultList<T>> getListData(ContextBase context,  QueryDetail detail, TemplateQuery template) {
@@ -237,6 +253,7 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlu
 		.with(CrudTable.class)
 			.action(Flow.CREATE_ACTION, (s,f,c) -> this.createAction((CrudTable<T>)s, f, c))
 			.withSelection(Flow.EDIT_ACTION, this::getEditor)
+			.withSelection(Flow.DELETE_ACTION, (s,f,c,k) -> delete((CrudTable<T>)s,f,c,k))
 			.alias(Flow.TABLE_SELECT_ACTION, Flow.EDIT_ACTION)
 			.action(Flow.REFRESH_ACTION, (s,f,c) -> this.refresh((CrudTable<T>)s, c))
 		.end()
@@ -278,15 +295,74 @@ public abstract class CRUDPlugin<T extends BasicEntity> extends MyWMSMainMenuPlu
 		return controller;
 	}
 
+	protected MyWMSEditor<T> getCreateEditor(Flow flow, ViewContext context) {
+		URL url = getClass().getResource(boClass.getSimpleName() + ".create.fxml");
+
+		MyWMSEditor<T> controller = new MyWMSEditor<>(getBeanInfo(), this::getConverter);
+		context.autoInjectBean(controller);
+
+		configureCommands(controller.getCommands());
+		controller.getCommands().end();
+
+		if (url == null) {
+			SubForm[] subForms = getClass().getAnnotationsByType(SubForm.class);
+			List<SubForm> subFormsList = Arrays.stream(subForms).filter(SubForm::isRequired).collect(Collectors.toList());
+			PojoForm form = new MyWMSForm(getBeanInfo(), subFormsList, false);
+			form.bindController(controller);
+		}
+		else {
+			MFXMLLoader.loadFX(url, controller);
+		}
+		
+		try {
+			controller.setData(boClass.newInstance());
+		} 
+		catch (InstantiationException | IllegalAccessException e) {
+			log.log(Level.SEVERE, "While creating object", e);
+		}
+		
+		controller.getCommands().clear();
+		controller.getCommands().okCancel(e -> {
+			save(controller.getContext(), controller.getData())
+				.thenAccept(d -> {
+					flow.back(false);
+					MyWMSEditor<T> editor = getEditor(context, CRUDKeyUtils.createKey(d));
+					FlowUtils.showNext(flow, context, MyWMSEditor.class, editor);
+				});
+		}).end();
+		return controller;
+	}
+
 	protected void getEditor(CrudTable<T> source, Flow flow, ViewContext context, TableKey key) {
 		MyWMSEditor<T> controller = getEditor(context, key);
 		controller.setUserPermissions(getUserPermissions());
 		context.setActiveBean(MyWMSEditor.class, controller);
 		flow.next(context);
 	}
-	
+
+	protected void delete(CrudTable<T> source, Flow flow, ViewContext context, TableKey key) {
+		boolean yes = MDialogs.create(context.getRootNode(), "Delete selected items")
+				.masthead("Delete items, are you sure?")
+				.showYesNo();
+			
+			if (!yes) return;
+			
+			T data = source.getSelectedItem();
+			if (data == null) {
+				FXErrors.selectionError(source.getTable());
+				return;
+			}
+			
+			delete(context, data)
+				.thenRunAsync(() -> source.saveAndRefresh(), MExecutor.UI)
+				.whenComplete((v, x) -> {
+					if (x != null) FxExceptions.exceptionThrown(x);
+				});
+	}
+
 	protected void createAction(CrudTable<T> source, Flow flow, ViewContext context) {
-		throw new UnsupportedOperationException("Create has not been implemented");
+		MyWMSEditor<?> editor = getCreateEditor(flow, context);
+		FlowUtils.showPopup("Create", context, editor);
 	}
 	
 	/**

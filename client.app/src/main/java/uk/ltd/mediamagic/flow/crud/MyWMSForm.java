@@ -30,11 +30,29 @@ public class MyWMSForm extends PojoForm {
 	private static final Logger log = MLogger.log(MyWMSForm.class);
 	
 	private final List<SubForm> forms;
+	private boolean allFields;
 
 	public MyWMSForm(BeanInfo beanInfo, List<SubForm> columnOrder) {
+		this(beanInfo, columnOrder, true);
+	}
+	
+	/**
+	 * Constructs a form based on the bean info and column order.
+	 * 
+	 * The columnOrder argument allow fields to be arranged in an
+	 * order and grouped.
+	 * 
+	 * @param beanInfo the bean info.
+	 * @param columnOrder a list of sub form annotations that will 
+	 * groups fields together in the form
+	 * @param allFields if false only includes fields listed in the 
+	 * columnOrder annotations otherwise all fields are included
+	 */
+	public MyWMSForm(BeanInfo beanInfo, List<SubForm> columnOrder, boolean allFields) {
 		super(beanInfo);
+		this.allFields = allFields;
 		setStyle(".text-field { -fx-max-width: 1000ex }");
-		Comparator<PropertyDescriptor> propertyComparator = this::compareProperty;
+		Comparator<PropertyDescriptor> propertyComparator = (x,y) -> 0;
 		this.forms = columnOrder;
 		setPropertyComparator(propertyComparator.thenComparing(getPropertyComparator()));
 		init();
@@ -84,38 +102,35 @@ public class MyWMSForm extends PojoForm {
 		}
 	}
 
-	protected int compareProperty(PropertyDescriptor a, PropertyDescriptor b) {
-		int i = forms.indexOf(a.getName());
-		int j = forms.indexOf(b.getName());
-		if (i < 0) i = Integer.MAX_VALUE;
-		if (j < 0) j = Integer.MAX_VALUE;
-		return Integer.compare(i, j);
-	}
-
 	@Override
 	protected void buildForm(SimpleFormBuilder form, List<PropertyDescriptor> descriptorsIn) {
 		List<PropertyDescriptor> descriptors = new ArrayList<>(descriptorsIn);
-		String[] basic = {"created", "modified", "id", "client"};
-		{
-			buildSubForm("Basic properties", f -> doFields(f, 2, basic));
+		if (allFields) {
+			String[] basic = {"created", "modified", "id", "client"};
+			{
+				buildSubForm("Basic properties", f -> doFields(f, 2, basic));
+			}
+
+			String[] lock = {"lock", "locked"};
+			{
+				buildSubForm("Lock", f -> doFields(f, 2, lock));
+			}
+
+			descriptors.removeIf(p -> MArrays.contains(p.getName(), basic));
+			descriptors.removeIf(p -> MArrays.contains(p.getName(), lock));
 		}
-
-		String[] lock = {"lock", "locked"};
-		{
-			buildSubForm("Lock", f -> doFields(f, 2, lock));
-		}
-
-		descriptors.removeIf(p -> MArrays.contains(p.getName(), basic));
-		descriptors.removeIf(p -> MArrays.contains(p.getName(), lock));
-
+		
 		for (SubForm s : forms) {
 			if (s.columns() > 0) {
 				buildSubForm(s.title(), f -> doFields(f, s.columns(), s.properties()));
 			}
 			descriptors.removeIf(p -> MArrays.contains(p.getName(), s.properties()));
 		}
-		descriptors.removeIf(p -> MArrays.contains(p.getName(), "version"));
-		super.buildForm(form, descriptors);
+		
+		if (allFields) {
+			descriptors.removeIf(p -> MArrays.contains(p.getName(), "version"));
+			super.buildForm(form, descriptors);
+		}
 	}
 	
 	public void doFields(SimpleFormBuilder form, int colCount, String[] names) {

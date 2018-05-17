@@ -9,7 +9,7 @@ import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"name", "aisle"})
+@SubForm(title="Main", isRequired=true, properties={"client", "name", "aisle"})
 public class RacksPlugin extends BODTOPlugin<LOSRack> {
 	
 	public RacksPlugin() {

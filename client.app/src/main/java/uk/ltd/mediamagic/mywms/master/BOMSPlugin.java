@@ -9,7 +9,7 @@ import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"master", "child", "amount", "index"})
+@SubForm(title="Main", isRequired=true, properties={"master", "child", "amount", "index"})
 public class BOMSPlugin extends BODTOPlugin<LOSBom> {
 	
 	public BOMSPlugin() {

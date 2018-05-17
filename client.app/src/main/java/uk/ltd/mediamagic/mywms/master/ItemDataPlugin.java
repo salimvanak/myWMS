@@ -22,8 +22,12 @@ import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
 @SubForm(
-		title="Main Properties", columns=1, 
-		properties={"number","name","description", "safetyStock", "defaultUnitLoadType", "tradeGroup"}
+		title="Main", columns=1, isRequired=true,
+		properties={"client", "number", "name"}
+	)
+@SubForm(
+		title="Details", columns=1,
+		properties={"description", "safetyStock", "defaultUnitLoadType", "tradeGroup"}
 	)
 @SubForm(
 		title="Controls", columns=2,

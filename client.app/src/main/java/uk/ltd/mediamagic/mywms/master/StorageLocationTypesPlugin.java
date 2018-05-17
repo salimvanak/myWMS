@@ -9,7 +9,7 @@ import uk.ltd.mediamagic.flow.crud.CRUDPlugin;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
-@SubForm(title="Main", properties={"name"})
+@SubForm(title="Main", isRequired=true, properties={"name"})
 @SubForm(
 		title="Measurment", columns=2, 
 		properties={"height", "width", "depth", "weight"}
