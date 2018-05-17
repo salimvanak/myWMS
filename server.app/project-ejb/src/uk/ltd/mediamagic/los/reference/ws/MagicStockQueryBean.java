@@ -65,8 +65,8 @@ public class MagicStockQueryBean implements MagicStockQuery {
 	@EJB private MagicReplenishService replenishService;
 
 	@EJB private QueryLotService lotQueryService;
-    @EJB private QueryInventoryFacade queryInventory;
-    @EJB private QueryInventoryBusiness queryInventoryBusiness;
+  @EJB private QueryInventoryFacade queryInventory;
+  @EJB private QueryInventoryBusiness queryInventoryBusiness;
 	@EJB private QueryFixedAssignmentService fixedAssignmentService;
 	@EJB private QueryStockService queryStockUnitService;
 
