@@ -36,6 +36,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
@@ -55,6 +56,7 @@ import uk.ltd.mediamagic.fx.converters.Filters;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.Flow;
+import uk.ltd.mediamagic.fx.table.MTableViewBase;
 import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.FileOutputPane;
 import uk.ltd.mediamagic.mywms.common.PDFConcat;
@@ -63,8 +65,9 @@ import uk.ltd.mediamagic.util.Files;
 
 public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		private ListView<LOSAdvice> advices = MyWMSForm.createList(LOSAdvice.class);
-		private ListView<LOSGoodsReceiptPosition> positions = MyWMSForm.createList(LOSGoodsReceiptPosition.class);
-
+		//private ListView<LOSGoodsReceiptPosition> positions = MyWMSForm.createList(LOSGoodsReceiptPosition.class);
+		private TableView<LOSGoodsReceiptPosition> positions = createGoodsReceiptsTable();
+		
 		private Button addAdviceButton = new Button("Add");
 		private Button deleteAdviceButton = new Button("Del");
 		private Button assignPositionButton = new Button("Assign");
@@ -320,8 +323,20 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 				FXErrors.selectionError(getView());
 			}
 		}
+	
+		public TableView<LOSGoodsReceiptPosition> createGoodsReceiptsTable() {
+			
+			MTableViewBase<LOSGoodsReceiptPosition> t = new MTableViewBase<>();
+			t.setColumns(
+					t.column().title("Item").valueFactory(LOSGoodsReceiptPosition::getItemData).show(),
+					t.column().title("Lot").valueFactory(LOSGoodsReceiptPosition::getLot).show(),
+					t.column().title("Unit load").valueFactory(LOSGoodsReceiptPosition::getUnitLoad).show(),
+					t.column(new BigDecimalConverter()).title("Qty").valueFactory(LOSGoodsReceiptPosition::getAmount).show(),
+					t.column().title("Advice").valueFactory(LOSGoodsReceiptPosition::getPositionNumber).show()
+					);
+			return t;
+		}
 
-		
 		private static class MyEditorHelper extends MyWMSEditorHelper<LOSGoodsReceipt> {
 
 			

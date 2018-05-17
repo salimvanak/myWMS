@@ -2,6 +2,7 @@ package uk.ltd.mediamagic.mywms.goodsout.actions;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import de.linogistix.los.inventory.facade.LOSGoodsOutFacade;
@@ -24,19 +25,24 @@ public class GoodsOutFinishPosition implements WithMultiSelection<Object> {
 	
 	@Override
 	public void execute(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		List<Long> ids = key.stream().map(k -> (Long) k.get("id")).collect(Collectors.toList());		
+
+		finishPositions(context, ids)
+			.thenRunAsync(() -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+	}
+	
+	public static CompletableFuture<Void> finishPositions(ViewContext context, List<Long> goodsOutIds) {		
 		LOSGoodsOutFacade facade = context.getBean(LOSGoodsOutFacade.class);
 		LOSGoodsOutRequestPositionQueryRemote query = context.getBean(LOSGoodsOutRequestPositionQueryRemote.class);
-		List<Long> ids = key.stream().map(k -> (Long) k.get("id")).collect(Collectors.toList());		
 		
-		context.getExecutor().call(
+		return context.getExecutor().call(
 				() -> {
-					for (long id : ids) {
+					for (long id : goodsOutIds) {
 						LOSGoodsOutRequestPosition grp = query.queryById(id);	
 						facade.finishPosition(grp.getSource().getLabelId(), grp.getGoodsOutRequest().getId());
 					}
 					return null;
-				})
-		.thenRunAsync(() -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+				});
 	}
 	
 }

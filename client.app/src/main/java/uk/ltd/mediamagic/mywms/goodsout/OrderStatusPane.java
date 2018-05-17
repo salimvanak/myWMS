@@ -2,12 +2,15 @@ package uk.ltd.mediamagic.mywms.goodsout;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -43,8 +46,11 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -53,7 +59,10 @@ import javafx.util.converter.LocalDateStringConverter;
 import res.R;
 import uk.ltd.mediamagic.annot.Worker;
 import uk.ltd.mediamagic.common.utils.Strings;
+import uk.ltd.mediamagic.flow.crud.Pager;
+import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.concurrent.MExecutor;
 import uk.ltd.mediamagic.fx.control.DelayedChangeListener;
@@ -65,11 +74,18 @@ import uk.ltd.mediamagic.fx.controller.SelectionComposite;
 import uk.ltd.mediamagic.fx.controller.list.CellWrappers;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
+import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.FlowBase;
+import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.actions.Command;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.common.LOSResultListProperty;
-import uk.ltd.mediamagic.mywms.common.ResultSetPager;
+import uk.ltd.mediamagic.mywms.common.QueryUtils;
+import uk.ltd.mediamagic.mywms.goodsout.OrdersPlugin.Action;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutCreateShippingOrder;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutFinishPosition;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPickingOrderProperties;
+import uk.ltd.mediamagic.mywms.goodsout.actions.GoodsOutPrintPickingUnitLoad;
 import uk.ltd.mediamagic.plugin.PluginRegistry;
 import uk.ltd.mediamagic.util.DateUtils;
 
@@ -82,12 +98,14 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 	private final @Command ListView<BODTO<LOSCustomerOrder>> processable = new ListView<>();
 	private final @Command ListView<BODTO<LOSCustomerOrder>> picking = new ListView<>();
 	private final @Command ListView<BODTO<LOSCustomerOrder>> picked = new ListView<>();
+		
 	private final DetailsPane detail = new DetailsPane();
 	
 	private final BorderPane view = new BorderPane();
 	private final GridPane hbox = new GridPane();
 	private final DelayedChangeListener<BODTO<LOSCustomerOrder>> selectionChanged = new DelayedChangeListener<>(this::selectionChanged);
-	private final ResultSetPager pager = new ResultSetPager();
+	private final Pager pager = new Pager();
+	private final TextField searchField = new TextField();
 	
 	public OrderStatusPane() {
 		super();
@@ -95,17 +113,37 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		view.setCenter(hbox);
 		view.setBottom(detail);
 		
+		searchField.setPrefColumnCount(20);
+		searchField.setPromptText("Search...");
+		searchField.setOnAction(e -> loadData());
+				
 		getCommands()
 			.back()
+			.begin(RootCommand.MENU)
+				.add(AC.id(Action.CreateShippingOrder).text("Create shipping order"))
+				.add(AC.idText("Print unit load label"))
+				.add(AC.idText("Assign order"))
+				.seperator()
+				.add(AC.id(Action.FinishPicking).text("Finish picking"))
+			.end()
 			.add(AC.id(FlowBase.REFRESH_ACTION).icon(R.icons.refresh())
 					.description("Refresh data")
 					.action(s -> loadData()))
-			.add(AC.node(pager))
+			.right(AC.node(pager))
+			.right(AC.node(searchField))
+			.end()
 		.end();
 		
 		pager.setPageSize(200);
-		pager.startIndexProperty().bind(data.startIndexProperty());
-		pager.resultSizeProperty().bind(data.resultSizeProperty());
+		pager.setPageNumber(1);
+		
+		data.addListener((v,o,n) -> {
+			if (n != null) {
+				int size = pager.getPageSize();
+				pager.setPageNumber((int) data.computeStartPage(size));
+				pager.setMaxPage((int) data.computeMaxPage(size));
+			}
+		});
 				
 		hbox.getChildren().addAll(titled("Waiting", 0, processable), titled("Picking", 1, picking), titled("Picked", 2, picked));
 
@@ -139,12 +177,33 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		loadData();
 	}
 	
+	public QueryDetail createQueryDetail() {
+		int pageSize = pager.getPageSize();
+		int start = pageSize * (pager.getPageNumber()-1);
+		QueryDetail q = new QueryDetail(start, pageSize);
+		if (q.getOrderBy().size() == 0) {
+			q.addOrderByToken("id", false);			
+		}
+		return q;
+	}
+
 	public void loadData() {
 		TemplateQuery template = new TemplateQuery();
 		TemplateQueryFilter filter = template.addNewFilter();
 		filter.addWhereToken(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_SMALLER, "state", State.FINISHED));
 
-		QueryDetail detail = new QueryDetail(pager.getStartIndex(), pager.getPageSize());
+		String searchText = searchField.getText();
+		if (Strings.isNotEmpty(searchText)) {
+			searchText = "%" + searchText + "%";
+			TemplateQueryFilter search = template.addNewFilter();
+			search.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_LIKE, "externalNumber", searchText)));	
+			search.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_LIKE, "externalId", searchText)));	
+			search.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_LIKE, "number", searchText)));	
+			search.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_LIKE, "customerNumber", searchText)));	
+			search.addWhereToken(QueryUtils.or(new TemplateQueryWhereToken(TemplateQueryWhereToken.OPERATOR_LIKE, "customerName", searchText)));
+		}
+		
+		QueryDetail detail = createQueryDetail();
 
 		setData(null);
 
@@ -211,11 +270,12 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		@AutoInject public LOSPickingUnitLoadQueryRemote pickUnitLoadQuery;
 		@AutoInject public LOSGoodsOutRequestPositionQueryRemote goodsOutQuery;
 		@AutoInject public MExecutor exec;
+		@AutoInject public ViewContext context;
 		
 		final private ObjectProperty<LOSCustomerOrderTO> orderTO = new SimpleObjectProperty<>();
 		
 		final private ObjectProperty<LOSCustomerOrder> order = new SimpleObjectProperty<>();
-		final private ListProperty<BODTO<LOSPickingOrder>> pick = new SimpleListProperty<>();
+		final private ListProperty<BODTO<LOSPickingOrder>> picks = new SimpleListProperty<>();
 		final private ListProperty<LOSPickingPosition> pickItems = new SimpleListProperty<>();
 		final private ListProperty<BODTO<LOSPickingUnitLoad>> unitLoads = new SimpleListProperty<>();
 		final private ListProperty<BODTO<LOSGoodsOutRequestPosition>> goodsOut = new SimpleListProperty<>();
@@ -231,13 +291,20 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 		final private ListView<BODTO<LOSPickingOrder>> picksView = new ListView<>();
 		final private ListView<BODTO<LOSPickingUnitLoad>> unitLoadsView = new ListView<>();
 		final private ListView<BODTO<LOSGoodsOutRequestPosition>> goodsOutView = new ListView<>();
+	
+		final private Button changeProperties = new Button("Properties");
+		final private Button finishOrder = new Button("Finish Order");
+		final private Button createShipping = new Button("Create shipping");
+		final private Button printLabel = new Button("Print label");
+		final private Button finishShipping = new Button("Shipping complete");
 		
+
 		@SuppressWarnings("unchecked")
 		public DetailsPane() {
 			ProgressIndicatorBar progress = new ProgressIndicatorBar();
 			progress.progressProperty().bind(MBindings.get(order, this::getOrderProgress));
 			
-			picksView.setItems(pick);
+			picksView.setItems(picks);
 			unitLoadsView.setItems(unitLoads);
 			goodsOutView.setItems(goodsOut);
 			
@@ -281,11 +348,29 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 			.boundField(new LocalDateStringConverter(), MBindings.get(order, o -> DateUtils.toLocalDate(o.getDelivery())))
 		.end();
 		form.row()
-		.fieldNode(picksTP).colSpan(2)
-		.fieldNode(unitloadsTP).colSpan(2)
-		.fieldNode(goodsOutTP).colSpan(2)
+			.fieldNode(picksTP).colSpan(2)
+			.fieldNode(unitloadsTP).colSpan(2)
+			.fieldNode(goodsOutTP).colSpan(2)
 		.end();
+		form.row()
+			.fieldNode(changeProperties).fieldNode(finishOrder)
+			.fieldNode(printLabel).fieldNode(createShipping)
+			.fieldNode(finishShipping).colSpan(2)
+		.end();
+		
+			finishOrder.setMaxWidth(Double.MAX_VALUE);
+			printLabel.setMaxWidth(Double.MAX_VALUE);
+			createShipping.setMaxWidth(Double.MAX_VALUE);
+			finishShipping.setMaxWidth(Double.MAX_VALUE);
+			changeProperties.setMaxWidth(Double.MAX_VALUE);
 			
+			finishOrder.setOnAction(this::finishOrder);
+			printLabel.setOnAction(this::printLabel);
+			createShipping.setOnAction(this::createShipping);
+
+			finishShipping.setOnAction(this::finishShipping);
+			changeProperties.setOnAction(this::changePickProperties);
+
 			setCenter(form);
 			
 			orderTO.addListener(this::selectionChanged);
@@ -296,6 +381,115 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 			
 		}
 
+		private void finishOrder(ActionEvent e) {
+			LOSCustomerOrder order = this.order.get();
+			if (order == null) {
+				FXErrors.selectionError(this, "Please select an order");
+				return;
+			}
+										
+			OrdersPlugin.finishOrder(context, order.getId())
+				.thenRunAsync(() -> loadOrder(orderTO.get()), Platform::runLater);
+		}
+
+		private void changePickProperties(ActionEvent e) {
+			List<BODTO<LOSPickingOrder>> pickingOrders = picksView.getSelectionModel().getSelectedItems();
+			if (pickingOrders.isEmpty()) {
+				pickingOrders = this.picks;
+			}
+			else {				
+				List<String> choices = Arrays.asList("All unit loads", "Selected unit loads");
+				Optional<String> r = MDialogs.create(this, "Change Properties")
+					.showChoices("Change Properties for:", choices.get(0), choices);
+				if (!r.isPresent()) return;
+				if (Strings.equals(r.get(), choices.get(0))) {
+					pickingOrders = this.picks;
+				}
+			}
+			
+			List<Long> ids = pickingOrders.stream()
+					.map(BODTO::getId)
+					.collect(Collectors.toList());
+
+			if (ids.isEmpty()) {
+				FXErrors.selectionError(this, "No unit loads are selected");
+				return;
+			}
+			
+			GoodsOutPickingOrderProperties.changeProperties(context, ids)
+				.thenRunAsync(() -> loadOrder(orderTO.get()), Platform::runLater);			
+		}
+
+		private void printLabel(ActionEvent e) {
+			List<Long> unitloads = unitLoadsView.getSelectionModel().getSelectedItems().stream()
+					.map(BODTO::getId)
+					.collect(Collectors.toList());
+			
+			if (unitloads.isEmpty()) {
+				FXErrors.selectionError(this, "Please select unit loads to print");
+				return;
+			}
+			
+			GoodsOutPrintPickingUnitLoad.printUnitloadLabels(context, unitloads);
+		}
+		
+		private void createShipping(ActionEvent e) {
+			List<BODTO<LOSPickingUnitLoad>> unitloads = unitLoadsView.getSelectionModel().getSelectedItems();
+			if (unitloads.isEmpty()) {
+				unitloads = this.unitLoads;
+			}
+			else {				
+				List<String> choices = Arrays.asList("All unit loads", "Selected unit loads");
+				Optional<String> r = MDialogs.create(this, "Create Shipping")
+					.showChoices("Create shipping for:", choices.get(0), choices);
+				if (!r.isPresent()) return;
+				if (Strings.equals(r.get(), choices.get(0))) {
+					unitloads = this.unitLoads;
+				}
+			}
+			
+			List<Long> ids = unitloads.stream()
+					.map(BODTO::getId)
+					.collect(Collectors.toList());
+
+			if (ids.isEmpty()) {
+				FXErrors.selectionError(this, "No unit loads are selected");
+				return;
+			}
+			GoodsOutCreateShippingOrder.createShippingOrder(context, ids, true, false)
+				.thenRunAsync(() -> loadOrder(orderTO.get()), Platform::runLater);
+		}
+		
+		public void finishShipping(ActionEvent e) {
+			List<BODTO<LOSGoodsOutRequestPosition>> goodsOutPos = goodsOutView.getSelectionModel().getSelectedItems();
+			if (goodsOutPos.isEmpty()) {
+				goodsOutPos = this.goodsOut;
+			}
+			else {				
+				List<String> choices = Arrays.asList("All unit loads", "Selected unit loads");
+				Optional<String> r = MDialogs.create(this, "Finish Shipping")
+					.showChoices("Finish shipping for:", choices.get(0), choices);
+				if (!r.isPresent()) return;
+				if (Strings.equals(r.get(), choices.get(0))) {
+					goodsOutPos = this.goodsOut;
+				}
+			}
+			
+			List<Long> ids = goodsOutPos.stream()
+					.map(BODTO::getId)
+					.collect(Collectors.toList());
+
+			if (ids.isEmpty()) {
+				FXErrors.selectionError(this, "No goods out positions are selected");
+				return;
+			}
+			
+			LOSCustomerOrderTO orderTO = this.orderTO.get();
+			
+			GoodsOutFinishPosition.finishPositions(context, ids)
+				.thenRunAsync(() -> loadOrder(orderTO), Platform::runLater);
+		}
+		
 		public String pickTimeFormat() {
 			Duration pt = pickTime.get();
 			Duration ttg = timeToGo.get();
@@ -424,17 +618,21 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 				order.set(null);
 			}
 			else {
-				exec.call(() -> orderQuery.queryById(newID.getId())).thenAcceptUI(order::set);
-				exec.call(
-						() -> pickQuery.queryByTemplateHandles(new QueryDetail(0, Integer.MAX_VALUE), getPicks(newID.getNumber())))
-					.thenAcceptUI(l -> pick.set(FXCollections.observableList(l)));
-				exec.call(() -> getPickPositions(newID.getNumber())) 
-					.thenAcceptUI(l -> pickItems.set(FXCollections.observableList(l)));
-				exec.call(() -> getUnitLoads(newID.getNumber())) 
-					.thenAcceptUI(l -> unitLoads.set(FXCollections.observableList(l)));
-				exec.call(() -> getGoodsOutPositions(newID.getNumber())) 
-					.thenAcceptUI(l -> goodsOut.set(FXCollections.observableList(l)));
+				loadOrder(newID);
 			}
+		}
+
+		private void loadOrder(LOSCustomerOrderTO newID) {
+			exec.call(() -> orderQuery.queryById(newID.getId())).thenAcceptUI(order::set);
+			exec.call(
+					() -> pickQuery.queryByTemplateHandles(new QueryDetail(0, Integer.MAX_VALUE), getPicks(newID.getNumber())))
+				.thenAcceptUI(l -> picks.set(FXCollections.observableList(l)));
+			exec.call(() -> getPickPositions(newID.getNumber())) 
+				.thenAcceptUI(l -> pickItems.set(FXCollections.observableList(l)));
+			exec.call(() -> getUnitLoads(newID.getNumber())) 
+				.thenAcceptUI(l -> unitLoads.set(FXCollections.observableList(l)));
+			exec.call(() -> getGoodsOutPositions(newID.getNumber())) 
+				.thenAcceptUI(l -> goodsOut.set(FXCollections.observableList(l)));
 		}
 	}
 }

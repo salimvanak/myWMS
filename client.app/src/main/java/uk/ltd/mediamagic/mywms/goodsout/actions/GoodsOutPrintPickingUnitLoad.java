@@ -23,15 +23,19 @@ public class GoodsOutPrintPickingUnitLoad implements WithMultiSelection<Object> 
 	
 	@Override
 	public void execute(Object source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		List<Long> ids = key.stream().map(k -> (Long) k.get("id")).collect(Collectors.toList());
+		printUnitloadLabels(context, ids);		
+	}
+	
+	public static void printUnitloadLabels(ViewContext context, List<Long> unitloadIds) {		
 		LOSOrderFacade facade = context.getBean(LOSOrderFacade.class);
 		LOSPickingUnitLoadQueryRemote query = context.getBean(LOSPickingUnitLoadQueryRemote.class);
-		List<Long> ids = key.stream().map(k -> (Long) k.get("id")).collect(Collectors.toList());
-		FTask<File> task = context.getExecutor().fileGenerator(context, "Unit load labels", p -> {
 
-			p.setSteps(ids.size());
+		FTask<File> task = context.getExecutor().fileGenerator(context, "Unit load labels", p -> {
+			p.setSteps(unitloadIds.size());
 			File file = Files.createTempFile("unit-loads", ".pdf");
 			try (PDFConcat concat = new PDFConcat(file)) {
-				for (Long id: ids) {
+				for (Long id: unitloadIds) {
 					LOSPickingUnitLoad ul = query.queryById(id);
 					Document doc = facade.generateUnitLoadLabel(ul.getUnitLoad().getLabelId(), false);
 					concat.add(doc);
@@ -41,7 +45,6 @@ public class GoodsOutPrintPickingUnitLoad implements WithMultiSelection<Object> 
 			}
 		});
 		FileOutputPane.show("Unit load labels", context, task);
-		
 	}
 
 }

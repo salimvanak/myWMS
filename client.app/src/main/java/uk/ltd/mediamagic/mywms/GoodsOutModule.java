@@ -10,6 +10,7 @@ import de.linogistix.los.inventory.model.LOSPickingUnitLoad;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutPositionsPlugin;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutRequestPlugin;
 import uk.ltd.mediamagic.mywms.goodsout.OrderPositionsPlugin;
+import uk.ltd.mediamagic.mywms.goodsout.OrderStatusPlugin;
 import uk.ltd.mediamagic.mywms.goodsout.OrdersPlugin;
 import uk.ltd.mediamagic.mywms.goodsout.PickingOrdersPlugin;
 import uk.ltd.mediamagic.mywms.goodsout.PickingPositionsPlugin;
@@ -28,6 +29,7 @@ public class GoodsOutModule extends AbstractPluginSet {
     PluginRelation m = new PluginRelation();
     
     m.put(OrdersPlugin.class);
+    m.put(OrderStatusPlugin.class);
     m.put(LOSCustomerOrder.class, OrdersPlugin.class);
     m.put(OrderPositionsPlugin.class);
     m.put(LOSCustomerOrderPosition.class, OrderPositionsPlugin.class);

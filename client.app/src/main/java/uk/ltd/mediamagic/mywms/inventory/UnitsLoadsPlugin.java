@@ -24,8 +24,6 @@ import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
@@ -41,10 +39,10 @@ import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.ContextBase;
-import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.mywms.common.LockStateAction;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
@@ -144,35 +142,7 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 		}
 		return super.getListData(context, detail, template);
 	}
-	
-	private void lock(Object source, Flow flow, ViewContext context, TableKey key) {
-		ComboBox<Integer> lockStateField = QueryUtils.lockStateCombo(LOSUnitLoadLockState.class);
-		TextArea causeField = new TextArea();
-		causeField.setPromptText("Reason");
 		
-		boolean ok = MDialogs.create(context.getRootNode(), "Lock Stock Unit")
-			.input("Lock State",lockStateField)
-			.input("Cause", causeField)
-			.showOkCancel();
-		
-		if (!ok) return;
-		
-		Integer lock = lockStateField.getValue();
-		String lockCause = causeField.getText();
-		if (lock == null) {
-			FXErrors.error(context.getRootNode(), "Lock state was empty.");
-			return;
-		}
-		
-		LOSUnitLoadCRUDRemote crud = context.getBean(LOSUnitLoadCRUDRemote.class);
-		long id = key.get("id");
-		context.getExecutor().run(() -> {
-			LOSUnitLoad ul = crud.retrieve(id);
-			crud.lock(ul, lock, lockCause);
-		})
-		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
-	}
-	
 	private void transfer(Object source, Flow flow, ViewContext context, TableKey key) {
 		final long id = key.get("id");
 
@@ -224,7 +194,7 @@ public class UnitsLoadsPlugin extends BODTOPlugin<LOSUnitLoad> {
 	public Flow createNewFlow(ApplicationContext context) {
 		Flow flow = super.createNewFlow(context);
 		flow.globalWithSelection()
-			.withSelection(Action.LOCK, this::lock)
+			.withSelection(Action.LOCK, new LockStateAction<>(LOSUnitLoad.class, LOSUnitLoadLockState.class))
 			.withSelection(Action.TRANSFER, this::transfer)
 			.withSelection(Action.SEND_TO_NIRWANA, this::sendToNirwana)
 			.withSelection(Action.UNIT_LOAD_LOG, UnitLoadRecordAction.forUnitLoad())

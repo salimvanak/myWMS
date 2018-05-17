@@ -9,6 +9,8 @@ import org.mywms.model.Lot;
 
 import de.linogistix.los.inventory.query.dto.LotTO;
 import de.linogistix.los.inventory.service.LotLockState;
+import de.linogistix.los.location.constants.LOSUnitLoadLockState;
+import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.query.BODTO;
 import javafx.beans.binding.BooleanBinding;
 import javafx.util.StringConverter;
@@ -22,6 +24,7 @@ import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.Flow;
+import uk.ltd.mediamagic.mywms.common.LockStateAction;
 import uk.ltd.mediamagic.mywms.common.LockStateConverter;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.transactions.StockUnitRecordAction;
@@ -87,6 +90,7 @@ public class LotsPlugin extends BODTOPlugin<Lot> {
 	public Flow createNewFlow(ApplicationContext context) {
 		return super.createNewFlow(context)
 				.globalWithSelection()
+					.withSelection("lock", new LockStateAction<>(LOSUnitLoad.class, LOSUnitLoadLockState.class))
 					.withSelection("transaction_log", StockUnitRecordAction.forLot())
 				.end();
 	}
@@ -96,8 +100,9 @@ public class LotsPlugin extends BODTOPlugin<Lot> {
 		super.configureCommands(command);
 		command
 		.begin(RootCommand.MENU) 
+			.add(AC.id("lock").text("Lock"))
 			.add(AC.id("transaction_log").text("Stock Unit Log"))
 		.end();
 	}
-	
+		
 }

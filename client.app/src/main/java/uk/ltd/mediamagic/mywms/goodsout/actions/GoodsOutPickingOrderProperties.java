@@ -1,5 +1,6 @@
 package uk.ltd.mediamagic.mywms.goodsout.actions;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,21 +37,21 @@ public class GoodsOutPickingOrderProperties implements WithSelection<Object> {
 	@Override
 	public void execute(Object source, Flow flow, ViewContext context, TableKey key) {
 		Long id = (Long) key.get("id");
-		changeProperties(context, id)
+		changeProperties(context, Collections.singletonList(id))
 		.thenRunAsync(() -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
 	}
 	
-	public static CompletableFuture<Long> changeProperties(ViewContextBase context, long pickingOrderId) {
+	public static CompletableFuture<List<Long>> changeProperties(ViewContextBase context, List<Long> pickingOrderIds) {
 		LOSPickingOrderQueryRemote query = context.getBean(LOSPickingOrderQueryRemote.class);
 		LOSPickingOrder order = context.getExecutor().executeAndWait(context.getRootNode(), 
-				() -> query.queryById(pickingOrderId));
+				() -> query.queryById(pickingOrderIds.get(0)));
 		
 		PickingOrderProperties inProps = new PickingOrderProperties(order.getPrio(), order.getDestination(), order.getOperator());
 		
 		final PickingOrderProperties r = changeProperties(context, inProps);
 		
 		if (r == null) { // user cancelled
-			CompletableFuture<Long> c = new CompletableFuture<>();
+			CompletableFuture<List<Long>> c = new CompletableFuture<>();
 			c.completeExceptionally(new CancellationException("User cancelled"));
 			return c;
 		}
@@ -67,10 +68,12 @@ public class GoodsOutPickingOrderProperties implements WithSelection<Object> {
 			
 			return context.getExecutor().call(
 					() -> {
-						if (changeLocation) facade.changePickingOrderDestination(pickingOrderId, destinationName);
-						if (changePrio) facade.changePickingOrderPrio(pickingOrderId, prio);
-						if (changeUser) facade.changePickingOrderUser(pickingOrderId, userName);
-						return pickingOrderId;
+						for (long pickingOrderId : pickingOrderIds) {								
+							if (changeLocation)	facade.changePickingOrderDestination(pickingOrderId, destinationName);
+							if (changePrio) facade.changePickingOrderPrio(pickingOrderId, prio);
+							if (changeUser) facade.changePickingOrderUser(pickingOrderId, userName);
+						}
+						return pickingOrderIds;
 					});
 		}
 	}

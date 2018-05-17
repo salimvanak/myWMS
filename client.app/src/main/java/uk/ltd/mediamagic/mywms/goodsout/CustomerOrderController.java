@@ -94,7 +94,7 @@ public class CustomerOrderController extends GoodsOutEditController<LOSCustomerO
 		
 		LOSOrderFacade facade = getContext().getBean(LOSOrderFacade.class);
 		LOSCustomerOrderQueryRemote query = getContext().getBean(LOSCustomerOrderQueryRemote.class);
-		getExecutor().runAndDisable(addButton, p -> {
+		getExecutor().runAndDisable(getView(), p -> {
 			facade.addOrderPosition(orderID, new OrderPositionTO[] {new OrderPositionTO(clientRef, lot, itemData, qty)});
 			LOSCustomerOrder order = query.queryById(orderID);
 			return order;

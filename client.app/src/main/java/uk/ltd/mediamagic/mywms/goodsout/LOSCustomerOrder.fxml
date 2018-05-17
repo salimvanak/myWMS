@@ -10,6 +10,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import uk.ltd.mediamagic.flow.crud.BasicEntityEditor?>
 <?import uk.ltd.mediamagic.fx.table.MTableViewBase?>
 
@@ -44,4 +45,13 @@
 		<ColumnConstraints hgrow="ALWAYS" prefWidth="0"/> 
 		<ColumnConstraints/> 
 	</columnConstraints>
+	<rowConstraints>
+		<RowConstraints/> 
+		<RowConstraints/> 
+		<RowConstraints/> 
+		<RowConstraints/> 
+		<RowConstraints/> 
+		<RowConstraints/> 
+		<RowConstraints vgrow="ALWAYS" fillHeight="true"/> 
+	</rowConstraints>
 </GridPane>

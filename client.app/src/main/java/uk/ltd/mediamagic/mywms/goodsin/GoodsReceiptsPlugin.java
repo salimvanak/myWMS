@@ -14,19 +14,26 @@ import org.mywms.model.Client;
 import de.linogistix.los.inventory.facade.LOSGoodsReceiptFacade;
 import de.linogistix.los.inventory.model.LOSGoodsReceipt;
 import de.linogistix.los.inventory.model.LOSGoodsReceiptState;
+import de.linogistix.los.inventory.model.LOSInventoryPropertyKey;
 import de.linogistix.los.inventory.query.LOSGoodsReceiptQueryRemote;
 import de.linogistix.los.location.model.LOSStorageLocation;
+import de.linogistix.los.location.query.LOSStorageLocationQueryRemote;
 import de.linogistix.los.location.query.dto.StorageLocationTO;
+import de.linogistix.los.model.LOSSystemProperty;
 import de.linogistix.los.query.BODTO;
+import de.linogistix.los.query.ClientQueryRemote;
+import de.linogistix.los.query.LOSSystemPropertyQueryRemote;
 import de.linogistix.los.query.QueryDetail;
 import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonType;
 import javafx.util.StringConverter;
 import res.R;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
@@ -45,6 +52,7 @@ import uk.ltd.mediamagic.fx.flow.ContextBase;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.fxcommon.ObservableConstant;
 import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils;
@@ -70,6 +78,11 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 	@Override
 	public String getPath() {
 		return "{1, _Goods in} -> {1, _Goods Receipts}";
+	}
+	
+	@Override
+	protected ObservableBooleanValue createAllowedBinding() {
+		return ObservableConstant.TRUE;
 	}
 	
 	@Override
@@ -134,11 +147,31 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 	
 	public void createNewGoodsReceipt(BODTOTable<LOSGoodsReceipt> source, Flow flow, ViewContext context) {
 		LOSGoodsReceiptFacade facade = context.getBean(LOSGoodsReceiptFacade.class);
+		ClientQueryRemote clientService = context.getBean(ClientQueryRemote.class);
+		LOSStorageLocationQueryRemote locationService = context.getBean(LOSStorageLocationQueryRemote.class);
+		LOSSystemPropertyQueryRemote systemProperties = context.getBean(LOSSystemPropertyQueryRemote.class);
+		
 		BasicEntityEditor<Client> clientField = new BasicEntityEditor<>();
 		clientField.configure(context, Client.class);
 		BasicEntityEditor<LOSStorageLocation> locationField = new BasicEntityEditor<>();
 		locationField.configure(context, LOSStorageLocation.class);
 		locationField.setFetchCompleteions(s -> context.getExecutor().call(facade::getGoodsReceiptLocations));
+
+		context.getExecutor().call(() -> clientService.getSystemClient())
+			.thenAcceptUI(clientField::setValue);
+
+		
+		// if there is a location called goods in use that as the default.
+		context.getExecutor().call(() -> {
+			LOSSystemProperty grl = systemProperties.queryByIdentity(LOSInventoryPropertyKey.DEFAULT_GOODS_RECEIPT_LOCATION_NAME);
+			if (grl != null && Strings.isNotEmpty(grl.getValue())) {
+				return locationService.queryByIdentity(grl.getValue());
+			}
+			else {
+				return null;
+			}
+		}).thenAcceptUI(locationField::setValue);
+				
 		SimpleFormBuilder form = new SimpleFormBuilder();
 		form.doubleRow()
 			.label("Client").fieldNode(clientField).label("Location").fieldNode(locationField)
@@ -154,6 +187,7 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 		.end();
 		
 		MapFormController c = new MapFormController();
+		c.setValue("receiptDate", LocalDate.now());
 		c.setValidator(d -> d
 				.notEmpty("receiptDate")
 				.check("Client cannot be empty", () -> clientField.getValue() != null)

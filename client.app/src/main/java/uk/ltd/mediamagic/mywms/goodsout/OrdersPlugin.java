@@ -4,6 +4,7 @@ import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -26,8 +27,10 @@ import de.linogistix.los.query.TemplateQuery;
 import de.linogistix.los.query.TemplateQueryFilter;
 import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
@@ -59,17 +62,9 @@ import uk.ltd.mediamagic.mywms.goodsout.GoodsOutUtils.OpenFilter;
 import uk.ltd.mediamagic.util.Closures;
 import uk.ltd.mediamagic.util.DateUtils;
 
-//@SubForm(
-//		title="Main", columns=1, 
-//		properties={"number", "externalNumber", "externalId", "state", "strategy", "destination", "prio"}
-//	)
-//@SubForm(
-//		title="Delivery", columns=2, 
-//		properties={"customerNumber", "customerName", "delivery", "documentUrl", "labelUrl", "dtype"}
-//	)
 public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 
-	private enum Action {FinishOrder, FinishPicking, Remove, Start, Overview, TreatOrder}
+	enum Action {FinishOrder, FinishPicking, Remove, AutoStart, Overview, TreatOrder, CreateShippingOrder}
 	
 	
 	public OrdersPlugin() {
@@ -79,6 +74,11 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 	@Override
 	public String getPath() {
 		return "{1, _Goods out} -> {1, _Orders}";
+	}
+	
+	@Override
+	protected ObservableBooleanValue createAllowedBinding() {
+		return ObservableConstant.of(MyWMSUserPermissions.isAtLeastForeman());
 	}
 	
 	@Override
@@ -140,35 +140,46 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 	}
 	
 	private void finishOrder(Object source, Flow flow, ViewContext context, TableKey key) {
+		finishOrder(context, key.get("id"))
+			.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+	}
+
+	public static CompletableFuture<Void> finishOrder(ViewContext context, long orderId) {
 		boolean ok = MDialogs.create(context.getRootNode(), "Finish Order")
 				.message("This will finish the order.\nAll outstanding picks will be canceled.")
 			.showYesNo();
 		
-		if (!ok) return; // user canceled
-				
+		if (!ok) {
+			CompletableFuture<Void> c = new CompletableFuture<>();
+			c.completeExceptionally(new CancellationException("User cancelled"));
+			return c;
+		}
+		
 		LOSOrderFacade facade = context.getBean(LOSOrderFacade.class);
-		long id = key.get("id");
-		context.getExecutor().run(() -> {
-			facade.finishOrder(id);
-		})
-		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+		
+		return context.getExecutor().run(() -> {
+			facade.finishOrder(orderId);
+		});
+	}
+	
+	private void finishPicking(Object source, Flow flow, ViewContext context, TableKey key) {
+		finishPicking(context, key.get("id"))
+			.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
 	}
 
-	private void finishPicking(Object source, Flow flow, ViewContext context, TableKey key) {
+	public static CompletableFuture<Void> finishPicking(ViewContext context, long orderId) {
 		boolean ok = MDialogs.create(context.getRootNode(), "Finish Order")
 				.message("This will finish the order.\nAll outstanding picklists will be marked as picked.")
 			.showYesNo();
 		
-		if (!ok) return; // user canceled
+		if (!ok) return new CompletableFuture<>(); // user canceled
 				
 		LOSOrderFacade facade = context.getBean(LOSOrderFacade.class);
 		LOSCustomerOrderQueryRemote crud = context.getBean(LOSCustomerOrderQueryRemote.class);
-		long id = key.get("id");
-		context.getExecutor().run(() -> {
-			List<BODTO<LOSCustomerOrder>> orders = crud.queryHandlesById(Collections.singletonList(id), new QueryDetail(0, 1));
+		return context.getExecutor().run(() -> {
+			List<BODTO<LOSCustomerOrder>> orders = crud.queryHandlesById(Collections.singletonList(orderId), new QueryDetail(0, 1));
 			facade.processOrderPickedFinish(orders);
-		})
-		.thenAcceptAsync(x -> flow.executeCommand(Flow.REFRESH_ACTION), Platform::runLater);
+		});
 	}
 
 	private void removeOrder(Object source, Flow flow, ViewContext context, TableKey key) {
@@ -207,6 +218,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		destinationField.configure(context, LOSStorageLocation.class);
 		
 		boolean ok = MDialogs.create(context.getRootNode(), "Automatic order treatment")
+			.input(new Label("This will automatically create new picks for all items"))
 			.input("Priority", prioField)
 			.input("Destination", destinationField)
 			.input("User", userField)
@@ -252,7 +264,8 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		FlowUtils.showNext(flow, context, OrderStatusPane.class, pane);
 	}
 
-	private void createOrder(Object source, Flow flow, ViewContext context) {
+	@Override
+	protected void create(BODTOTable<LOSCustomerOrder> table, Flow flow, ViewContext context) {
 		LOSOrderFacade facade = context.getBean(LOSOrderFacade.class);
 		LOSCustomerOrder order = context.getExecutor().executeAndWait(context.getRootNode(), p -> {
 			return facade.order(null, null, new OrderPositionTO[0], null, null, null, null, null, Prio.NORMAL, false, false, null);
@@ -283,13 +296,12 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		flow
 		.global()
 			.action(Action.Overview, this::overview)
-			.action(Flow.CREATE_ACTION, this::createOrder)
 		.end()
 		.globalWithSelection()
 			.withSelection(Flow.DELETE_ACTION, this::removeOrder)
 			.withSelection(Action.FinishOrder, this::finishOrder)
 			.withSelection(Action.FinishPicking, this::finishPicking)
-			.withSelection(Action.Start, this::startOrder)
+			.withSelection(Action.AutoStart, this::startOrder)
 			.withSelection(Action.TreatOrder, this::treatOrder)
 		.end()
 		.with(OrderStatusPane.class)
@@ -317,23 +329,22 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		flow.next(context);
 	}
 
-	
 	@Override
 	protected void configureCommands(RootCommand command) {
 		super.configureCommands(command);
-		command.begin(RootCommand.MENU)
-			.add(AC.id(Action.TreatOrder).text("Treat Order"))
-			.seperator()
+		command
 		.end();
 	}
-		
+	
 	@Override
 	protected BODTOTable<LOSCustomerOrder> getTable(ViewContextBase context) {
 		BODTOTable<LOSCustomerOrder> t = super.getTable(context);
 		t.getCommands()
-			.delete(ObservableConstant.TRUE, ObservableConstant.of(MyWMSUserPermissions.isAtLeastForeman()))
+			.delete(ObservableConstant.TRUE, ObservableConstant.of(!MyWMSUserPermissions.isAtLeastForeman()))
 			.menu(RootCommand.MENU)
-			.add(AC.id(Action.Start).text("Start"))
+			.add(AC.id(Action.TreatOrder).text("Treat Order"))
+			.add(AC.id(Action.AutoStart).text("Automatic start picking"))
+			.seperator()
 			.add(AC.id(Action.FinishPicking).text("Finish Picking"))
 			.add(AC.id(Action.FinishOrder).text("Finish Order"))
 			.end()

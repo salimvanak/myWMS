@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.mywms.facade.FacadeException;
@@ -21,6 +22,7 @@ import uk.ltd.mediamagic.fx.concurrent.function.BgFunction;
 import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
+import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.fx.flow.actions.WithMultiSelection;
 import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 
@@ -49,23 +51,24 @@ public class GoodsOutCreateShippingOrder implements WithMultiSelection<Object> {
 			sameOrderNumber = true;			
 		}
 		
-		LOSGoodsOutFacade facade = context.getBean(LOSGoodsOutFacade.class);
-		LOSPickingUnitLoadQueryRemote query = context.getBean(LOSPickingUnitLoadQueryRemote.class);
-
 		List<Long> ids = key.stream().map(k -> (Long) k.get("id")).collect(Collectors.toList());
+		createShippingOrder(context, ids, sameOrderNumber, allowFinished);				
+	}
+	
+	public static CompletableFuture<Void> createShippingOrder(ViewContextBase context, List<Long> unitloadIds, boolean sameOrderNumber, boolean allowFinished) {
+		LOSGoodsOutFacade facade = context.getBean(LOSGoodsOutFacade.class);
+		LOSPickingUnitLoadQueryRemote query = context.getBean(LOSPickingUnitLoadQueryRemote.class);		
 		
-		
-		context.getExecutor().call(
-				() -> checkUnitLoads(query, ids, sameOrderNumber, allowFinished))
+		return context.getExecutor().call(
+				() -> checkUnitLoads(query, unitloadIds, sameOrderNumber, allowFinished))
 				.thenCompose(BgFunction.bind(x -> {
-					facade.createGoodsOutOrder(ids);
+					facade.createGoodsOutOrder(unitloadIds);
 					return null;
-				}));
-				
+				}));		
 	}
 	
 	@Worker
-	public boolean checkUnitLoads(LOSPickingUnitLoadQueryRemote query, List<Long> ids, boolean sameOrderNumber, boolean allowFinished) throws Exception {
+	public static boolean checkUnitLoads(LOSPickingUnitLoadQueryRemote query, List<Long> ids, boolean sameOrderNumber, boolean allowFinished) throws Exception {
 		Set<String> orderNumbers = new TreeSet<>();
 		
 		for (long id : ids) {

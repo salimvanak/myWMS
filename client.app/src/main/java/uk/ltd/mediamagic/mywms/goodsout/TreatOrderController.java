@@ -30,6 +30,7 @@ import de.linogistix.los.inventory.query.dto.LOSCustomerOrderPositionTO;
 import de.linogistix.los.inventory.query.dto.LOSOrderStockUnitTO;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.query.LOSStorageLocationQueryRemote;
+import de.linogistix.los.model.State;
 import de.linogistix.los.query.BODTO;
 import de.linogistix.los.query.QueryDetail;
 import javafx.application.Platform;
@@ -72,7 +73,9 @@ import uk.ltd.mediamagic.fx.data.TableKey;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.FXMLController;
+import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.table.MTableViewBase;
+import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.Editor;
 import uk.ltd.mediamagic.mywms.goodsout.TreatOrderModel.TreatOrderPosition;
 import uk.ltd.mediamagic.plugin.PluginRegistry;
@@ -118,6 +121,8 @@ public class TreatOrderController extends GoodsOutEditController<LOSCustomerOrde
 				
 				if (model != null) {
 					model.startPicking(getView());
+					getData().setState(State.PROCESSABLE);
+					FlowUtils.executeCommand(getContext(), Flow.SAVE_ACTION);
 				}
 			}))
 		.end();
@@ -187,12 +192,13 @@ public class TreatOrderController extends GoodsOutEditController<LOSCustomerOrde
 
 		orderPositions.getSelectionModel().selectedItemProperty().addListener(this::onOrderItemChanged);
 		lot.setFetchCompleteions(s -> {
-			QueryDetail qd = new QueryDetail(0, 100);
-			qd.addOrderByToken("modified", false);
 			if (this.itemData.getValue() == null) {
 				return CompletableFuture.completedFuture(Collections.emptyList());
 			}
 			else {
+				QueryDetail qd = new QueryDetail(0, 100);
+				qd.addOrderByToken("modified", false);
+				
 				ItemDataTO itemData = new ItemDataTO(this.itemData.getValue());
 				BODTO<Client> client = new BODTO<>(model.getOrder().getClient());
 				return getExecutor().call(() -> lotQuery.autoCompletionByClientAndItemData(s, client, itemData));
@@ -200,6 +206,7 @@ public class TreatOrderController extends GoodsOutEditController<LOSCustomerOrde
 		});
 		
 		lot.valueProperty().addListener(o -> onItemDataChanged());
+		lot.setClearButtonVisible(true);
 		
 		stockUnits.placeholderProperty().bind(Bindings.when(stockUnitsLoading)
 				.then((Node) new ProgressIndicator())
