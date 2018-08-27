@@ -15,7 +15,7 @@ class StockTakingFacadeTest extends Specification  implements StorageLocationSpe
 
 	static LOSStocktakingFacade stocktakeFacade;
 	
-	def "Store a unit load"() {
+	def "Create a stock taking order"() {
 		given:
 			def startLoc = createStorageLocation("LOCSTART")
 			def endLoc = createStorageLocation("LOCEND")
@@ -26,7 +26,6 @@ class StockTakingFacadeTest extends Specification  implements StorageLocationSpe
 			orderCount = stocktakeFacade.generateOrders(true, null, null, null, null, sl.getId(), null, null, null, null, true, true)
 		then:
 			orderCount == 1
-			
 	}
 
 
