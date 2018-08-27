@@ -10,6 +10,13 @@ buildscript {
 group = 'mywms'
 def DOCKER_GROUP = 'Docker'
 
+// might be needed for build after JDK9
+//subprojects {
+//	tasks.withType(AbstractCompile) {
+//		options.compilerArgs += ["--add-modules", "java.corba"]
+//	}
+//}
+
 task wildflyDocker (type: Docker) {
   dependsOn ':server.app:ear'
   group = DOCKER_GROUP
