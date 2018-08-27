@@ -10,6 +10,6 @@ some new features and a number of bug fixes.
 
 A JavaFX desktop client is now available and can be run as a standalone app or via Java Web Start.
 
-The work is now focued on creating a test set based specification over the behaviour of the system.
+The work is now focused on creating a test set based specification over the behaviour of the system.
 
 If you plan to use this software or find it useful in another project, please get in touch.
