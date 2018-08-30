@@ -1,17 +1,24 @@
+apply plugin: 'groovy';
+
 sourceSets {
   main {
     java.srcDir 'src'
     resources.srcDir 'src'
   }
   test {
-    java.srcDir 'test/groovy'
     resources.srcDir 'src'
+    java.srcDir 'test/java'
+    groovy.srcDir 'test/groovy'
   }
 }
 
 dependencies {
   compile project(':server.app:los.inventory-ejb')
+  testCompile project(':server.app:mywms.as').sourceSets.test.output
+  testCompile project(':server.app:los.common-ejb').sourceSets.test.output 
+  testCompile project(':server.app:los.inventory-ejb').sourceSets.test.output
 }
+
 
 jar {
   archiveName 'los.stocktaking-comp.jar'
