@@ -28,7 +28,7 @@ class StorageFacadeTest extends Specification implements StorageLocationSpec, Un
 			getUnitLoad(ul.labelId).storageLocation.name == endLoc.name
 	}
 
-	def "Store a unit load and an unknown place"() {
+	def "Store a unit load in an unknown place"() {
 		given:
 			def startLoc = createStorageLocation("LOCSTART")
 			def ul = createUnitLoad("STORE", startLoc)
