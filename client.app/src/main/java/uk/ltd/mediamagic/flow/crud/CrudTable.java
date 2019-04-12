@@ -103,7 +103,9 @@ public class CrudTable<D extends BasicEntity> extends FxTableController<D> imple
 	}
 	
 	public QueryDetail createQueryDetail() {
-		QueryDetail q = new QueryDetail(0, 100);
+		int pageSize = getPager().getPageSize();
+		int pageNo = getPager().getPageNumber();
+		QueryDetail q = new QueryDetail(((pageNo-1)*pageSize) + 1, pageSize);
 		return q;
 	}
 
