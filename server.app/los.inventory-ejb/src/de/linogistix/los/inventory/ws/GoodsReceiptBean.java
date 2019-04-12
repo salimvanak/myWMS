@@ -35,19 +35,25 @@ import org.mywms.service.ItemDataService;
 
 import de.linogistix.los.common.exception.UnAuthorizedException;
 import de.linogistix.los.inventory.businessservice.LOSGoodsReceiptComponent;
+import de.linogistix.los.inventory.customization.ManageAdviceService;
 import de.linogistix.los.inventory.customization.ManageReceiptService;
 import de.linogistix.los.inventory.exception.InventoryException;
 import de.linogistix.los.inventory.exception.InventoryExceptionKey;
 import de.linogistix.los.inventory.model.LOSAdvice;
 import de.linogistix.los.inventory.model.LOSGoodsReceipt;
 import de.linogistix.los.inventory.model.LOSGoodsReceiptPosition;
+import de.linogistix.los.inventory.query.LOSGoodsReceiptPositionQueryRemote;
+import de.linogistix.los.inventory.service.LOSGoodsReceiptPositionService;
+import de.linogistix.los.inventory.service.LOSGoodsReceiptService;
 import de.linogistix.los.inventory.service.LOSLotService;
 import de.linogistix.los.inventory.service.QueryAdviceService;
+import de.linogistix.los.inventory.ws.manage_advice.UpdateAdviceRequest;
 import de.linogistix.los.location.entityservice.LOSStorageLocationService;
 import de.linogistix.los.location.model.LOSStorageLocation;
 import de.linogistix.los.location.model.LOSUnitLoad;
 import de.linogistix.los.location.service.QueryUnitLoadTypeService;
 import de.linogistix.los.query.exception.BusinessObjectNotFoundException;
+import de.linogistix.los.util.StringTools;
 import de.linogistix.los.util.businessservice.ContextService;
 
 @Stateless
@@ -65,6 +71,12 @@ public class GoodsReceiptBean implements GoodsReceipt {
 	@EJB
 	private LOSGoodsReceiptComponent goodsReceiptComponent;
 	@EJB
+	private LOSGoodsReceiptService goodsReceiptService;
+	@EJB
+	private LOSGoodsReceiptPositionService goodsReceiptPositionService;
+	@EJB
+	private LOSGoodsReceiptPositionQueryRemote	 goodsReceiptPositionQuery;
+	@EJB
 	private ClientService clientService;
 	@EJB
 	private LOSLotService lotService;
@@ -77,9 +89,47 @@ public class GoodsReceiptBean implements GoodsReceipt {
 	@EJB
 	private ContextService context;
 	@EJB
-	private QueryAdviceService advService;
+	private QueryAdviceService adviceQueryService;
+	@EJB
+	private ManageAdviceService adviceService;
 	@EJB
 	private ManageReceiptService manageGrService;
+	
+	@Override
+	public String getOpenByDeliveryNoteNumber(String deliveryNoteNumber) {
+		LOSGoodsReceipt r = goodsReceiptService.getOpenByDeliveryNoteNumber(deliveryNoteNumber);
+		if (r == null) 
+			return "";
+		else 
+			return r.getGoodsReceiptNumber();
+	}
+	
+	@Override
+	public GoodsReceiptPositionTO getGoodsReceiptPosition(String positionNumber) {
+		GoodsReceiptPositionTO to = new GoodsReceiptPositionTO();
+		LOSGoodsReceiptPosition p = goodsReceiptPositionService.getByNumber(positionNumber);
+		to.setAdvice(p.getRelatedAdvice().getAdviceNumber());
+		to.setAmount(p.getAmount());
+		to.setItemDataNumber(p.getItemData());
+		to.setLock(p.getLock());
+		to.setLotName(p.getLot());
+		to.setUnitLoadLabelId(p.getUnitLoad());
+		if (!StringTools.isEmpty(p.getLot())) {
+			try {
+				ItemData itemData = resolveItemData(p.getClient(), p.getItemData());
+				Lot lot = resolveLot(p.getClient(), itemData, p.getLot());
+				to.setBestBeforeEnd(lot.getBestBeforeEnd());
+				to.setNotUseBefore(lot.getUseNotBefore());
+			}
+			catch (InventoryException e) {
+				log.error("getGoodsReceiptPosition " + e.getMessage(), e);
+			}
+			catch (FacadeException e) {
+				log.error("getGoodsReceiptPosition " + e.getMessage(), e);
+			}
+		}
+		return to;
+	}
 	
 	public void create(
 			@WebParam(name = "client") String client, 
@@ -153,6 +203,79 @@ public class GoodsReceiptBean implements GoodsReceipt {
 
 	}
 
+	public void createAdvices(
+			@WebParam(name = "client") String client, 
+			@WebParam(name = "storageLocation") String storageLocation, 
+			@WebParam(name = "licencePlate") String licencePlate, 
+			@WebParam(name = "driver") 	String driver, 
+			@WebParam(name = "deliveryNoteNumber") String deliveryNoteNumber,
+			@WebParam(name = "forwarder") String forwarder,
+			@WebParam(name = "positions") UpdateAdviceRequest[] positions) throws InventoryException, FacadeException {
+
+		final String logStr = "createAdvices ";
+		log.info(logStr);
+		Client usersClient = context.getCallersUser().getClient();
+		Client c = clientService.getByNumber(client);
+		
+		if ((!usersClient.isSystemClient()) && (!usersClient.equals(c))) {
+			log.error(logStr+"User client does not match");
+			throw new InventoryException(
+					InventoryExceptionKey.CLIENT_MISMATCH, usersClient.getNumber());
+		}
+
+		LOSGoodsReceipt goodsReceipt = goodsReceiptComponent.createGoodsReceipt(
+				c, licencePlate, driver, forwarder, deliveryNoteNumber,	new Date());
+
+		LOSStorageLocation sl = slService.getByName(storageLocation);
+		if (sl == null) {
+			log.error(logStr+"Storage location " + storageLocation + " not found");
+			throw new BusinessObjectNotFoundException(storageLocation);
+		}
+
+		for (UpdateAdviceRequest position : positions) {
+			log.info(logStr+"Retrieving Lot for " + c.getNumber() + "/"
+					+ position.getLotNumber() + "/"
+					+ position.getItemNumber());
+
+
+			ItemData itemData = resolveItemData(c, position.getItemNumber());
+			Lot lot;
+			if (StringTools.isEmpty(position.getLotNumber())) {
+				lot = null;
+			}
+			else { 
+				lot = resolveLot(c, itemData, position.getLotNumber());
+			}
+
+			if(position.getNotifiedAmount() == null){
+				log.error(logStr+"Nofified amount must not be null. Abort");
+				throw new InventoryException( 
+						InventoryExceptionKey.ADVICE_CANNOT_BE_ACCEPTED, 
+						"Nofified amount must not be null");
+			}
+
+			String advNumber = adviceService.getNewAdviceNumber();				
+			LOSAdvice adv;
+			try {
+				adv = adviceService.createAdvice(c, advNumber, itemData, position.getNotifiedAmount());
+				adv.setAdditionalContent(position.getAdditionalContent());
+				adv.setExpectedDelivery(position.getExpectedDelivery());
+				adv.setExternalAdviceNumber(position.getExternalAdviceNumber());
+				adv.setExternalId(position.getExternalId());
+				adv.setLot(lot);
+
+				log.info(logStr+"Inserted advice="+adv.getAdviceNumber());
+			} catch ( Throwable e ) {
+				// It is unbelieveable what exceptions are thrown
+				log.error(logStr+"Something went wrong when creating the advice: "+e.getMessage());
+				throw new InventoryException(
+						InventoryExceptionKey.ADVICE_CANNOT_BE_ACCEPTED, e.getMessage());
+			}
+
+			goodsReceiptComponent.assignAdvice(adv, goodsReceipt);				
+		}
+	}
+
 	private Lot resolveLot(Client c, ItemData idat, String lotName) throws FacadeException{
 		Lot lot = null;
 		try {
@@ -194,7 +317,7 @@ public class GoodsReceiptBean implements GoodsReceipt {
 	
 	private LOSAdvice resolveAdvice(String advice) throws EntityNotFoundException{
 		try {
-			return advService.getByAdviceNumber(advice);
+			return adviceQueryService.getByAdviceNumber(advice);
 		} catch (UnAuthorizedException e) {
 			throw new EntityNotFoundException(ServiceExceptionKey.LOGIN_FAILED);
 		}

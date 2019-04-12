@@ -15,14 +15,24 @@ import javax.jws.soap.SOAPBinding;
 import org.mywms.facade.FacadeException;
 
 import de.linogistix.los.inventory.exception.InventoryException;
+import de.linogistix.los.inventory.model.LOSAdvice;
 import de.linogistix.los.inventory.model.LOSGoodsReceipt;
 import de.linogistix.los.inventory.model.LOSGoodsReceiptPosition;
+import de.linogistix.los.inventory.ws.manage_advice.UpdateAdviceRequest;
 import de.linogistix.los.location.model.LOSStorageLocation;
 
 @Remote
 @WebService
 @SOAPBinding(style = SOAPBinding.Style.RPC, use = SOAPBinding.Use.LITERAL)
-public interface GoodsReceipt extends java.rmi.Remote{
+public interface GoodsReceipt extends java.rmi.Remote {
+	
+	public GoodsReceiptPositionTO getGoodsReceiptPosition(String positionNumner);
+	
+	/**
+	 * @param deliveryNoteNumber the delivery note number to search for.
+	 * @return the goodsReceiptNumber number for the corrisponding deliveryNoteNumber
+	 */
+	public String getOpenByDeliveryNoteNumber(@WebParam( name="deliveryNoteNumber") String deliveryNoteNumber);
 	
 	/**
 	 * Creates a {@link LOSGoodsReceipt}.
@@ -45,7 +55,29 @@ public interface GoodsReceipt extends java.rmi.Remote{
 			@WebParam( name="deliveryNoteNumber") String deliveryNoteNumber,
 			@WebParam( name="forwarder") String forwarder,
 			@WebParam( name="positions") GoodsReceiptPositionTO[] positions) throws InventoryException, FacadeException; 
-	
+
+	/**
+	 * Creates a {@link LOSGoodsReceipt} with advice only.
+	 * No Positions are created, nothing is booked in.
+	 * 
+	 * @param client The client for whom the process is done
+	 * @param storageLocation the place (i.e. a {@link LOSStorageLocation} for goods in where the process is done
+	 * @param licencePlate the license plate of the delivery truck
+	 * @param driver The name of the driver
+	 * @param forwarder the forwarder company
+	 * @param deliveryNoteNumber An external receipt number on the document
+	 * @param positions maps to {@link LOSAdvice}
+	 * @throws InventoryException
+	 * @throws FacadeException 
+	 */
+	public void createAdvices(
+			@WebParam( name="client") String client, 
+			@WebParam( name="storageLocation") String storageLocation, 
+			@WebParam( name="licencePlate") String licencePlate,
+			@WebParam( name="driver") String driver,
+			@WebParam( name="deliveryNoteNumber") String deliveryNoteNumber,
+			@WebParam( name="forwarder") String forwarder,
+			@WebParam( name="positions") UpdateAdviceRequest[] positions) throws InventoryException, FacadeException; 
 	
 	public String[] getSuitableAdvice(
 			@WebParam( name="client") String client, 

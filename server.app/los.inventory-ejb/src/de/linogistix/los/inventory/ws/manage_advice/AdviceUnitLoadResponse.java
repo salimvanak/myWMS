@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlType(name = "AdviceUnitLoadResponse",
+@XmlType(name = "AdviceUnitLoadResult",
 		namespace = "http://advice.management.los.linogistix.de",
 		 propOrder = {"adviceNumber", "externalNumber", "clientNumber", "relatedAdvice", "labelId", "unitLoadType",
 					  "returns", "reasonForReturn", "stockUnitList"})

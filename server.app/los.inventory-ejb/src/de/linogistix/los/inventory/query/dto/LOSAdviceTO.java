@@ -18,21 +18,21 @@ public class LOSAdviceTO extends BODTO<LOSAdvice> {
 
 	private static final long serialVersionUID = 1L;
 
-	public String state;
+	private String state;
 
-	public BigDecimal receiptAmount;
+	private BigDecimal receiptAmount;
 
-	public BigDecimal notifiedAmount;
+	private BigDecimal notifiedAmount;
 
-	public String itemData;
+	private String itemData;
 
-	public String itemDataName;
+	private String itemDataName;
 
-	public String lot = "";
+	private String lot = "";
 
-	public String client;
+	private String client;
 
-	public Date expectedDelivery;
+	private Date expectedDelivery;
 
 	public LOSAdviceTO() {
 	}

@@ -44,6 +44,7 @@ import de.linogistix.los.inventory.service.QueryItemDataService;
 import de.linogistix.los.inventory.service.QueryLotService;
 import de.linogistix.los.inventory.service.QueryUnitLoadAdviceService;
 import de.linogistix.los.location.service.QueryUnitLoadTypeService;
+import de.linogistix.los.util.StringTools;
 
 @Stateless
 @SecurityDomain("los-login")
@@ -536,12 +537,15 @@ public class ManageAdviceWSBean implements ManageAdviceWS {
 		LOSAdvice adv = null;
 		try {
 			if(data.getAdviceNumber() != null && data.getAdviceNumber().length() > 0){
+				log.info(logStr+"Advice search by advice number");
 				adv = queryAdviceService.getByAdviceNumber(client, data.getAdviceNumber());
 			}
 			if( adv == null && data.getExternalId() != null && data.getExternalId().length() > 0 ) {
+				log.info(logStr+"Advice search by external Id");
 				adv = queryAdviceService.getByExternalId(client, data.getExternalId());
 			}
 			if( adv == null && data.getExternalAdviceNumber() != null && data.getExternalAdviceNumber().length() > 0 ) {
+				log.info(logStr+"Advice search by external advice number");
 				adv = queryAdviceService.getByExternalNumber(client, data.getExternalAdviceNumber());
 			}
 		}
@@ -586,6 +590,62 @@ public class ManageAdviceWSBean implements ManageAdviceWS {
 		
 		
 		log.info(logStr+"Deleted advice="+adv.getAdviceNumber());
+	}
+
+	@Override
+	public FindAdviceResult findAdvice(String clientNumber, String id) throws ManageAdviceWSFault {
+		String logStr = "findAdvice ";
+		log.debug(logStr+"START " + id);
+
+		Client client = null;
+		try {
+			if( StringTools.isEmpty(clientNumber) ) {
+				client = queryClientService.getSystemClient();
+			}
+			else {
+				client = queryClientService.getByNumber(clientNumber);
+			}
+		} 
+		catch (UnAuthorizedException e1) {
+			log.error(logStr+"Caller is not authorized to use client " + clientNumber + ". Abort");
+			throw new ManageAdviceWSFault(
+					ManageAdviceErrorCodes.UNAUTHORIZED_CALLER, 
+					"Caller is not authorized to use client " + clientNumber);
+		}
+		
+		// if client does not exist throw an exception
+		if(client == null){
+			log.error(logStr+"Client not found: " + clientNumber + ". Abort");
+			throw new ManageAdviceWSFault(
+					ManageAdviceErrorCodes.ERROR_UNKNOWN_CLIENT, 
+					"Client not found: "+ client);
+		}
+
+		// Try to find an existing advice
+		LOSAdvice adv = null;
+		try {
+			adv = queryAdviceService.getByAdviceNumber(client, id);
+			if( adv == null) {
+				adv = queryAdviceService.getByExternalId(client, id);
+			}
+			if( adv == null) {
+				adv = queryAdviceService.getByExternalNumber(client, id);
+			}
+		}
+		catch( UnAuthorizedException e ) {
+			log.error(logStr+"Caller is not authorized access an advice");
+			throw new ManageAdviceWSFault(
+					ManageAdviceErrorCodes.UNAUTHORIZED_CALLER, 
+					"Caller is not authorized access an advice");
+		}
+
+		if (adv == null) {
+			throw new ManageAdviceWSFault(ManageAdviceErrorCodes.ERROR_NO_ADVICE_WITH_NUMBER, "Advice " + id + " not found");
+		}
+		else {
+			FindAdviceResult resp =  FindAdviceResult.forAdvice(adv);
+			return resp;
+		}
 	}
 	
 }

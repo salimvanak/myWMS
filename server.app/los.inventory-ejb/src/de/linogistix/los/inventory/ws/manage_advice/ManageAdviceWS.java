@@ -16,17 +16,22 @@ import javax.jws.WebService;
 public interface ManageAdviceWS {
 
 	@WebMethod
-	public String adviceUnitLoad(AdviceUnitLoadRequest req) throws ManageAdviceWSFault;
+	String adviceUnitLoad(AdviceUnitLoadRequest req) throws ManageAdviceWSFault;
 	
 	@WebMethod
-	public AdviceUnitLoadResponse getAdviceForUnitLoad(String unitLoadId) throws ManageAdviceWSFault;
+	AdviceUnitLoadResponse getAdviceForUnitLoad(String unitLoadId) throws ManageAdviceWSFault;
+	
+	/**
+	 * sets the give advice to finished.
+	 * @param adviceNumber the advice number
+	 * @throws ManageAdviceWSFault
+	 */
+	@WebMethod
+	CommitAdviceResponse commitUnitLoadAdvice(String adviceNumber) throws ManageAdviceWSFault;
 	
 	@WebMethod
-	public CommitAdviceResponse commitUnitLoadAdvice(String adviceNumber) throws ManageAdviceWSFault;
+	void rejectUnitLoadAdvice(RejectAdviceRequest req) throws ManageAdviceWSFault;
 	
-	@WebMethod
-	public void rejectUnitLoadAdvice(RejectAdviceRequest req) throws ManageAdviceWSFault;
-
 	/**
 	 * Create or update a LOSAdvice.
 	 * The Operation will create a new advice, if it is not known. Otherwise it will be updated.
@@ -39,7 +44,7 @@ public interface ManageAdviceWS {
 	 * @throws ManageAdviceWSFault if for some goes wrong. See also {@link ManageAdviceErrorCodes}
 	 */
 	@WebMethod
-	public String updateAdvice(UpdateAdviceRequest updateReq) throws ManageAdviceWSFault;
+	String updateAdvice(UpdateAdviceRequest updateReq) throws ManageAdviceWSFault;
 	
 	/**
 	 * delete a LOSAdvice.
@@ -50,6 +55,21 @@ public interface ManageAdviceWS {
 	 * @throws ManageAdviceWSFault if for some goes wrong. See also {@link ManageAdviceErrorCodes}
 	 */
 	@WebMethod
-	public void deleteAdvice( DeleteAdviceRequest data ) throws ManageAdviceWSFault;
-
+	void deleteAdvice( DeleteAdviceRequest data ) throws ManageAdviceWSFault;
+	
+	/**
+	 * Fetches the advice.
+	 * The advice is searched by one of: adviceNumber, externalId, externalAdviceNumber
+	 * in order
+	 * 
+	 * The lot number returned is the lot assigned to the advice,  in the case 
+	 * there is no lot on the advice, the lot on the first GoodsReceiptPosition.
+	 * 
+	 * @param clientNumber the client number, null for the system client
+	 * @param id the number to search for.
+	 * @return LOSAdviceTO, representation of the advice
+	 * @throws ManageAdviceWSFault if for some goes wrong. See also {@link ManageAdviceErrorCodes}
+	 */
+	@WebMethod
+	FindAdviceResult findAdvice(String clientNumber, String id) throws ManageAdviceWSFault;
 }

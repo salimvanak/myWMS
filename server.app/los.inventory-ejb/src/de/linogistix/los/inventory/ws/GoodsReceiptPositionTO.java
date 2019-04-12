@@ -9,6 +9,7 @@ package de.linogistix.los.inventory.ws;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -27,6 +28,10 @@ public class GoodsReceiptPositionTO implements Serializable{
 	
 	private String lotName;
 	
+	private Date bestBeforeEnd;
+
+	private Date notUseBefore;
+	
 	private BigDecimal amount;
 	
 	private String unitLoadType;
@@ -37,6 +42,9 @@ public class GoodsReceiptPositionTO implements Serializable{
 	
 	private String advice;
 
+	public GoodsReceiptPositionTO() {
+	}
+		
 	public String getAdvice() {
 		return advice;
 	}
@@ -92,7 +100,21 @@ public class GoodsReceiptPositionTO implements Serializable{
 	public void setLock(int lock) {
 		this.lock = lock;
 	}
-	
-	
-	
+
+	public Date getBestBeforeEnd() {
+		return bestBeforeEnd;
+	}
+
+	void setBestBeforeEnd(Date bestBeforeEnd) {
+		this.bestBeforeEnd = bestBeforeEnd;
+	}
+
+	public Date getNotUseBefore() {
+		return notUseBefore;
+	}
+
+	void setNotUseBefore(Date notUseBefore) {
+		this.notUseBefore = notUseBefore;
+	}
+
 }
