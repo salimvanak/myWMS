@@ -85,7 +85,7 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
 
     Logger log = Logger.getLogger(MagicOrderBean.class);
    
-    @EJB LOSOrderFacade orderFacade;
+  @EJB LOSOrderFacade orderFacade;
 	@EJB LOSCustomerOrderService orderService;
 	@EJB
 	LOSGoodsOutRequestService goodsOutService;
