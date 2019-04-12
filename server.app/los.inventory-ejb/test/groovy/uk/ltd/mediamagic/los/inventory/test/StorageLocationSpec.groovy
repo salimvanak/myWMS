@@ -24,7 +24,6 @@ import de.linogistix.los.location.query.UnitLoadTypeQueryRemote
 import de.linogistix.los.query.exception.BusinessObjectNotFoundException
 import groovy.util.logging.Log4j
 
-@Log4j
 trait StorageLocationSpec implements WMSSpecBase {
 	private static final Logger log = Logger.getLogger(StorageLocationSpec.class)
 	

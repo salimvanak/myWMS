@@ -33,16 +33,15 @@ public enum LOSStocktakingState {
 	 * Everything is finished.
 	 */
 	FINISHED,
-
-	/**
-	 * Everything is finished, but stock units were not updated because of locks.
-	 */
-	FINISHED_NO_UPDATE,
 	
 	/**
 	 * Everything is canceled. 
 	 */
-	CANCELLED
+	CANCELLED,
 	
+	/**
+	 * Everything is finished, but stock units were not updated because of locks.
+	 */
+	FINISHED_NO_UPDATE
 	
 }

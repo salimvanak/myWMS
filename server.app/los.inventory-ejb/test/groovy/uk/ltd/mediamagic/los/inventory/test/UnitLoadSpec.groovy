@@ -2,30 +2,25 @@ package uk.ltd.mediamagic.los.inventory.test;
 
 import org.apache.log4j.Logger
 import org.junit.BeforeClass
-import org.mywms.model.UnitLoad
 
-import de.linogistix.los.inventory.query.LOSStockUnitRecordQueryRemote
 import de.linogistix.los.inventory.crud.LOSStockUnitRecordCRUDRemote
 import de.linogistix.los.inventory.crud.LOSStorageRequestCRUDRemote
-import de.linogistix.los.location.crud.LOSUnitLoadRecordCRUDRemote
-import de.linogistix.los.location.crud.LOSUnitLoadRecordQueryRemote
-
 import de.linogistix.los.inventory.model.LOSStockUnitRecord 
 import de.linogistix.los.inventory.model.LOSStorageRequest
-import de.linogistix.los.location.model.LOSUnitLoadRecord
+import de.linogistix.los.inventory.query.LOSStockUnitRecordQueryRemote
 import de.linogistix.los.inventory.query.LOSStorageRequestQueryRemote
-import de.linogistix.los.inventory.query.dto.LOSStorageRequestTO
 import de.linogistix.los.location.crud.LOSUnitLoadCRUDRemote
-import de.linogistix.los.location.query.LOSUnitLoadRecordQueryRemote
+import de.linogistix.los.location.crud.LOSUnitLoadRecordCRUDRemote
 import de.linogistix.los.location.crud.UnitLoadTypeCRUDRemote
 import de.linogistix.los.location.model.LOSStorageLocation
 import de.linogistix.los.location.model.LOSUnitLoad
+import de.linogistix.los.location.model.LOSUnitLoadRecord
 import de.linogistix.los.location.query.LOSUnitLoadQueryRemote
+import de.linogistix.los.location.query.LOSUnitLoadRecordQueryRemote
 import de.linogistix.los.location.query.UnitLoadTypeQueryRemote
 import de.linogistix.los.query.BODTO
 import de.linogistix.los.query.QueryDetail
 import de.linogistix.los.query.TemplateQuery
-import de.linogistix.los.query.TemplateQueryFilter
 import de.linogistix.los.query.TemplateQueryWhereToken
 import groovy.transform.CompileDynamic
 
@@ -58,7 +53,7 @@ trait UnitLoadSpec extends WMSSpecBase {
     stockUnitRecordCRUD = getBean(LOSStockUnitRecordCRUDRemote.class)
   }
 
-	private def createUnitLoadLabel(String tag) {
+	def createUnitLoadLabel(String tag) {
 		def serialNumber = nextSeqNumber()
 		return "UL" + "/" + tag +"-" + serialNumber
 	}

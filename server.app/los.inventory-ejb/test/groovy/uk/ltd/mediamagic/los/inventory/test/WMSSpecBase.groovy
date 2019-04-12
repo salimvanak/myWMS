@@ -14,8 +14,10 @@ import de.linogistix.los.query.exception.BusinessObjectNotFoundException
 import de.linogistix.los.util.businessservice.LOSSequenceGeneratorServiceRemote
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import groovy.util.logging.Log4j
 
 @CompileStatic
+@Log4j
 trait WMSSpecBase extends MyWMSSpecification {
 	static final String TESTCLIENT_NUMBER = "Test Client";	
 	static final String TESTMANDANT_NUMBER = "Test Mandant";
@@ -83,16 +85,24 @@ trait WMSSpecBase extends MyWMSSpecification {
 	public <T> T create(BusinessObjectCRUDRemote<?> service, T obj) {
 		obj = service.create(obj);
 		BODTO<T> bodto = new BODTO<>(obj)
-		addCleanup { service.delete(Collections.singletonList(bodto)) }
+		addCleanup { 
+			service.delete(Collections.singletonList(bodto)) 
+			log.info "Clean Up: " + bodto.className + " with label " + bodto.name
+		}
+		log.info "Create: " + bodto.className + " with label " + bodto.name
 		return obj
 	}
 
-		@CompileDynamic
+	@CompileDynamic
 	public <T> T create(BusinessObjectCRUDRemote<?> service, T obj, Closure before) {
 		obj = service.create(obj);
 		BODTO<T> bodto = new BODTO<>(obj)
-		addCleanup { service.delete(Collections.singletonList(bodto)) }
+		addCleanup { 
+			service.delete(Collections.singletonList(bodto)) 
+			log.info "Clean Up: " + obj.class.simpleName + " with label " + obj
+		}
 		addCleanup { before(bodto) }
+		log.info "Create: " + bodto.className + " with label " + bodto.name
 		return obj
 	}
 }
