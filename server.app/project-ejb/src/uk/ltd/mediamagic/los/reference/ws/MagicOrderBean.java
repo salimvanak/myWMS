@@ -163,6 +163,7 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     	LOSCustomerOrder order = orderFacade.order(clientRef, orderRef, positions, documentUrl, labelUrl, destination, null, new Date(), LOSCustomerOrder.PRIO_DEFAULT, true, true, null);
     	order.setCustomerNumber(customerNumber);
     	order.setCustomerName(customerName);
+    	orderService.merge(order);
     	return (order != null) ? order.getNumber() : null;
     }
 
@@ -184,6 +185,7 @@ public class MagicOrderBean extends BasicFacadeBean implements MagicOrder {
     	LOSCustomerOrder order = orderFacade.order(clientRef, orderRef, positions, documentUrl, labelUrl, destination, null, new Date(), LOSCustomerOrder.PRIO_DEFAULT, false, true, null);
     	order.setCustomerNumber(customerNumber);
     	order.setCustomerName(customerName);
+    	orderService.merge(order);
     	return (order != null) ? order.getNumber() : null;
     }
     
