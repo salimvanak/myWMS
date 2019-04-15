@@ -83,7 +83,7 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 	public Supplier<CellRenderer<LOSAdvice>> createCellFactory() {
 		return MaterialCells.withDate(AdvicePlugin::getIcon, 
 				s -> DateUtils.toLocalDate(s.getExpectedDelivery()), 
-				s -> String.format("%s, %s, %s", s.toUniqueString(), s.getItemData().getNumber(), s.getItemData().getName()),
+				s -> String.format("%s, %s", s.getItemData().getNumber(), s.getItemData().getName()),
 				s -> {
 					if (s.getLot() != null) {
 						return String.format("%s, %Td-%<Tb-%<Ty -> %Td-%<Tb-%<Ty", s.getLot().getName(), s.getLot().getUseNotBefore(), s.getLot().getBestBeforeEnd()); 						
@@ -92,7 +92,7 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 						return String.format("No lot information"); 						
 					}
 				},
-				s -> Strings.format("Expected {0}, Receipt {1}", s.getNotifiedAmount(), s.getReceiptAmount()));
+				s -> Strings.format("{0} - Expected {1}, Receipt {2}", s.toUniqueString(), s.getNotifiedAmount(), s.getReceiptAmount()));
 	}
 
 	@Override

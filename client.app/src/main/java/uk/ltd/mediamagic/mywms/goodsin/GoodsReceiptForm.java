@@ -33,13 +33,18 @@ import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.SortedList;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
 import javafx.util.StringConverter;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
@@ -50,7 +55,9 @@ import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.action.AC;
 import uk.ltd.mediamagic.fx.binding.MBindings;
 import uk.ltd.mediamagic.fx.concurrent.FTask;
+import uk.ltd.mediamagic.fx.control.FormBuilder;
 import uk.ltd.mediamagic.fx.control.SimpleFormBuilder;
+import uk.ltd.mediamagic.fx.controller.editor.EditorBase;
 import uk.ltd.mediamagic.fx.converters.BigDecimalConverter;
 import uk.ltd.mediamagic.fx.converters.Filters;
 import uk.ltd.mediamagic.fx.flow.AutoInject;
@@ -63,26 +70,19 @@ import uk.ltd.mediamagic.mywms.common.PDFConcat;
 import uk.ltd.mediamagic.mywms.common.PositionComparator;
 import uk.ltd.mediamagic.util.Files;
 
-public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
-		private ListView<LOSAdvice> advices = MyWMSForm.createList(LOSAdvice.class);
-		//private ListView<LOSGoodsReceiptPosition> positions = MyWMSForm.createList(LOSGoodsReceiptPosition.class);
-		private TableView<LOSGoodsReceiptPosition> positions = createGoodsReceiptsTable();
-		
-		private Button addAdviceButton = new Button("Add");
-		private Button deleteAdviceButton = new Button("Del");
-		private Button assignPositionButton = new Button("Assign");
-		private Button deletePositionButton = new Button("Remove");
-		private Button printPositionButton = new Button("Print");
-		private Button selectAllPositionButton = new Button("Select All");
+public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {		
 
 		private BasicEntityEditor<LOSAdvice> newAdvice = new BasicEntityEditor<>();
 		private BasicEntityEditor<ItemData> newItemData = new BasicEntityEditor<>();
 		private TextFormatter<BigDecimal> newQuantity = new TextFormatter<>(
-				new BigDecimalConverter(), null, Filters.numeric());
-		
+			new BigDecimalConverter(), null, Filters.numeric());
+
+
 		@AutoInject public LOSGoodsReceiptFacade facade;
 		@AutoInject public LOSAdviceCRUDRemote adviceCRUD;
 		@AutoInject public AdviceFacade adviceFacade;
+		
+		private TabPane tabs = new TabPane();
 		
 		public GoodsReceiptForm(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConveryer) {
 			super(beanInfo, getConveryer);
@@ -90,10 +90,23 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			
 			getCommands()
 				.add(AC.idText("Finish Receipt").action(s -> finishGoodsReceipt())
-						.description("Make stock read for storage and lock this Goods Receipt"))
+						.description("Mark stock ready for storage and lock this Goods Receipt"))
 			.end();
 			
 			setUserPermissions(getUserPermissions());
+			
+			tabs.getTabs().add(new Tab("Main", createMainTab()));
+			tabs.getTabs().add(new Tab("Positions", createAssignmentsTab()));
+		
+			setView(tabs);
+		}
+
+		public Node createMainTab() {
+			ListView<LOSAdvice> advices = MyWMSForm.createList(LOSAdvice.class);
+
+			Button addAdviceButton = new Button("Add");
+			Button deleteAdviceButton = new Button("Del");
+
 			SimpleFormBuilder form = new SimpleFormBuilder();
 			form.row()
 				.label("ID").field("id")
@@ -120,29 +133,17 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 				.label("Licence Plate").field("licencePlate")
 			.end();
 
-
 			TextField newQuantityField = Filters.of(newQuantity, "Qty", 6);
 			TextField newDescription = new TextField();
 			newDescription.setEditable(false);
 			newDescription.setPrefColumnCount(20);
 			newDescription.setMaxWidth(Double.MAX_VALUE);
-			
-			positions.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-			
-			addAdviceButton.setOnAction(e -> addAdviceAction());
-			deleteAdviceButton.setOnAction(e -> deleteAdviceAction());
-			selectAllPositionButton.setOnAction(e -> {
-				if (positions.getSelectionModel().getSelectedItems().size() <= 1) {
-					positions.getSelectionModel().selectAll();
-				}
-				else {
-					positions.getSelectionModel().clearSelection();
-				}
+						
+			addAdviceButton.setOnAction(e -> addAdviceAction(addAdviceButton));
+			deleteAdviceButton.setOnAction(e -> {
+				LOSAdvice advice = advices.getSelectionModel().getSelectedItem();			
+				deleteAdviceAction(deleteAdviceButton, advice);
 			});
-			
-			assignPositionButton.setOnAction(e -> assignPositionsAction());
-			deletePositionButton.setOnAction(e -> deletePositionsAction());
-			printPositionButton.setOnAction(e -> printPositionsAction());
 			
 			newDescription.textProperty().bind(MBindings.get(newItemData.valueProperty(), ItemData::getDescription));
 			newItemData.disableProperty().bind(newAdvice.valueProperty().isNotNull());
@@ -164,18 +165,87 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 					.fieldNode(deleteAdviceButton)
 				.end()
 				.row().fieldNode("assignedAdvices", advices, GridPane.REMAINING, 1)
-			.end();
-			form.sub("Positions")
-				.row()
-					.fieldNode(assignPositionButton)
-					.fieldNode(deletePositionButton)
-					.fieldNode(printPositionButton)
-					.fieldNode(selectAllPositionButton)
-				.end()
-				.row().fieldNode("positionList", positions, GridPane.REMAINING, 1)
-			.end();
+			.end(new RowConstraints(10d, 2000d, Double.MAX_VALUE));
 			
 			form.bindController(this);
+			return form;
+		}
+		
+		public Node createAssignmentsTab() {
+			
+			TableView<LOSAdvice> advices = createAdviceTable();
+			TableView<LOSGoodsReceiptPosition> positions = createGoodsReceiptsTable();
+
+			Button assignPositionButton = new Button("Assign");
+			Button deletePositionButton = new Button("Remove");
+			Button printPositionButton = new Button("Print");
+			Button selectAllPositionButton = new Button("Select All");
+			
+			FormBuilder form = new FormBuilder();
+			form.row()
+				.label("Receipt No").text("").forColumn("goodsReceiptNumber_2")
+					.withLastNode(f -> EditorBase.setField(f, "#goodsReceiptNumber"))
+				.label("Reference").text("").forColumn("referenceNo_2")
+					.withLastNode(f -> EditorBase.setField(f, "#referenceNo"))
+				.label("Location").fieldNode(new BasicEntityEditor<>(), 1, 1).forColumn("goodsInLocation_2")
+					.withLastNode(f -> EditorBase.setField(f, "#goodsInLocation"))
+			.end();
+			form.row()
+				.label("Receipt State").comboBox().forColumn("receiptState_2")
+					.withLastNode(f -> EditorBase.setField(f, "#receiptState"))
+				.label("Delivery No").text("").forColumn("deliveryNoteNumber_2")
+					.withLastNode(f -> EditorBase.setField(f, "#deliveryNoteNumber"))
+			.end();
+
+			positions.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+			selectAllPositionButton.setOnAction(e -> {
+				if (positions.getSelectionModel().getSelectedItems().size() <= 1) {
+					positions.getSelectionModel().selectAll();
+				}
+				else {
+					positions.getSelectionModel().clearSelection();
+				}
+			});
+			
+			assignPositionButton.setOnAction(e -> {
+				LOSAdvice advice = advices.getSelectionModel().getSelectedItem();			
+				assignPositionsAction(advice);
+			});
+			deletePositionButton.setOnAction(e -> {
+				LOSGoodsReceiptPosition pos = positions.getSelectionModel().getSelectedItem();
+				deletePositionsAction(deletePositionButton, pos);
+			});
+			printPositionButton.setOnAction(e -> {
+				List<LOSGoodsReceiptPosition> pos = positions.getSelectionModel().getSelectedItems();
+				printPositionsAction(pos);
+			});
+						
+			FormBuilder.Row adviceRow = form.sub("Advices").row();
+			adviceRow.fieldNode(advices, GridPane.REMAINING, 1)
+				.forColumn("assignedAdvices_2")
+				.withLastNode(f -> EditorBase.setField(f, "#assignedAdvices"))
+			.end(new RowConstraints(10d, 2000d, Double.MAX_VALUE));
+			adviceRow.end();
+			
+			FormBuilder positionForm = form.sub("Positions");
+			positionForm.row()
+				.fieldNode(assignPositionButton)
+				.fieldNode(deletePositionButton)
+				.fieldNode(printPositionButton)
+				.fieldNode(selectAllPositionButton)
+			.end();
+			
+			FormBuilder.Row positionsRow = positionForm.row();
+			positionsRow.fieldNode(positions, GridPane.REMAINING, 1)
+				.forColumn("positionList_2")
+				.withLastNode(f -> EditorBase.setField(f, "#positionList"))
+			.end(new RowConstraints(10d, 2000d, Double.MAX_VALUE));
+			
+			positionForm.end();
+
+			form.bindController(this);
+			return form;
 		}
 				
 		@PostConstruct
@@ -215,7 +285,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			return getExecutor().call(() -> facade.getAllowedItemData(s, new BODTO<>(client), null));
 		}
 		
-		private void addAdviceAction() {
+		private void addAdviceAction(Control addAdviceButton) {
 			LOSAdviceTO advice;
 			LOSGoodsReceipt receipt = getData();
 			if (newAdvice.getValue() != null) {
@@ -244,14 +314,13 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			}
 		}
 
-		private void deleteAdviceAction() {
+		private void deleteAdviceAction(Control addAdviceButton, LOSAdvice advice) {
 			boolean yes = MDialogs.create(getView(), "Delete positions")
 				.masthead("Delete selection positions")
 				.showYesNo();
 
 			if (!yes) return; // user cancelled.
 			
-			LOSAdvice advice = advices.getSelectionModel().getSelectedItem();
 			LOSGoodsReceipt receipt = getData();
 			if (advice != null) {
 				LOSAdviceTO adviceTo = new LOSAdviceTO(advice);
@@ -267,8 +336,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			}
 		}
 
-		private void assignPositionsAction() {
-			LOSAdvice advice = advices.getSelectionModel().getSelectedItem();			
+		private void assignPositionsAction(LOSAdvice advice) {
 			if (advice != null) {
 				CreateGoodsReceiptPosition c = new CreateGoodsReceiptPosition(getData(), advice);
 				getContext().autoInjectBean(c);
@@ -279,8 +347,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			}
 		}
 
-		private void deletePositionsAction() {
-			LOSGoodsReceiptPosition pos = positions.getSelectionModel().getSelectedItem();
+		private void deletePositionsAction(Control addAdviceButton, LOSGoodsReceiptPosition pos) {
 			LOSGoodsReceipt receipt = getData();
 			if (pos != null) {
 				getExecutor().runAndDisable(addAdviceButton, p -> {
@@ -295,8 +362,7 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			}
 		}
 
-		private void printPositionsAction() {
-			List<LOSGoodsReceiptPosition> selection = positions.getSelectionModel().getSelectedItems();
+		private void printPositionsAction(List<LOSGoodsReceiptPosition> selection) {
 			if (selection != null && selection.size() > 0) {
 				List<Long> ids = selection.stream()
 						.map(BasicEntity::getId)
@@ -333,6 +399,19 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 					t.column().title("Unit load").valueFactory(LOSGoodsReceiptPosition::getUnitLoad).show(),
 					t.column(new BigDecimalConverter()).title("Qty").valueFactory(LOSGoodsReceiptPosition::getAmount).show(),
 					t.column().title("Advice").valueFactory(LOSGoodsReceiptPosition::getPositionNumber).show()
+					);
+			return t;
+		}
+
+		public TableView<LOSAdvice> createAdviceTable() {
+			
+			MTableViewBase<LOSAdvice> t = new MTableViewBase<>();
+			t.setColumns(
+					t.column().title("Advice").width(15).valueFactory(LOSAdvice::getAdviceNumber).show(),
+					t.column().title("Item").width(15).valueFactory((LOSAdvice l) -> l.getItemData().getNumber()).show(),
+					t.column().title("Description").valueFactory((LOSAdvice l) -> l.getItemData().getName()).show(),
+					t.column(new BigDecimalConverter()).title("Exp").valueFactory(LOSAdvice::getNotifiedAmount).show(),
+					t.column(new BigDecimalConverter()).title("Rec").valueFactory(LOSAdvice::getReceiptAmount).show()
 					);
 			return t;
 		}

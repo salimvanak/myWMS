@@ -15,6 +15,7 @@ import de.linogistix.los.query.TemplateQueryWhereToken;
 import javafx.application.Platform;
 import javafx.util.StringConverter;
 import res.R;
+import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
@@ -62,9 +63,9 @@ public class GoodsReceiptPositionsPlugin  extends BODTOPlugin<LOSGoodsReceiptPos
 	public Supplier<CellRenderer<LOSGoodsReceiptPosition>> createCellFactory() {
 		return MaterialCells.withID(s -> R.svgPaths.goodsWaiting(), 
 				LOSGoodsReceiptPosition::getPositionNumber, 
-				s -> String.format("Item: %s, x %f", s.getItemData(), s.getAmount()),
+				s -> Strings.format("Item: {0}, x {1}", s.getItemData(), s.getAmount()),
 				s -> String.format("Lot: %s", s.getLot()),
-				s -> String.format("U/Load No: %s", s.getUnitLoad()));
+				s -> Strings.format("U/Load No: {0}", s.getUnitLoad()));
 	}
 	
 	@Override
