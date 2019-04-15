@@ -67,10 +67,11 @@ public interface GoodsReceipt extends java.rmi.Remote {
 	 * @param forwarder the forwarder company
 	 * @param deliveryNoteNumber An external receipt number on the document
 	 * @param positions maps to {@link LOSAdvice}
+	 * @return the goodsReceiptNumber
 	 * @throws InventoryException
 	 * @throws FacadeException 
 	 */
-	public void createAdvices(
+	public String createAdvices(
 			@WebParam( name="client") String client, 
 			@WebParam( name="storageLocation") String storageLocation, 
 			@WebParam( name="licencePlate") String licencePlate,

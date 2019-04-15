@@ -203,7 +203,7 @@ public class GoodsReceiptBean implements GoodsReceipt {
 
 	}
 
-	public void createAdvices(
+	public String createAdvices(
 			@WebParam(name = "client") String client, 
 			@WebParam(name = "storageLocation") String storageLocation, 
 			@WebParam(name = "licencePlate") String licencePlate, 
@@ -223,14 +223,16 @@ public class GoodsReceiptBean implements GoodsReceipt {
 					InventoryExceptionKey.CLIENT_MISMATCH, usersClient.getNumber());
 		}
 
-		LOSGoodsReceipt goodsReceipt = goodsReceiptComponent.createGoodsReceipt(
-				c, licencePlate, driver, forwarder, deliveryNoteNumber,	new Date());
 
 		LOSStorageLocation sl = slService.getByName(storageLocation);
 		if (sl == null) {
 			log.error(logStr+"Storage location " + storageLocation + " not found");
 			throw new BusinessObjectNotFoundException(storageLocation);
 		}
+
+		LOSGoodsReceipt goodsReceipt = goodsReceiptComponent.createGoodsReceipt(
+				c, licencePlate, driver, forwarder, deliveryNoteNumber,	new Date());
+		goodsReceipt.setGoodsInLocation(sl);
 
 		for (UpdateAdviceRequest position : positions) {
 			log.info(logStr+"Retrieving Lot for " + c.getNumber() + "/"
@@ -274,6 +276,7 @@ public class GoodsReceiptBean implements GoodsReceipt {
 
 			goodsReceiptComponent.assignAdvice(adv, goodsReceipt);				
 		}
+		return goodsReceipt.getGoodsReceiptNumber();
 	}
 
 	private Lot resolveLot(Client c, ItemData idat, String lotName) throws FacadeException{
