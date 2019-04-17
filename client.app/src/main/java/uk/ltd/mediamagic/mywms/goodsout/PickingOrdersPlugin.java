@@ -52,7 +52,7 @@ import uk.ltd.mediamagic.util.Closures;
 	)
 public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 
-	private enum Action { Release, Halt, Properties, Finish, Remove, ViewLog }
+	private enum Action { Release, Halt, Properties, Complete, Remove, ViewLog }
 	
 	public PickingOrdersPlugin() {
 		super(LOSPickingOrder.class);
@@ -122,7 +122,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 		Flow flow = super.createNewFlow(context);
 		flow.globalWithSelection()
 		.withMultiSelection(Flow.DELETE_ACTION, new GoodsOutRemovePickingOrder())
-		.withMultiSelection(Action.Finish, new GoodsOutFinishPickingOrder())
+		.withMultiSelection(Action.Complete, new GoodsOutFinishPickingOrder())
 		.withMultiSelection(Action.Halt, new GoodsOutHaltPickingOrder())
 		.withMultiSelection(Action.Release, new GoodsOutReleasePickingOrder())
 		.withSelection(Action.Properties, new GoodsOutPickingOrderProperties())
@@ -140,7 +140,7 @@ public class PickingOrdersPlugin  extends BODTOPlugin<LOSPickingOrder> {
 			.add(AC.id(Action.Release).text("Release for picking"))
 			.add(AC.id(Action.Halt).text("Halt picking"))
 			.add(AC.id(Action.Properties).text("Change properties"))
-			.add(AC.id(Action.Finish).text("Finish"))
+			.add(AC.id(Action.Complete).text("Complete Picking"))
 			.seperator()
 			.add(AC.id(Action.ViewLog).text("View Transaction Log"))
 			.end()

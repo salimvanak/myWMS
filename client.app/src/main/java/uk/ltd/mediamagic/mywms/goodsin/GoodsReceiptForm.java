@@ -24,12 +24,14 @@ import de.linogistix.los.inventory.facade.LOSGoodsReceiptFacade;
 import de.linogistix.los.inventory.model.LOSAdvice;
 import de.linogistix.los.inventory.model.LOSGoodsReceipt;
 import de.linogistix.los.inventory.model.LOSGoodsReceiptPosition;
+import de.linogistix.los.inventory.model.LOSGoodsReceiptState;
 import de.linogistix.los.inventory.model.StockUnitLabel;
 import de.linogistix.los.inventory.query.LOSGoodsReceiptPositionQueryRemote;
 import de.linogistix.los.inventory.query.dto.ItemDataTO;
 import de.linogistix.los.inventory.query.dto.LOSAdviceTO;
 import de.linogistix.los.query.BODTO;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.SortedList;
@@ -46,6 +48,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.util.StringConverter;
+import uk.ltd.mediamagic.common.utils.MArrays;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BasicEntityEditor;
 import uk.ltd.mediamagic.flow.crud.MyWMSEditor;
@@ -78,6 +81,8 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			new BigDecimalConverter(), null, Filters.numeric());
 
 
+		private final BooleanBinding finished;
+		
 		@AutoInject public LOSGoodsReceiptFacade facade;
 		@AutoInject public LOSAdviceCRUDRemote adviceCRUD;
 		@AutoInject public AdviceFacade adviceFacade;
@@ -87,14 +92,18 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		public GoodsReceiptForm(BeanInfo beanInfo, Function<PropertyDescriptor, StringConverter<?>> getConveryer) {
 			super(beanInfo, getConveryer);
 			setEditorHelper(new MyEditorHelper(this, beanInfo, getConveryer));
+			finished = MBindings.createBoolean(dataProperty(), false, 
+					d -> !MArrays.contains(d.getReceiptState(), LOSGoodsReceiptState.RAW, LOSGoodsReceiptState.ACCEPTED));
 			
 			getCommands()
-				.add(AC.idText("Finish Receipt").action(s -> finishGoodsReceipt())
+				.menu("Finish")
+				.add(AC.idText("Finish goods receipt").action(s -> finishGoodsReceipt())
 						.description("Mark stock ready for storage and lock this Goods Receipt"))
+				.add(AC.idText("Finish outstanding advices").action(s -> finishGoodsReceipt())
+						.description("Mark and outstanding advices on this goods receipt as finished"))
+					.end()
 			.end();
-			
-			setUserPermissions(getUserPermissions());
-			
+						
 			tabs.getTabs().add(new Tab("Main", createMainTab()));
 			tabs.getTabs().add(new Tab("Positions", createAssignmentsTab()));
 		
@@ -168,6 +177,12 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			.end(new RowConstraints(10d, 2000d, Double.MAX_VALUE));
 			
 			form.bindController(this);
+			newAdvice.disableProperty().bind(finished);
+			newItemData.disableProperty().bind(finished);
+			newDescription.disableProperty().bind(finished);
+			newQuantityField.disableProperty().bind(finished);
+			addAdviceButton.disableProperty().bind(finished);
+			deleteAdviceButton.disableProperty().bind(finished);
 			return form;
 		}
 		
@@ -235,6 +250,9 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 				.fieldNode(printPositionButton)
 				.fieldNode(selectAllPositionButton)
 			.end();
+
+			assignPositionButton.disableProperty().bind(finished);
+			deletePositionButton.disableProperty().bind(finished);
 			
 			FormBuilder.Row positionsRow = positionForm.row();
 			positionsRow.fieldNode(positions, GridPane.REMAINING, 1)
@@ -266,7 +284,19 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 			});
 			restoreState(getContext(), true);
 		}
-		
+
+		public void finishAdvices() {
+			LOSGoodsReceipt gr = getData();
+			saveAndRefresh();
+			getExecutor().executeAndWait(getView(), () -> {
+				for (LOSAdvice a : gr.getAssignedAdvices()) {
+					adviceFacade.finishAdvise(new LOSAdviceTO(a));
+				}
+				return null;
+			});
+			restoreState(getContext(), true);
+		}
+
 		public void clearAdvice() {
 			newAdvice.setValue(null);
 			newItemData.setValue(null);
@@ -286,6 +316,10 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		}
 		
 		private void addAdviceAction(Control addAdviceButton) {
+			if (finished.get()) {
+				FXErrors.error(getView(), "Cannot add advice to finished order");
+				return;
+			}
 			LOSAdviceTO advice;
 			LOSGoodsReceipt receipt = getData();
 			if (newAdvice.getValue() != null) {
@@ -315,6 +349,10 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		}
 
 		private void deleteAdviceAction(Control addAdviceButton, LOSAdvice advice) {
+			if (finished.get()) {
+				FXErrors.error(getView(), "Cannot delete advice from finished order");
+				return;
+			}
 			boolean yes = MDialogs.create(getView(), "Delete positions")
 				.masthead("Delete selection positions")
 				.showYesNo();
@@ -337,6 +375,10 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		}
 
 		private void assignPositionsAction(LOSAdvice advice) {
+			if (finished.get()) {
+				FXErrors.error(getView(), "Cannot assign position to finished order");
+				return;
+			}
 			if (advice != null) {
 				CreateGoodsReceiptPosition c = new CreateGoodsReceiptPosition(getData(), advice);
 				getContext().autoInjectBean(c);
@@ -348,6 +390,10 @@ public class GoodsReceiptForm extends MyWMSEditor<LOSGoodsReceipt> {
 		}
 
 		private void deletePositionsAction(Control addAdviceButton, LOSGoodsReceiptPosition pos) {
+			if (finished.get()) {
+				FXErrors.error(getView(), "Cannot delete position from finished order");
+				return;
+			}
 			LOSGoodsReceipt receipt = getData();
 			if (pos != null) {
 				getExecutor().runAndDisable(addAdviceButton, p -> {

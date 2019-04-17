@@ -124,7 +124,7 @@ public class OrderStatusPane extends ControllerCommandBase implements TableKeySe
 				.add(AC.idText("Print unit load label"))
 				.add(AC.idText("Assign order"))
 				.seperator()
-				.add(AC.id(Action.FinishPicking).text("Finish picking"))
+				.add(AC.id(Action.CompletePicking).text("Complete picking"))
 			.end()
 			.add(AC.id(FlowBase.REFRESH_ACTION).icon(R.icons.refresh())
 					.description("Refresh data")

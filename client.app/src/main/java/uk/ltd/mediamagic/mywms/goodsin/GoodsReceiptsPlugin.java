@@ -136,7 +136,7 @@ public class GoodsReceiptsPlugin  extends BODTOPlugin<LOSGoodsReceipt> {
 			for (Long id : ids) {
 				p.step();
 				LOSGoodsReceipt r = query.queryById(id);
-				facade.cancelGoodsReceipt(r);				
+				facade.cancelGoodsReceipt(r);
 			}
 			return null;
 		})

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
+import de.linogistix.los.inventory.facade.AdviceFacade;
 import de.linogistix.los.inventory.model.LOSAdvice;
 import de.linogistix.los.inventory.model.LOSAdviceState;
 import de.linogistix.los.inventory.query.dto.LOSAdviceTO;
@@ -23,11 +24,16 @@ import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
 import uk.ltd.mediamagic.flow.crud.SubForm;
+import uk.ltd.mediamagic.fx.MDialogs;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
+import uk.ltd.mediamagic.fx.data.TableKey;
+import uk.ltd.mediamagic.fx.flow.FXErrors;
+import uk.ltd.mediamagic.fx.flow.Flow;
+import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.util.DateUtils;
@@ -127,6 +133,30 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 		return t;
 	}
 
+
+	public void finishAdvices(BODTOTable<LOSAdvice> source, Flow flow, ViewContext context, TableKey key) {
+		List<BODTO<LOSAdvice>> selected = source.getSelectedItems();
+		if (selected.isEmpty()) {
+			FXErrors.selectionError(source.getView());
+		}
+		
+		boolean yes = MDialogs.create(source.getView(), "Finish advices")
+					.masthead("Mark the selected advices as finished?")
+					.showYesNo();
+		
+		if (yes) {
+			AdviceFacade adviseFacade = context.getBean(AdviceFacade.class);
+			context.getExecutor().executeAndWait(source.getView(), () -> {
+				for (BODTO<LOSAdvice> a : selected) {
+					adviseFacade.finishAdvise(a);
+				}
+				return null;
+			});
+			source.restoreState(source.getContext(), true);
+		}
+	}
+
+	
 	@Override
 	public List<String> getTableColumns() {
 		return Arrays.asList("id", 

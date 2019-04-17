@@ -64,7 +64,7 @@ import uk.ltd.mediamagic.util.DateUtils;
 
 public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 
-	enum Action {FinishOrder, FinishPicking, Remove, AutoStart, Overview, TreatOrder, CreateShippingOrder}
+	enum Action {FinishOrder, CompletePicking, Remove, AutoStart, Overview, TreatOrder, CreateShippingOrder}
 	
 	
 	public OrdersPlugin() {
@@ -300,7 +300,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 		.globalWithSelection()
 			.withSelection(Flow.DELETE_ACTION, this::removeOrder)
 			.withSelection(Action.FinishOrder, this::finishOrder)
-			.withSelection(Action.FinishPicking, this::finishPicking)
+			.withSelection(Action.CompletePicking, this::finishPicking)
 			.withSelection(Action.AutoStart, this::startOrder)
 			.withSelection(Action.TreatOrder, this::treatOrder)
 		.end()
@@ -345,7 +345,7 @@ public class OrdersPlugin  extends BODTOPlugin<LOSCustomerOrder> {
 			.add(AC.id(Action.TreatOrder).text("Treat Order"))
 			.add(AC.id(Action.AutoStart).text("Automatic start picking"))
 			.seperator()
-			.add(AC.id(Action.FinishPicking).text("Finish Picking"))
+			.add(AC.id(Action.CompletePicking).text("Complete Picking"))
 			.add(AC.id(Action.FinishOrder).text("Finish Order"))
 			.end()
 			.add(AC.id(Action.Overview).text("Overview"))
