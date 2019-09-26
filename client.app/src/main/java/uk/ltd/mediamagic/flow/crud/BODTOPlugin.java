@@ -562,6 +562,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	 */
 	protected BODTOTable<T> getTable(ViewContextBase context) {
 		BODTOTable<T> table = new BODTOTable<>();	
+		table.setRowDecorator((d,r) -> {});
 		configureCommands(table.getCommands());
 		table.getCommands().end();
 		context.autoInjectBean(table);
