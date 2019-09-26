@@ -4,8 +4,10 @@ import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import de.linogistix.los.inventory.facade.AdviceFacade;
 import de.linogistix.los.inventory.model.LOSAdvice;
@@ -23,18 +25,25 @@ import javafx.util.StringConverter;
 import uk.ltd.mediamagic.common.utils.Strings;
 import uk.ltd.mediamagic.flow.crud.BODTOPlugin;
 import uk.ltd.mediamagic.flow.crud.BODTOTable;
+import uk.ltd.mediamagic.flow.crud.CRUDKeyUtils;
 import uk.ltd.mediamagic.flow.crud.SubForm;
 import uk.ltd.mediamagic.fx.MDialogs;
+import uk.ltd.mediamagic.fx.action.AC;
+import uk.ltd.mediamagic.fx.action.RootCommand;
+import uk.ltd.mediamagic.fx.concurrent.function.BgConsumer;
+import uk.ltd.mediamagic.fx.control.TableKeySelectable;
 import uk.ltd.mediamagic.fx.controller.list.CellRenderer;
 import uk.ltd.mediamagic.fx.controller.list.MaterialCells;
 import uk.ltd.mediamagic.fx.controller.list.TextRenderer;
 import uk.ltd.mediamagic.fx.converters.DateConverter;
 import uk.ltd.mediamagic.fx.converters.ToStringConverter;
 import uk.ltd.mediamagic.fx.data.TableKey;
+import uk.ltd.mediamagic.fx.flow.ApplicationContext;
 import uk.ltd.mediamagic.fx.flow.FXErrors;
 import uk.ltd.mediamagic.fx.flow.Flow;
 import uk.ltd.mediamagic.fx.flow.ViewContext;
 import uk.ltd.mediamagic.fx.flow.ViewContextBase;
+import uk.ltd.mediamagic.mywms.FlowUtils;
 import uk.ltd.mediamagic.mywms.common.QueryUtils;
 import uk.ltd.mediamagic.util.DateUtils;
 
@@ -53,7 +62,8 @@ import uk.ltd.mediamagic.util.DateUtils;
 
 public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 	public enum AdviceFilter {Open, Overload, All};
-
+	public enum Action {FinishAdivce}
+	
 	public AdvicePlugin() {
 		super(LOSAdvice.class);
 	}
@@ -133,27 +143,15 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 		return t;
 	}
 
+	public void finishAdvices(TableKeySelectable source, Flow flow, ViewContext context, Collection<TableKey> key) {
+		boolean yes = MDialogs.create(context.getRootNode(), "Finish advices")
+				.masthead("Mark the selected advices as finished?")
+				.showYesNo();
 
-	public void finishAdvices(BODTOTable<LOSAdvice> source, Flow flow, ViewContext context, TableKey key) {
-		List<BODTO<LOSAdvice>> selected = source.getSelectedItems();
-		if (selected.isEmpty()) {
-			FXErrors.selectionError(source.getView());
-		}
-		
-		boolean yes = MDialogs.create(source.getView(), "Finish advices")
-					.masthead("Mark the selected advices as finished?")
-					.showYesNo();
-		
 		if (yes) {
 			AdviceFacade adviseFacade = context.getBean(AdviceFacade.class);
-			context.getExecutor().executeAndWait(source.getView(), () -> {
-				for (BODTO<LOSAdvice> a : selected) {
-					adviseFacade.finishAdvise(a);
-				}
-				return null;
-			});
-			source.restoreState(source.getContext(), true);
-		}
+			withMultiSelectionTO(context, key, adviseFacade::finishAdvise);
+		}		
 	}
 
 	
@@ -164,6 +162,20 @@ public class AdvicePlugin  extends BODTOPlugin<LOSAdvice> {
 				"itemData AS itemData.number", "itemDataName AS itemData.name", 
 				"lot AS lot.name", 
 				"notifiedAmount", "receiptAmount", "expectedDelivery", "state");
+	}
+	
+	@Override
+	public Flow createNewFlow(ApplicationContext context) {
+		return super.createNewFlow(context)
+				.globalWithSelection()
+					.withMultiSelection(Action.FinishAdivce, this::finishAdvices)
+				.end();
+	}
+	
+	@Override
+	protected void configureCommands(RootCommand command) {
+		super.configureCommands(command);
+		command.add(AC.id(Action.FinishAdivce).text("Finish Advice")).end();
 	}
 	
 }

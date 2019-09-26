@@ -70,11 +70,12 @@ public class AdviceFacadeBean implements AdviceFacade {
 	}
 
 	public void finishAdvise(BODTO<LOSAdvice> adv) throws InventoryException {
-		log.debug("finishAdvise Start advId=" + adv.getId());
+		log.info("finishAdvise Start advId=" + adv.getId());
 		LOSAdvice adv2 = manager.find(LOSAdvice.class, adv.getId());
 		
 		// Find GoodsReceipts with this advice
 		List<LOSGoodsReceipt> grList = grService.getByAdvice(adv2);
+		log.info("finishAdvise for goods Receipts to check " + grList.size());
 		for( LOSGoodsReceipt gr : grList ) {
 			if( gr.getReceiptState() != LOSGoodsReceiptState.CANCELED &&  gr.getReceiptState() != LOSGoodsReceiptState.FINISHED ) {
 				throw new InventoryException(InventoryExceptionKey.GOODS_RECEIPT_NOT_FINISHED, gr.getGoodsReceiptNumber());
