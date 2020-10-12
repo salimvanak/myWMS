@@ -35,7 +35,7 @@ import uk.ltd.mediamagic.mywms.common.MyWMSUserPermissions;
 	)
 @SubForm(
 		title="Unit", columns=2,
-		properties={"numberOfDecimals", "handlingUnit"}
+		properties={"scale", "handlingUnit"}
 		)
 @SubForm(
 		title="Measurment", columns=2, 
