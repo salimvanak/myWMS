@@ -47,6 +47,10 @@ public class MyWMSUserPermissions implements UserPermissions {
 	public MyWMSUserPermissions() {
 	}
 
+	public ObservableBooleanValue isDeleteAllowed() {
+		return ObservableConstant.FALSE;		
+	}
+	
 	@Override
 	public ObservableBooleanValue isEditable(String colName) {
 		if ("created".equals(colName)) return ObservableConstant.FALSE;
@@ -61,6 +65,10 @@ public class MyWMSUserPermissions implements UserPermissions {
 		 
 	public static class ForMasterData extends MyWMSUserPermissions {
 		public ForMasterData() {
+		}
+
+		public ObservableBooleanValue isDeleteAllowed() {
+			return isAdmin;		
 		}
 		
 		@Override

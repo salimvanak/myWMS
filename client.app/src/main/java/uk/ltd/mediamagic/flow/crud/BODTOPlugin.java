@@ -87,7 +87,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	private final Class<? extends BusinessObjectCRUDRemote<T>> crudBean;
 	private final Class<? extends BODTO<T>> toClass;
 	private final BeanInfo beanInfo;
-	private UserPermissions userPermissions = new MyWMSUserPermissions();
+	private MyWMSUserPermissions userPermissions = new MyWMSUserPermissions();
 	
 	public BODTOPlugin(Class<T> boClass) {
 		super();
@@ -149,7 +149,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	protected void configureCommands(RootCommand command) {
 	}
 
-	public UserPermissions getUserPermissions() {
+	public MyWMSUserPermissions getUserPermissions() {
 		return userPermissions;
 	}
 	
@@ -159,7 +159,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	 * fields for this data type 
 	 * @param userPermissions
 	 */
-	protected void setUserPermissions(UserPermissions userPermissions) {
+	protected void setUserPermissions(MyWMSUserPermissions userPermissions) {
 		this.userPermissions = userPermissions;
 	}
 
@@ -234,7 +234,7 @@ public abstract class BODTOPlugin<T extends BasicEntity> extends MyWMSMainMenuPl
 	}
 
 	protected ObservableBooleanValue deleteAllowedBinding() {
-		return ObservableConstant.FALSE;
+		return getUserPermissions().isDeleteAllowed();
 	}
 
 	/**

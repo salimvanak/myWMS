@@ -44,7 +44,13 @@ dependencies {
   compile project(path: ':server.app:los.location-ejb')
   compile project(path: ':server.app:los.inventory-ejb')
   compile project(path: ':server.app:los.stocktaking-ejb')
+  compile project(path: ':server.app:project-ejb')
 }
+
+run {
+  main = 'uk.ltd.mediamagic.mywms.MyWMS'
+}
+
 
 task collect(type: Copy) {
 	description "Copies all the project jar files in the build/libs ready for packaging"
