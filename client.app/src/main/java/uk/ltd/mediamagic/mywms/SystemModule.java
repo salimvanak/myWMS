@@ -23,6 +23,7 @@ public class SystemModule extends AbstractPluginSet {
     m.put(RolesPlugin.class);
     m.put(ClientsPlugin.class);
     m.put(PropertiesPlugin.class);
+    m.put(DemoDataPlugin.class);
     //m.put(StockUnitCleanupPlugin.class);
 
     return m;
