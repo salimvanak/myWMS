@@ -51,7 +51,7 @@ import org.jboss.ws.api.annotation.WebContext;
 @WebContext(contextRoot = "/webservice", authMethod="BASIC", transportGuarantee="NONE", secureWSDLAccess=true)
 //dgrys portierung wildfly 8.2, workaround to call web service, required to log in
 @PermitAll
-public class QueryInventoryBean implements QueryInventory{
+public class QueryInventoryBean implements QueryInventory {
 
 	Logger log = Logger.getLogger(QueryInventoryBean.class);
 	
